@@ -1,5 +1,5 @@
 export default {
-  async fetch(request) {
+  async fetch(request, env) {
     const cors = {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET,POST,PATCH,OPTIONS',
@@ -8,6 +8,39 @@ export default {
     if (request.method === 'OPTIONS') return new Response(null, { headers: cors });
 
     const url = new URL(request.url);
+
+    // Workers AI: model runs inside this Worker, no external key needed.
+    if (url.pathname === '/ai') {
+      if (request.method !== 'POST') {
+        return new Response('Use POST', { status: 405, headers: cors });
+      }
+      let payload;
+      try {
+        payload = await request.json();
+      } catch (e) {
+        return new Response('Invalid JSON body', { status: 400, headers: cors });
+      }
+      const { messages, temperature, max_tokens } = payload || {};
+      if (!Array.isArray(messages)) {
+        return new Response('Body must include a "messages" array', { status: 400, headers: cors });
+      }
+      try {
+        const result = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+          messages,
+          temperature: typeof temperature === 'number' ? temperature : 0.2,
+          max_tokens: typeof max_tokens === 'number' ? max_tokens : 2000
+        });
+        return new Response(JSON.stringify(result), {
+          headers: { ...cors, 'Content-Type': 'application/json' }
+        });
+      } catch (e) {
+        return new Response('Workers AI call failed: ' + (e && e.message ? e.message : String(e)), {
+          status: 502,
+          headers: cors
+        });
+      }
+    }
+
     const headers = new Headers(request.headers);
     headers.delete('host');
 
