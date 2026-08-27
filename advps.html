@@ -166,14 +166,6 @@
         <label>Project</label>
         <input type="text" id="project" value="TF100 PAM Gap Management">
       </div>
-      <div>
-        <label>Work item type</label>
-        <input type="text" id="witype" value="Review">
-      </div>
-      <div>
-        <label>Title prefix</label>
-        <input type="text" id="prefix" value="REV-">
-      </div>
     </div>
 
     <hr class="section-divider">
@@ -197,6 +189,27 @@
     <div class="status" id="connStatus"></div>
     </div>
   </div>
+
+  <div class="card">
+    <div class="card-header collapsed" data-collapse-target="body-workitem">
+      <h2><span class="chevron">▾</span>Work item settings</h2>
+    </div>
+    <div class="card-body collapsed" id="body-workitem">
+    <div class="row">
+      <div>
+        <label>Work item type</label>
+        <select id="witype">
+          <option value="Review" selected>Review</option>
+        </select>
+      </div>
+      <div>
+        <label>Title prefix</label>
+        <input type="text" id="prefix" value="REV-">
+      </div>
+    </div>
+    </div>
+  </div>
+
 
   <div class="card">
     <div class="card-header" data-collapse-target="body-existing">
@@ -399,6 +412,31 @@ function adoBase(c){
   return c.proxy ? c.proxy + '/ado' : 'https://dev.azure.com';
 }
 
+// ---- populate work item type dropdown from the project ----
+async function loadWorkItemTypes(c){
+  const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/workitemtypes?api-version=7.1`;
+  const res = await fetch(url, { headers: adoHeaders(c.pat) });
+  if(!res.ok){
+    const txt = await res.text();
+    throw new Error(`workitemtypes list failed (${res.status}): ${txt.slice(0,150)}`);
+  }
+  const data = await res.json();
+  const types = (data.value || []).map(t=>t.name).sort();
+  if(types.length === 0) throw new Error('workitemtypes list returned 0 types');
+  const sel = $('witype');
+  const previous = sel.value || 'Review';
+  sel.innerHTML = '';
+  types.forEach(name=>{
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name;
+    sel.appendChild(opt);
+  });
+  if(types.includes(previous)) sel.value = previous;
+  else if(types.includes('Review')) sel.value = 'Review';
+  else sel.value = types[0];
+  return types.length;
+}
+
 // ---- test connection ----
 $('testBtn').addEventListener('click', async ()=>{
   const c = cfg();
@@ -409,10 +447,17 @@ $('testBtn').addEventListener('click', async ()=>{
     const res = await fetch(url, { headers: adoHeaders(c.pat) });
     if(res.status === 200){
       const data = await res.json();
-      setStatus('connStatus', `Connected. Work item type "${data.name}" found in this project.`, 'ok');
+      let msg = `Connected. Work item type "${data.name}" found in this project.`;
       if($('rememberPat').checked){
         try{ await window.storage.set('ado_pat', c.pat, false); }catch(e){}
       }
+      try{
+        const count = await loadWorkItemTypes(c);
+        msg += ` Loaded ${count} work item types into the dropdown.`;
+      }catch(werr){
+        msg += ` (Could not load full type list: ${werr.message})`;
+      }
+      setStatus('connStatus', msg, 'ok');
     } else if(res.status === 0){
       throw new Error('cors');
     } else {
