@@ -1,3 +1,4 @@
+// Cloudflare Worker
 export default {
   async fetch(request) {
     const cors = {
