@@ -643,8 +643,14 @@ $('createBtn').addEventListener('click', async ()=>{
         next++;
       } else {
         const txt = await res.text();
-        line.innerHTML = `✗ ${title} — failed (${res.status})`;
+        let reason = txt;
+        try{
+          const j = JSON.parse(txt);
+          reason = j.message || j.value?.Message || txt;
+        }catch(e){}
+        line.innerHTML = `✗ ${title} — failed (${res.status}): ${escapeAttr(reason.slice(0,300))}`;
         line.style.color = 'var(--danger)';
+        console.error('ADO create failed', res.status, txt);
       }
       $('results').appendChild(line);
     }
