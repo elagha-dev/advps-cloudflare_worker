@@ -25,7 +25,7 @@ export default {
         return new Response('Body must include a "messages" array', { status: 400, headers: cors });
       }
       try {
-        const result = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+        const result = await env.AI.run('@cf/meta/llama-3.1-8b-instruct-fast', {
           messages,
           temperature: typeof temperature === 'number' ? temperature : 0.2,
           max_tokens: typeof max_tokens === 'number' ? max_tokens : 2000
