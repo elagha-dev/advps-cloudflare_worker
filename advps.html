@@ -275,16 +275,45 @@ $('setupsToggle').addEventListener('click', ()=>{
   btn.textContent = panel.classList.contains('open') ? 'Setups ▴' : 'Setups ▾';
 });
 
+// ---- storage shim: use window.storage inside Claude artifact preview,
+// fall back to localStorage once deployed as a real page (GitHub Pages, etc.) ----
+const storage = (function(){
+  if (window.storage) return window.storage;
+  const ns = 'advps:';
+  return {
+    async get(key){
+      const v = localStorage.getItem(ns+key);
+      return v === null ? null : { key, value: v };
+    },
+    async set(key, value){
+      localStorage.setItem(ns+key, value);
+      return { key, value };
+    },
+    async delete(key){
+      localStorage.removeItem(ns+key);
+      return { key, deleted:true };
+    },
+    async list(prefix){
+      const keys = [];
+      for(let i=0;i<localStorage.length;i++){
+        const k = localStorage.key(i);
+        if(k && k.startsWith(ns + (prefix||''))) keys.push(k.slice(ns.length));
+      }
+      return { keys };
+    }
+  };
+})();
+
 // ---- token persistence (opt-in, personal, unshared) ----
 async function loadSavedPat(){
   try{
-    const r = await window.storage.get('ado_pat', false);
+    const r = await storage.get('ado_pat', false);
     if(r && r.value){ $('pat').value = r.value; $('rememberPat').checked = true; }
   }catch(e){}
 }
 async function savePatIfRemembering(){
   if($('rememberPat').checked && $('pat').value){
-    try{ await window.storage.set('ado_pat', $('pat').value, false); }catch(e){}
+    try{ await storage.set('ado_pat', $('pat').value, false); }catch(e){}
   }
 }
 
@@ -301,11 +330,11 @@ function applyFields(o){
   if(o.pat !== undefined){ $('pat').value = o.pat; $('rememberPat').checked = true; }
 }
 async function saveLastFields(){
-  try{ await window.storage.set('ado_last', JSON.stringify(currentFields()), false); }catch(e){}
+  try{ await storage.set('ado_last', JSON.stringify(currentFields()), false); }catch(e){}
 }
 async function loadLastFields(){
   try{
-    const r = await window.storage.get('ado_last', false);
+    const r = await storage.get('ado_last', false);
     if(r && r.value) applyFields(JSON.parse(r.value));
   }catch(e){}
 }
@@ -315,12 +344,12 @@ $('pat').addEventListener('change', async ()=>{ await savePatIfRemembering(); aw
 // ---- named saved setups (multiple projects) ----
 async function getSetups(){
   try{
-    const r = await window.storage.get('ado_setups', false);
+    const r = await storage.get('ado_setups', false);
     return r && r.value ? JSON.parse(r.value) : {};
   }catch(e){ return {}; }
 }
 async function setSetups(obj){
-  try{ await window.storage.set('ado_setups', JSON.stringify(obj), false); }catch(e){}
+  try{ await storage.set('ado_setups', JSON.stringify(obj), false); }catch(e){}
 }
 async function refreshSetupSelect(selectName){
   const setups = await getSetups();
@@ -374,12 +403,12 @@ $('rememberPat').addEventListener('change', async e=>{
   if(e.target.checked){
     await savePatIfRemembering();
   } else {
-    try{ await window.storage.delete('ado_pat', false); }catch(e){}
+    try{ await storage.delete('ado_pat', false); }catch(e){}
   }
   await saveLastFields();
 });
 $('forgetBtn').addEventListener('click', async ()=>{
-  try{ await window.storage.delete('ado_pat', false); }catch(e){}
+  try{ await storage.delete('ado_pat', false); }catch(e){}
   $('pat').value=''; $('rememberPat').checked=false;
   setStatus('connStatus','Saved token cleared.','ok');
 });
@@ -449,7 +478,7 @@ $('testBtn').addEventListener('click', async ()=>{
       const data = await res.json();
       let msg = `Connected. Work item type "${data.name}" found in this project.`;
       if($('rememberPat').checked){
-        try{ await window.storage.set('ado_pat', c.pat, false); }catch(e){}
+        try{ await storage.set('ado_pat', c.pat, false); }catch(e){}
       }
       try{
         const count = await loadWorkItemTypes(c);
@@ -610,6 +639,20 @@ async function getNextNumber(c){
 }
 function escapeRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
+// ---- check for required fields on the work item type beyond Title/Description ----
+// Returns { missing: [{name, refName}], ok: boolean }
+async function getMissingRequiredFields(c){
+  const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/workitemtypes/${encodeURIComponent(c.witype)}/fields?api-version=7.1`;
+  const res = await fetch(url, { headers: adoHeaders(c.pat) });
+  if(!res.ok) return { missing: [], checked:false }; // don't block creation if we can't check
+  const data = await res.json();
+  const covered = new Set(['System.Title','System.Description','System.AreaPath','System.IterationPath']);
+  const missing = (data.value||[])
+    .filter(f => f.alwaysRequired && !covered.has(f.referenceName))
+    .map(f => ({ name: f.name, refName: f.referenceName }));
+  return { missing, checked:true };
+}
+
 // ---- create items ----
 $('createBtn').addEventListener('click', async ()=>{
   const c = cfg();
@@ -620,6 +663,12 @@ $('createBtn').addEventListener('click', async ()=>{
   setStatus('createStatus','Creating…','');
   $('results').innerHTML = '';
   try{
+    const { missing, checked } = await getMissingRequiredFields(c);
+    let warningNote = '';
+    if(checked && missing.length){
+      const names = missing.map(f=>f.name).join(', ');
+      warningNote = ` Note: "${c.witype}" also requires: ${names} — this tool doesn't set them, so items may fail until filled in ADO.`;
+    }
     let next = await getNextNumber(c);
     const witUrl = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/workitems/$${encodeURIComponent(c.witype)}?api-version=7.1`;
     for(const it of toCreate){
@@ -627,7 +676,9 @@ $('createBtn').addEventListener('click', async ()=>{
       const title = `${c.prefix}${num}: ${it.title.trim()}`;
       const body = [
         { op:'add', path:'/fields/System.Title', value: title },
-        { op:'add', path:'/fields/System.Description', value: (it.description||'').replace(/\n/g,'<br>') }
+        { op:'add', path:'/fields/System.Description', value: (it.description||'').replace(/\n/g,'<br>') },
+        { op:'add', path:'/fields/System.AreaPath', value: c.project },
+        { op:'add', path:'/fields/System.IterationPath', value: c.project }
       ];
       const res = await fetch(witUrl, {
         method:'POST',
@@ -654,7 +705,7 @@ $('createBtn').addEventListener('click', async ()=>{
       }
       $('results').appendChild(line);
     }
-    setStatus('createStatus','Done.','ok');
+    setStatus('createStatus', 'Done.' + warningNote, warningNote ? 'warn' : 'ok');
   }catch(err){
     setStatus('createStatus', 'Something failed talking to Azure DevOps (see console / possibly CORS).', 'err');
   }
