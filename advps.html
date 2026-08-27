@@ -215,6 +215,36 @@
     </div>
   </div>
 
+  <div class="card">
+    <div class="card-header collapsed" data-collapse-target="body-ai">
+      <h2><span class="chevron">▾</span>AI settings (Azure OpenAI)</h2>
+    </div>
+    <div class="card-body collapsed" id="body-ai">
+    <div class="row">
+      <div>
+        <label>Endpoint</label>
+        <input type="text" id="aoaiEndpoint" placeholder="https://your-resource.openai.azure.com">
+      </div>
+      <div>
+        <label>Deployment name</label>
+        <input type="text" id="aoaiDeployment" placeholder="gpt-4o">
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>API version</label>
+        <input type="text" id="aoaiApiVersion" value="2024-08-01-preview">
+      </div>
+      <div>
+        <label>API key</label>
+        <input type="password" id="aoaiKey" placeholder="Paste your Azure OpenAI key">
+      </div>
+    </div>
+    <label class="check"><input type="checkbox" id="rememberAoaiKey"> Remember key on this device</label>
+    <div class="status" id="aoaiStatus"></div>
+    </div>
+  </div>
+
 
   <div class="card">
     <div class="card-header" data-collapse-target="body-existing">
@@ -234,9 +264,10 @@
       <h2><span class="chevron">▾</span>Paste dump or email</h2>
     </div>
     <div class="card-body" id="body-paste">
-    <textarea id="dump" rows="9" placeholder="Paste your notes here. Separate each item with a blank line — one paragraph = one item."></textarea>
+    <textarea id="dump" rows="9" placeholder="Paste your notes here. Separate each item with a blank line — one paragraph = one item. Or use AI: Generate items below for messy/raw notes."></textarea>
     <div class="btn-row">
-      <button class="btn" id="analyzeBtn">Split into items</button>
+      <button class="btn secondary" id="analyzeBtn">Split by blank lines</button>
+      <button class="btn" id="aiSplitBtn">✦ AI: Generate items</button>
     </div>
     <div class="status" id="analyzeStatus"></div>
     </div>
@@ -323,17 +354,38 @@ async function savePatIfRemembering(){
   }
 }
 
+// ---- AOAI key persistence (opt-in, personal, unshared) ----
+async function loadSavedAoaiKey(){
+  try{
+    const r = await storage.get('aoai_key', false);
+    if(r && r.value){ $('aoaiKey').value = r.value; $('rememberAoaiKey').checked = true; }
+  }catch(e){}
+}
+async function saveAoaiKeyIfRemembering(){
+  if($('rememberAoaiKey').checked && $('aoaiKey').value){
+    try{ await storage.set('aoai_key', $('aoaiKey').value, false); }catch(e){}
+  }
+}
+$('aoaiKey').addEventListener('change', async ()=>{ await saveAoaiKeyIfRemembering(); await saveLastFields(); });
+$('rememberAoaiKey').addEventListener('change', async e=>{
+  if(e.target.checked){ await saveAoaiKeyIfRemembering(); }
+  else{ try{ await storage.delete('aoai_key', false); }catch(e2){} }
+  await saveLastFields();
+});
+
 // ---- field auto-restore (last used values) ----
-const fieldIds = ['org','project','witype','prefix','proxy'];
+const fieldIds = ['org','project','witype','prefix','proxy','aoaiEndpoint','aoaiDeployment','aoaiApiVersion'];
 function currentFields(){
   const o = {};
   fieldIds.forEach(id => o[id] = $(id).value);
   if($('rememberPat').checked){ o.pat = $('pat').value; }
+  if($('rememberAoaiKey').checked){ o.aoaiKey = $('aoaiKey').value; }
   return o;
 }
 function applyFields(o){
   fieldIds.forEach(id => { if(o[id] !== undefined) $(id).value = o[id]; });
   if(o.pat !== undefined){ $('pat').value = o.pat; $('rememberPat').checked = true; }
+  if(o.aoaiKey !== undefined){ $('aoaiKey').value = o.aoaiKey; $('rememberAoaiKey').checked = true; }
 }
 async function saveLastFields(){
   try{ await storage.set('ado_last', JSON.stringify(currentFields()), false); }catch(e){}
@@ -403,6 +455,7 @@ $('setupSelect').addEventListener('change', async ()=>{
   await loadLastFields();
   await refreshSetupSelect();
   await loadSavedPat();
+  await loadSavedAoaiKey();
 })();
 
 $('rememberPat').addEventListener('change', async e=>{
@@ -439,7 +492,11 @@ function cfg(){
     witype: $('witype').value.trim() || 'Review',
     prefix: $('prefix').value.trim() || 'Rev-',
     pat: $('pat').value.trim(),
-    proxy: $('proxy').value.trim().replace(/\/$/,'')
+    proxy: $('proxy').value.trim().replace(/\/$/,''),
+    aoaiEndpoint: $('aoaiEndpoint').value.trim().replace(/\/$/,''),
+    aoaiDeployment: $('aoaiDeployment').value.trim(),
+    aoaiApiVersion: $('aoaiApiVersion').value.trim() || '2024-08-01-preview',
+    aoaiKey: $('aoaiKey').value.trim()
   };
 }
 
@@ -535,6 +592,78 @@ $('analyzeBtn').addEventListener('click', ()=>{
   setStatus('analyzeStatus',
     `Split into ${parsedItems.length} item(s) by blank lines. Edit titles/descriptions below before creating.`,
     'ok');
+});
+
+// ---- AI: turn raw/messy notes into clean titled items ----
+const AI_SYSTEM_PROMPT = `You turn raw, messy, stream-of-consciousness notes (often dictated live while someone else is talking) into individual Azure DevOps work items.
+
+Rules:
+- The input may contain filler words, interruptions, half-finished thoughts, or unrelated fragments. Ignore noise; extract only the distinct, meaningful topics or concerns actually present.
+- For each distinct topic, produce one item with:
+  - "title": a short, clear headline (under 10 words) summarizing the topic.
+  - "description": a clean, well-written description (1-4 sentences) explaining the concern, based only on what was actually said. Do not invent facts, numbers, or names that weren't mentioned.
+- If the notes only describe one topic, return exactly one item.
+- If nothing meaningful can be extracted, return an empty items array.
+- Respond with ONLY valid JSON in this exact shape, no markdown fences, no commentary:
+{"items":[{"title":"...", "description":"..."}]}`;
+
+async function callAoai(c, userText){
+  const base = c.proxy ? `${c.proxy}/aoai` : c.aoaiEndpoint;
+  const url = `${base}/openai/deployments/${encodeURIComponent(c.aoaiDeployment)}/chat/completions?api-version=${encodeURIComponent(c.aoaiApiVersion)}`;
+  const headers = { 'Content-Type':'application/json', 'api-key': c.aoaiKey };
+  if(c.proxy) headers['X-AOAI-Endpoint'] = c.aoaiEndpoint;
+  const res = await fetch(url, {
+    method:'POST',
+    headers,
+    body: JSON.stringify({
+      messages: [
+        { role:'system', content: AI_SYSTEM_PROMPT },
+        { role:'user', content: userText }
+      ],
+      temperature: 0.2,
+      max_tokens: 2000
+    })
+  });
+  if(!res.ok){
+    const txt = await res.text();
+    throw new Error(`AOAI call failed (${res.status}): ${txt.slice(0,300)}`);
+  }
+  const data = await res.json();
+  const content = data.choices?.[0]?.message?.content || '';
+  const cleaned = content.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+  let parsed;
+  try{ parsed = JSON.parse(cleaned); }
+  catch(e){ throw new Error('Model did not return valid JSON: ' + cleaned.slice(0,200)); }
+  return Array.isArray(parsed.items) ? parsed.items : [];
+}
+
+$('aiSplitBtn').addEventListener('click', async ()=>{
+  const text = $('dump').value.trim();
+  if(!text){ setStatus('analyzeStatus','Paste something first.','err'); return; }
+  const c = cfg();
+  if(!c.aoaiEndpoint || !c.aoaiDeployment || !c.aoaiKey){
+    setStatus('analyzeStatus','Fill in AI settings (endpoint, deployment, key) first.','err');
+    return;
+  }
+  $('aiSplitBtn').disabled = true;
+  setStatus('analyzeStatus','Asking AI to make sense of this…','');
+  try{
+    const items = await callAoai(c, text);
+    if(items.length === 0){
+      setStatus('analyzeStatus','AI found nothing usable in that text.','warn');
+      return;
+    }
+    parsedItems = items.map(it => ({
+      title: (it.title||'').trim(),
+      description: (it.description||'').trim(),
+      include: true
+    })).filter(it => it.title);
+    renderItems();
+    setStatus('analyzeStatus', `AI generated ${parsedItems.length} item(s). Review titles/descriptions below before creating.`, 'ok');
+  }catch(err){
+    setStatus('analyzeStatus', err.message || 'AI request failed.', 'err');
+  }
+  $('aiSplitBtn').disabled = false;
 });
 
 $('addItemBtn').addEventListener('click', ()=>{
