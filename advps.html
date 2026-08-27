@@ -103,6 +103,11 @@
   .item input[type=text]{font-weight:600; margin-bottom:7px; background:var(--panel);}
   .item textarea{background:var(--panel);}
   .item-actions{display:flex; justify-content:space-between; align-items:center; margin-top:8px;}
+  .extra-fields{background:var(--panel2); border:1px solid var(--line); border-radius:6px; padding:14px; margin:14px 0;}
+  .extra-fields h3{font-size:12px; text-transform:uppercase; letter-spacing:.06em; margin:0 0 10px; font-weight:700; color:var(--text);}
+  .extra-fields .field{margin-bottom:12px;}
+  .extra-fields .field:last-child{margin-bottom:0;}
+  .extra-fields label{margin-bottom:5px;}
   .link{color:var(--accent); text-decoration:none; font-size:13px; font-weight:500;}
   .empty{color:var(--muted); font-size:13px; font-style:italic;}
   .result-line{font-size:13.5px; padding:7px 2px; border-bottom:1px solid var(--line);}
@@ -243,6 +248,7 @@
     </div>
     <div class="card-body" id="body-items">
     <div id="itemsList"></div>
+    <div id="extraFieldsWrap"></div>
     <div class="btn-row">
       <button class="btn secondary" id="addItemBtn">+ Add item manually</button>
       <button class="btn" id="createBtn">Create in Azure DevOps</button>
@@ -639,19 +645,89 @@ async function getNextNumber(c){
 }
 function escapeRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
-// ---- check for required fields on the work item type beyond Title/Description ----
-// Returns { missing: [{name, refName}], ok: boolean }
+// ---- required-field detection + dynamic inputs ----
+let requiredFieldDefs = [];       // [{name, refName, allowedValues}]
+let extraFieldsRenderedFor = null; // witype string these inputs were built for
+
+async function getFieldAllowedValues(c, refName){
+  const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/workitemtypes/${encodeURIComponent(c.witype)}/fields/${encodeURIComponent(refName)}?$expand=allowedvalues&api-version=7.1`;
+  try{
+    const res = await fetch(url, { headers: adoHeaders(c.pat) });
+    if(!res.ok) return [];
+    const data = await res.json();
+    return data.allowedValues || [];
+  }catch(e){ return []; }
+}
+
+// Returns { missing: [{name, refName, allowedValues}], checked: boolean }
 async function getMissingRequiredFields(c){
   const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/workitemtypes/${encodeURIComponent(c.witype)}/fields?api-version=7.1`;
   const res = await fetch(url, { headers: adoHeaders(c.pat) });
   if(!res.ok) return { missing: [], checked:false }; // don't block creation if we can't check
   const data = await res.json();
-  const covered = new Set(['System.Title','System.Description','System.AreaPath','System.IterationPath']);
-  const missing = (data.value||[])
-    .filter(f => f.alwaysRequired && !covered.has(f.referenceName))
-    .map(f => ({ name: f.name, refName: f.referenceName }));
+  const covered = new Set(['System.Title','System.Description','System.AreaPath','System.IterationPath','System.State']);
+  const candidates = (data.value||[]).filter(f => f.alwaysRequired && !covered.has(f.referenceName));
+  const missing = [];
+  for(const f of candidates){
+    const allowedValues = await getFieldAllowedValues(c, f.referenceName);
+    missing.push({ name: f.name, refName: f.referenceName, allowedValues });
+  }
   return { missing, checked:true };
 }
+
+function renderExtraFields(fields){
+  const wrap = $('extraFieldsWrap');
+  wrap.innerHTML = '';
+  if(!fields.length) return;
+  const box = document.createElement('div');
+  box.className = 'extra-fields';
+  const h = document.createElement('h3');
+  h.textContent = `Required by "${$('witype').value}" (applies to all items below)`;
+  box.appendChild(h);
+  fields.forEach(f=>{
+    const fieldDiv = document.createElement('div');
+    fieldDiv.className = 'field';
+    const label = document.createElement('label');
+    label.textContent = f.name;
+    fieldDiv.appendChild(label);
+    let input;
+    if(f.allowedValues && f.allowedValues.length){
+      input = document.createElement('select');
+      const optEmpty = document.createElement('option');
+      optEmpty.value=''; optEmpty.textContent = `— choose ${f.name} —`;
+      input.appendChild(optEmpty);
+      f.allowedValues.forEach(v=>{
+        const opt = document.createElement('option');
+        opt.value = v; opt.textContent = v;
+        input.appendChild(opt);
+      });
+    } else {
+      input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = f.name;
+    }
+    input.dataset.refname = f.refName;
+    fieldDiv.appendChild(input);
+    box.appendChild(fieldDiv);
+  });
+  wrap.appendChild(box);
+}
+
+function getExtraFieldValues(){
+  const inputs = $('extraFieldsWrap').querySelectorAll('[data-refname]');
+  const values = {};
+  const missingNames = [];
+  inputs.forEach(inp=>{
+    const v = inp.value.trim();
+    if(v) values[inp.dataset.refname] = v;
+    else missingNames.push(inp.previousSibling ? inp.previousSibling.textContent : inp.dataset.refname);
+  });
+  return { values, missingNames };
+}
+$('witype').addEventListener('change', ()=>{
+  extraFieldsRenderedFor = null;
+  $('extraFieldsWrap').innerHTML = '';
+});
 
 // ---- create items ----
 $('createBtn').addEventListener('click', async ()=>{
@@ -660,15 +736,27 @@ $('createBtn').addEventListener('click', async ()=>{
   const toCreate = parsedItems.filter(it=>it.include && it.title.trim());
   if(toCreate.length===0){ setStatus('createStatus','Nothing selected to create.','err'); return; }
   $('createBtn').disabled = true;
-  setStatus('createStatus','Creating…','');
-  $('results').innerHTML = '';
   try{
-    const { missing, checked } = await getMissingRequiredFields(c);
-    let warningNote = '';
-    if(checked && missing.length){
-      const names = missing.map(f=>f.name).join(', ');
-      warningNote = ` Note: "${c.witype}" also requires: ${names} — this tool doesn't set them, so items may fail until filled in ADO.`;
+    if(extraFieldsRenderedFor !== c.witype){
+      setStatus('createStatus','Checking required fields…','');
+      const { missing } = await getMissingRequiredFields(c);
+      requiredFieldDefs = missing;
+      renderExtraFields(missing);
+      extraFieldsRenderedFor = c.witype;
+      if(missing.length){
+        setStatus('createStatus', `"${c.witype}" requires ${missing.map(f=>f.name).join(', ')} — fill them in above, then tap Create again.`, 'warn');
+        $('createBtn').disabled = false;
+        return;
+      }
     }
+    const { values, missingNames } = getExtraFieldValues();
+    if(requiredFieldDefs.length && missingNames.length){
+      setStatus('createStatus', `Please fill in: ${missingNames.join(', ')}.`, 'err');
+      $('createBtn').disabled = false;
+      return;
+    }
+    setStatus('createStatus','Creating…','');
+    $('results').innerHTML = '';
     let next = await getNextNumber(c);
     const witUrl = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/workitems/$${encodeURIComponent(c.witype)}?api-version=7.1`;
     for(const it of toCreate){
@@ -680,6 +768,9 @@ $('createBtn').addEventListener('click', async ()=>{
         { op:'add', path:'/fields/System.AreaPath', value: c.project },
         { op:'add', path:'/fields/System.IterationPath', value: c.project }
       ];
+      Object.entries(values).forEach(([refName, val])=>{
+        body.push({ op:'add', path:`/fields/${refName}`, value: val });
+      });
       const res = await fetch(witUrl, {
         method:'POST',
         headers: { ...adoHeaders(c.pat), 'Content-Type':'application/json-patch+json' },
@@ -705,7 +796,7 @@ $('createBtn').addEventListener('click', async ()=>{
       }
       $('results').appendChild(line);
     }
-    setStatus('createStatus', 'Done.' + warningNote, warningNote ? 'warn' : 'ok');
+    setStatus('createStatus', 'Done.', 'ok');
   }catch(err){
     setStatus('createStatus', 'Something failed talking to Azure DevOps (see console / possibly CORS).', 'err');
   }
