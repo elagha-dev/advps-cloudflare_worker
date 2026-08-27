@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Review Items">
+<meta name="theme-color" content="#005a9e">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" type="image/png" href="icons/favicon-32.png">
+<link rel="manifest" href="manifest.json">
+<meta charset="UTF-8">
+<title>Review Item Creator</title>
+<style>
+  :root{
+    --bg:#fbfaf8;
+    --panel:#ffffff;
+    --panel2:#f7f6f3;
+    --line:#ece9e3;
+    --text:#000000;
+    --muted:#000000;
+    --accent:#2383e2;
+    --accent-soft:#e7f2fd;
+    --accent-ink:#ffffff;
+    --danger:#eb5757;
+    --danger-soft:#fce9e9;
+    --warn:#d9822b;
+    --warn-soft:#fbf0dc;
+    --ok-soft:#e9f6ee;
+    --shadow: 0 1px 2px rgba(55,53,47,.06), 0 2px 8px rgba(55,53,47,.05);
+    --mono: "SF Mono", "Consolas", "Menlo", monospace;
+    --sans: -apple-system, "Segoe UI", ui-rounded, Inter, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text); font-family:var(--sans);
+    padding:28px 16px 90px; line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:720px; margin:0 auto;}
+  h1{font-size:22px; font-weight:700; margin:0 0 5px; letter-spacing:-.01em;}
+  .sub{color:var(--muted); font-size:13.5px; margin:0 0 26px;}
+  .card{
+    background:var(--panel); border:1px solid var(--line); border-radius:6px;
+    padding:18px; margin-bottom:18px; box-shadow:var(--shadow);
+  }
+  .card h2{font-size:12.5px; text-transform:uppercase; letter-spacing:.07em; color:var(--text); margin:0 0 18px; font-weight:700;}
+  .card-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; cursor:pointer;}
+  .card-header h2{margin:0;}
+  .card-header.no-collapse{cursor:default;}
+  .chevron{ display:inline-block; margin-right:8px; transition: transform .15s; font-size:11px; color:var(--muted); }
+  .card-header.collapsed{ margin-bottom:0; }
+  .card-header.collapsed .chevron{ transform: rotate(-90deg); }
+  .card-body.collapsed{ display:none; }
+  .icon-btn{
+    background:var(--panel2); border:1px solid var(--line); color:var(--muted);
+    border-radius:5px; padding:6px 10px; font-size:12px; font-weight:600; cursor:pointer;
+  }
+  .icon-btn.active{ color:var(--accent); border-color:var(--accent); background:var(--accent-soft); }
+  .setups-panel{ display:none; margin-bottom:4px; }
+  .setups-panel.open{ display:block; }
+  label{display:block; font-size:12.5px; color:var(--text); margin-bottom:8px; font-weight:600;}
+  input[type=text], input[type=password], textarea, select{
+    width:100%; background:var(--panel2); border:1px solid var(--line); color:var(--text);
+    border-radius:6px; padding:10px 12px; font-family:var(--sans); font-size:14px;
+    transition: border-color .15s, background .15s;
+  }
+  input[type=text]:focus, input[type=password]:focus, textarea:focus, select:focus{
+    outline:none; border-color:var(--accent); background:var(--panel);
+  }
+  textarea{resize:vertical; font-family:var(--mono); font-size:12.5px;}
+  select{appearance:none; -webkit-appearance:none; display:block; width:100%; text-align:left; box-sizing:border-box;}
+  .row, .row > div{width:100%;}
+  .row{display:flex; flex-direction:column; gap:20px;}
+  .row.inline{flex-direction:row; gap:10px;}
+  .row.inline > *{flex:1;}
+  .section-divider{border:none; border-top:1px solid var(--line); margin:24px 0;}
+  .btn{
+    background:var(--accent); color:var(--accent-ink); border:none; border-radius:6px;
+    padding:10px 18px; font-size:14px; font-weight:600; cursor:pointer;
+    box-shadow:0 1px 2px rgba(35,131,226,.25); transition: transform .1s, opacity .15s;
+  }
+  .btn:active{ transform: scale(.97); }
+  .btn:disabled{opacity:.4; cursor:default; box-shadow:none;}
+  .btn.secondary{background:var(--panel2); color:var(--text); border:1px solid var(--line); box-shadow:none;}
+  .btn.danger{background:var(--danger-soft); color:var(--danger); border:none; box-shadow:none;}
+  .btn-row{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;}
+  .check{display:flex; align-items:center; gap:7px; font-size:13px; color:var(--muted); margin-top:10px;}
+  .status{font-size:13px; margin-top:12px; white-space:pre-wrap; padding:10px 12px; border-radius:6px; display:none;}
+  .status:not(:empty){display:block;}
+  .status.ok{color:#2b8a4e; background:var(--ok-soft);}
+  .status.err{color:var(--danger); background:var(--danger-soft);}
+  .status.warn{color:var(--warn); background:var(--warn-soft);}
+  .item{
+    background:var(--panel2); border:1px solid var(--line); border-radius:6px;
+    padding:14px; margin-bottom:12px;
+  }
+  .item-head{display:flex; align-items:center; gap:8px; margin-bottom:9px;}
+  .badge{
+    font-family:var(--mono); font-size:11.5px; color:var(--accent); background:var(--accent-soft);
+    padding:3px 8px; border-radius:4px; white-space:nowrap; font-weight:600;
+  }
+  .item input[type=text]{font-weight:600; margin-bottom:7px; background:var(--panel);}
+  .item textarea{background:var(--panel);}
+  .item-actions{display:flex; justify-content:space-between; align-items:center; margin-top:8px;}
+  .link{color:var(--accent); text-decoration:none; font-size:13px; font-weight:500;}
+  .empty{color:var(--muted); font-size:13px; font-style:italic;}
+  .result-line{font-size:13.5px; padding:7px 2px; border-bottom:1px solid var(--line);}
+  .result-line:last-child{border-bottom:none;}
+  .spinner{
+    display:inline-block; width:12px; height:12px; border:2px solid rgba(35,131,226,.2);
+    border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle; margin-right:6px;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}  .title-row{display:flex; align-items:center; gap:10px; margin-bottom:5px;}
+  .app-mark{
+    width:30px; height:30px; border-radius:6px; background:#005a9e;
+    display:flex; align-items:center; justify-content:center; flex:0 0 auto;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div style="height:6px;"></div>
+
+  <div class="card">
+    <div class="card-header collapsed" data-collapse-target="body-connection">
+      <h2><span class="chevron">▾</span>Connection</h2>
+      <button class="icon-btn" id="setupsToggle">Setups ▾</button>
+    </div>
+
+    <div class="card-body collapsed" id="body-connection">
+    <div class="setups-panel" id="setupsPanel">
+      <div class="row">
+        <div>
+          <label>Saved setup</label>
+          <select id="setupSelect">
+            <option value="">— none —</option>
+          </select>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:8px;">
+        <button class="btn secondary" id="deleteSetupBtn">Delete selected setup</button>
+      </div>
+
+      <hr class="section-divider">
+
+      <div class="row">
+        <div>
+          <label>Name a new setup</label>
+          <input type="text" id="setupName" placeholder="e.g. TF100 PAM">
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:8px;">
+        <button class="btn secondary" id="saveSetupBtn">Save current fields as this setup</button>
+      </div>
+
+      <hr class="section-divider">
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Organization</label>
+        <input type="text" id="org" value="Phoenix-ARZ">
+      </div>
+      <div>
+        <label>Project</label>
+        <input type="text" id="project" value="TF100 PAM Gap Management">
+      </div>
+      <div>
+        <label>Work item type</label>
+        <input type="text" id="witype" value="Review">
+      </div>
+      <div>
+        <label>Title prefix</label>
+        <input type="text" id="prefix" value="REV-">
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <div class="row">
+      <div>
+        <label>Proxy URL <span style="font-weight:400;">(optional)</span></label>
+        <input type="text" id="proxy" placeholder="https://ado-proxy.yourname.workers.dev">
+      </div>
+      <div>
+        <label>Personal Access Token</label>
+        <input type="password" id="pat" placeholder="Paste your PAT">
+      </div>
+    </div>
+    <label class="check"><input type="checkbox" id="rememberPat"> Remember token on this device</label>
+
+    <div class="btn-row">
+      <button class="btn secondary" id="testBtn">Test connection</button>
+      <button class="btn danger" id="forgetBtn">Forget saved token</button>
+    </div>
+    <div class="status" id="connStatus"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header" data-collapse-target="body-existing">
+      <h2><span class="chevron">▾</span>Existing items</h2>
+    </div>
+    <div class="card-body" id="body-existing">
+    <div class="btn-row" style="margin-top:0;">
+      <button class="btn secondary" id="loadExistingBtn">Load existing Review items</button>
+    </div>
+    <div class="status" id="existingStatus"></div>
+    <div id="existingList"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header" data-collapse-target="body-paste">
+      <h2><span class="chevron">▾</span>Paste dump or email</h2>
+    </div>
+    <div class="card-body" id="body-paste">
+    <textarea id="dump" rows="9" placeholder="Paste your rough notes or a forwarded email here..."></textarea>
+    <div class="btn-row">
+      <button class="btn" id="analyzeBtn">Analyze &amp; split</button>
+    </div>
+    <div class="status" id="analyzeStatus"></div>
+    </div>
+  </div>
+
+  <div class="card" id="itemsCard" style="display:none;">
+    <div class="card-header" data-collapse-target="body-items">
+      <h2><span class="chevron">▾</span>Review before creating</h2>
+    </div>
+    <div class="card-body" id="body-items">
+    <div id="itemsList"></div>
+    <div class="btn-row">
+      <button class="btn secondary" id="addItemBtn">+ Add item manually</button>
+      <button class="btn" id="createBtn">Create in Azure DevOps</button>
+    </div>
+    <div class="status" id="createStatus"></div>
+    <div id="results"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let parsedItems = []; // {title, description, include}
+
+// ---- collapsible cards ----
+document.querySelectorAll('.card-header[data-collapse-target]').forEach(header=>{
+  header.addEventListener('click', (e)=>{
+    if(e.target.closest('#setupsToggle')) return; // don't collapse card when Setups button is clicked
+    const body = document.getElementById(header.dataset.collapseTarget);
+    const collapsed = body.classList.toggle('collapsed');
+    header.classList.toggle('collapsed', collapsed);
+  });
+});
+
+$('setupsToggle').addEventListener('click', ()=>{
+  const panel = $('setupsPanel');
+  const btn = $('setupsToggle');
+  panel.classList.toggle('open');
+  btn.classList.toggle('active');
+  btn.textContent = panel.classList.contains('open') ? 'Setups ▴' : 'Setups ▾';
+});
+
+// ---- token persistence (opt-in, personal, unshared) ----
+async function loadSavedPat(){
+  try{
+    const r = await window.storage.get('ado_pat', false);
+    if(r && r.value){ $('pat').value = r.value; $('rememberPat').checked = true; }
+  }catch(e){}
+}
+
+// ---- field auto-restore (last used values, no PAT) ----
+const fieldIds = ['org','project','witype','prefix','proxy'];
+function currentFields(){
+  const o = {};
+  fieldIds.forEach(id => o[id] = $(id).value);
+  return o;
+}
+function applyFields(o){
+  fieldIds.forEach(id => { if(o[id] !== undefined) $(id).value = o[id]; });
+}
+async function saveLastFields(){
+  try{ await window.storage.set('ado_last', JSON.stringify(currentFields()), false); }catch(e){}
+}
+async function loadLastFields(){
+  try{
+    const r = await window.storage.get('ado_last', false);
+    if(r && r.value) applyFields(JSON.parse(r.value));
+  }catch(e){}
+}
+fieldIds.forEach(id => $(id).addEventListener('change', saveLastFields));
+
+// ---- named saved setups (multiple projects) ----
+async function getSetups(){
+  try{
+    const r = await window.storage.get('ado_setups', false);
+    return r && r.value ? JSON.parse(r.value) : {};
+  }catch(e){ return {}; }
+}
+async function setSetups(obj){
+  try{ await window.storage.set('ado_setups', JSON.stringify(obj), false); }catch(e){}
+}
+async function refreshSetupSelect(selectName){
+  const setups = await getSetups();
+  const sel = $('setupSelect');
+  sel.innerHTML = '<option value="">— none —</option>';
+  Object.keys(setups).sort().forEach(name=>{
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name;
+    if(name === selectName) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+$('saveSetupBtn').addEventListener('click', async ()=>{
+  const name = $('setupName').value.trim();
+  if(!name){ setStatus('connStatus','Give this setup a name first.','err'); return; }
+  const setups = await getSetups();
+  setups[name] = currentFields();
+  await setSetups(setups);
+  await refreshSetupSelect(name);
+  $('setupName').value = '';
+  setStatus('connStatus', `Saved setup "${name}".`, 'ok');
+});
+$('deleteSetupBtn').addEventListener('click', async ()=>{
+  const name = $('setupSelect').value;
+  if(!name) return;
+  const setups = await getSetups();
+  delete setups[name];
+  await setSetups(setups);
+  await refreshSetupSelect();
+  setStatus('connStatus', `Deleted setup "${name}".`, 'ok');
+});
+$('setupSelect').addEventListener('change', async ()=>{
+  const name = $('setupSelect').value;
+  if(!name) return;
+  const setups = await getSetups();
+  if(setups[name]){ applyFields(setups[name]); saveLastFields(); }
+});
+
+(async ()=>{
+  await loadLastFields();
+  await refreshSetupSelect();
+  await loadSavedPat();
+})();
+
+$('rememberPat').addEventListener('change', async e=>{
+  if(!e.target.checked){
+    try{ await window.storage.delete('ado_pat', false); }catch(e){}
+  }
+});
+$('forgetBtn').addEventListener('click', async ()=>{
+  try{ await window.storage.delete('ado_pat', false); }catch(e){}
+  $('pat').value=''; $('rememberPat').checked=false;
+  setStatus('connStatus','Saved token cleared.','ok');
+});
+
+function setStatus(id, msg, cls){
+  const el = $(id);
+  el.textContent = msg;
+  el.className = 'status ' + (cls||'');
+}
+
+function adoHeaders(pat){
+  return {
+    'Authorization': 'Basic ' + btoa(':' + pat),
+    'Content-Type': 'application/json'
+  };
+}
+
+function cfg(){
+  return {
+    org: $('org').value.trim(),
+    project: $('project').value.trim(),
+    witype: $('witype').value.trim() || 'Review',
+    prefix: $('prefix').value.trim() || 'Rev-',
+    pat: $('pat').value.trim(),
+    proxy: $('proxy').value.trim().replace(/\/$/,'')
+  };
+}
+
+function adoBase(c){
+  return c.proxy ? c.proxy : 'https://dev.azure.com';
+}
+
+// ---- test connection ----
+$('testBtn').addEventListener('click', async ()=>{
+  const c = cfg();
+  if(!c.pat){ setStatus('connStatus','Enter a PAT first.','err'); return; }
+  setStatus('connStatus','Testing…','');
+  try{
+    const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/workitemtypes/${encodeURIComponent(c.witype)}?api-version=7.1`;
+    const res = await fetch(url, { headers: adoHeaders(c.pat) });
+    if(res.status === 200){
+      const data = await res.json();
+      setStatus('connStatus', `Connected. Work item type "${data.name}" found in this project.`, 'ok');
+      if($('rememberPat').checked){
+        try{ await window.storage.set('ado_pat', c.pat, false); }catch(e){}
+      }
+    } else if(res.status === 0){
+      throw new Error('cors');
+    } else {
+      const txt = await res.text();
+      setStatus('connStatus', `Failed (${res.status}): ${txt.slice(0,200)}`, 'err');
+    }
+  }catch(err){
+    setStatus('connStatus',
+      'Could not reach Azure DevOps from the browser. This is very likely a CORS restriction on Azure DevOps\' side (it does not allow direct browser calls from other domains). If so, this app needs to run through a small local proxy or Claude Code with your PAT instead of directly in this chat window — let me know and I\'ll set that up.',
+      'err');
+  }
+});
+
+// ---- analyze / split via Claude ----
+$('analyzeBtn').addEventListener('click', async ()=>{
+  const text = $('dump').value.trim();
+  if(!text){ setStatus('analyzeStatus','Paste something first.','err'); return; }
+  setStatus('analyzeStatus','Analyzing…','');
+  $('analyzeBtn').disabled = true;
+  try{
+    const sys = `You split rough notes or forwarded emails into one or more Azure DevOps "Review" work items.
+Return ONLY a JSON array, no markdown fences, no commentary. Each element:
+{"title": "short meaningful name, 4-9 words, no numbering/prefix", "description": "full description in plain text preserving all relevant detail, context, sender/requester if apparent, and anything actionable. Use short paragraphs or a simple list, no markdown headers."}
+If the text clearly describes only one item, return an array with one element. If it describes multiple distinct items, split them out.`;
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1000,
+        system: sys,
+        messages: [{ role: "user", content: text }]
+      })
+    });
+    const data = await res.json();
+    const raw = (data.content || []).map(b => b.text || '').join('\n').trim();
+    const clean = raw.replace(/^```json\s*|```$/g, '').trim();
+    const arr = JSON.parse(clean);
+    parsedItems = arr.map(it => ({ title: it.title || '', description: it.description || '', include: true }));
+    renderItems();
+    setStatus('analyzeStatus', `Found ${parsedItems.length} item(s). Review below.`, 'ok');
+  }catch(err){
+    setStatus('analyzeStatus', 'Could not parse a response — try again, or shorten the input.', 'err');
+  }
+  $('analyzeBtn').disabled = false;
+});
+
+$('addItemBtn').addEventListener('click', ()=>{
+  parsedItems.push({ title:'', description:'', include:true });
+  renderItems();
+});
+
+let itemsCardShownOnce = false;
+function renderItems(){
+  const card = $('itemsCard');
+  const list = $('itemsList');
+  if(parsedItems.length === 0){ card.style.display='none'; return; }
+  const wasHidden = card.style.display === 'none' || card.style.display === '';
+  card.style.display='block';
+  if(wasHidden && !itemsCardShownOnce){
+    itemsCardShownOnce = true;
+    const header = card.querySelector('.card-header');
+    const body = $('body-items');
+    header.classList.add('collapsed');
+    body.classList.add('collapsed');
+  }
+  list.innerHTML = '';
+  parsedItems.forEach((it, i)=>{
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `
+      <div class="item-head">
+        <input type="checkbox" ${it.include?'checked':''} data-role="include" data-i="${i}">
+        <span class="badge">${cfg().prefix}0##</span>
+      </div>
+      <input type="text" data-role="title" data-i="${i}" value="${escapeAttr(it.title)}" placeholder="Meaningful title">
+      <textarea rows="3" data-role="desc" data-i="${i}" placeholder="Description">${it.description}</textarea>
+      <div class="item-actions">
+        <span></span>
+        <button class="btn danger" data-role="remove" data-i="${i}" style="padding:4px 10px; font-size:12px;">Remove</button>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+  list.querySelectorAll('[data-role=title]').forEach(el=> el.addEventListener('input', e=> parsedItems[e.target.dataset.i].title = e.target.value));
+  list.querySelectorAll('[data-role=desc]').forEach(el=> el.addEventListener('input', e=> parsedItems[e.target.dataset.i].description = e.target.value));
+  list.querySelectorAll('[data-role=include]').forEach(el=> el.addEventListener('change', e=> parsedItems[e.target.dataset.i].include = e.target.checked));
+  list.querySelectorAll('[data-role=remove]').forEach(el=> el.addEventListener('click', e=>{
+    parsedItems.splice(e.target.dataset.i,1); renderItems();
+  }));
+}
+
+function escapeAttr(s){ return (s||'').replace(/"/g,'&quot;'); }
+
+// ---- shared: fetch existing items of the configured type ----
+async function fetchExistingItems(c){
+  const wiql = {
+    query: `SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '${c.project}' AND [System.WorkItemType] = '${c.witype}' ORDER BY [System.Id] DESC`
+  };
+  const wiqlUrl = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/wiql?api-version=7.1`;
+  const wr = await fetch(wiqlUrl, { method:'POST', headers: adoHeaders(c.pat), body: JSON.stringify(wiql) });
+  if(!wr.ok) throw new Error('wiql failed: ' + wr.status);
+  const wdata = await wr.json();
+  const ids = (wdata.workItems || []).map(w=>w.id);
+  if(ids.length === 0) return [];
+  const batchUrl = `${adoBase(c)}/${encodeURIComponent(c.org)}/_apis/wit/workitemsbatch?api-version=7.1`;
+  const br = await fetch(batchUrl, { method:'POST', headers: adoHeaders(c.pat), body: JSON.stringify({ ids, fields:['System.Title','System.State'] }) });
+  if(!br.ok) throw new Error('batch failed: ' + br.status);
+  const bdata = await br.json();
+  const items = (bdata.value || []).map(w=>({
+    id: w.id,
+    title: (w.fields && w.fields['System.Title']) || '(no title)',
+    state: (w.fields && w.fields['System.State']) || ''
+  }));
+  items.sort((a,b)=> b.id - a.id);
+  return items;
+}
+
+$('loadExistingBtn').addEventListener('click', async ()=>{
+  const c = cfg();
+  if(!c.pat){ setStatus('existingStatus','Enter a PAT first.','err'); return; }
+  setStatus('existingStatus','Loading…','');
+  $('existingList').innerHTML = '';
+  try{
+    const items = await fetchExistingItems(c);
+    if(items.length === 0){
+      setStatus('existingStatus', `No existing "${c.witype}" items found.`, 'warn');
+      return;
+    }
+    setStatus('existingStatus', `${items.length} item(s) found.`, 'ok');
+    items.forEach(it=>{
+      const link = `https://dev.azure.com/${c.org}/${encodeURIComponent(c.project)}/_workitems/edit/${it.id}`;
+      const line = document.createElement('div');
+      line.className = 'result-line';
+      line.innerHTML = `<a class="link" href="${link}" target="_blank">#${it.id}</a> — ${escapeAttr(it.title)} <span style="color:var(--muted);">(${escapeAttr(it.state)})</span>`;
+      $('existingList').appendChild(line);
+    });
+  }catch(err){
+    setStatus('existingStatus', 'Could not load items — check connection / proxy.', 'err');
+  }
+});
+
+// ---- determine next number from existing items ----
+async function getNextNumber(c){
+  const items = await fetchExistingItems(c);
+  let max = 0;
+  const re = new RegExp(escapeRegex(c.prefix) + '(\\d+)', 'i');
+  items.forEach(it=>{
+    const m = (it.title||'').match(re);
+    if(m){ const n = parseInt(m[1],10); if(n>max) max = n; }
+  });
+  return max + 1;
+}
+function escapeRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+// ---- create items ----
+$('createBtn').addEventListener('click', async ()=>{
+  const c = cfg();
+  if(!c.pat){ setStatus('createStatus','Enter a PAT first.','err'); return; }
+  const toCreate = parsedItems.filter(it=>it.include && it.title.trim());
+  if(toCreate.length===0){ setStatus('createStatus','Nothing selected to create.','err'); return; }
+  $('createBtn').disabled = true;
+  setStatus('createStatus','Creating…','');
+  $('results').innerHTML = '';
+  try{
+    let next = await getNextNumber(c);
+    const witUrl = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/workitems/$${encodeURIComponent(c.witype)}?api-version=7.1`;
+    for(const it of toCreate){
+      const num = String(next).padStart(3,'0');
+      const title = `${c.prefix}${num}: ${it.title.trim()}`;
+      const body = [
+        { op:'add', path:'/fields/System.Title', value: title },
+        { op:'add', path:'/fields/System.Description', value: (it.description||'').replace(/\n/g,'<br>') }
+      ];
+      const res = await fetch(witUrl, {
+        method:'POST',
+        headers: { ...adoHeaders(c.pat), 'Content-Type':'application/json-patch+json' },
+        body: JSON.stringify(body)
+      });
+      const line = document.createElement('div');
+      line.className = 'result-line';
+      if(res.ok){
+        const data = await res.json();
+        const link = `https://dev.azure.com/${c.org}/${encodeURIComponent(c.project)}/_workitems/edit/${data.id}`;
+        line.innerHTML = `✓ ${title} — <a class="link" href="${link}" target="_blank">open #${data.id}</a>`;
+        next++;
+      } else {
+        const txt = await res.text();
+        line.innerHTML = `✗ ${title} — failed (${res.status})`;
+        line.style.color = 'var(--danger)';
+      }
+      $('results').appendChild(line);
+    }
+    setStatus('createStatus','Done.','ok');
+  }catch(err){
+    setStatus('createStatus', 'Something failed talking to Azure DevOps (see console / possibly CORS).', 'err');
+  }
+  $('createBtn').disabled = false;
+});
+</script>
+</body>
+</html>
