@@ -269,16 +269,23 @@ async function loadSavedPat(){
     if(r && r.value){ $('pat').value = r.value; $('rememberPat').checked = true; }
   }catch(e){}
 }
+async function savePatIfRemembering(){
+  if($('rememberPat').checked && $('pat').value){
+    try{ await window.storage.set('ado_pat', $('pat').value, false); }catch(e){}
+  }
+}
 
-// ---- field auto-restore (last used values, no PAT) ----
+// ---- field auto-restore (last used values) ----
 const fieldIds = ['org','project','witype','prefix','proxy'];
 function currentFields(){
   const o = {};
   fieldIds.forEach(id => o[id] = $(id).value);
+  if($('rememberPat').checked){ o.pat = $('pat').value; }
   return o;
 }
 function applyFields(o){
   fieldIds.forEach(id => { if(o[id] !== undefined) $(id).value = o[id]; });
+  if(o.pat !== undefined){ $('pat').value = o.pat; $('rememberPat').checked = true; }
 }
 async function saveLastFields(){
   try{ await window.storage.set('ado_last', JSON.stringify(currentFields()), false); }catch(e){}
@@ -290,6 +297,7 @@ async function loadLastFields(){
   }catch(e){}
 }
 fieldIds.forEach(id => $(id).addEventListener('change', saveLastFields));
+$('pat').addEventListener('change', async ()=>{ await savePatIfRemembering(); await saveLastFields(); });
 
 // ---- named saved setups (multiple projects) ----
 async function getSetups(){
@@ -320,7 +328,8 @@ $('saveSetupBtn').addEventListener('click', async ()=>{
   await setSetups(setups);
   await refreshSetupSelect(name);
   $('setupName').value = '';
-  setStatus('connStatus', `Saved setup "${name}".`, 'ok');
+  const patNote = $('rememberPat').checked ? ' (including token)' : '';
+  setStatus('connStatus', `Saved setup "${name}"${patNote}.`, 'ok');
 });
 $('deleteSetupBtn').addEventListener('click', async ()=>{
   const name = $('setupSelect').value;
@@ -335,7 +344,11 @@ $('setupSelect').addEventListener('change', async ()=>{
   const name = $('setupSelect').value;
   if(!name) return;
   const setups = await getSetups();
-  if(setups[name]){ applyFields(setups[name]); saveLastFields(); }
+  if(setups[name]){
+    applyFields(setups[name]);
+    saveLastFields();
+    await savePatIfRemembering();
+  }
 });
 
 (async ()=>{
@@ -345,9 +358,12 @@ $('setupSelect').addEventListener('change', async ()=>{
 })();
 
 $('rememberPat').addEventListener('change', async e=>{
-  if(!e.target.checked){
+  if(e.target.checked){
+    await savePatIfRemembering();
+  } else {
     try{ await window.storage.delete('ado_pat', false); }catch(e){}
   }
+  await saveLastFields();
 });
 $('forgetBtn').addEventListener('click', async ()=>{
   try{ await window.storage.delete('ado_pat', false); }catch(e){}
