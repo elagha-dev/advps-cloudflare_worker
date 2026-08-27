@@ -665,7 +665,7 @@ async function getMissingRequiredFields(c){
   const res = await fetch(url, { headers: adoHeaders(c.pat) });
   if(!res.ok) return { missing: [], checked:false }; // don't block creation if we can't check
   const data = await res.json();
-  const covered = new Set(['System.Title','System.Description','System.AreaPath','System.IterationPath','System.State']);
+  const covered = new Set(['System.Title','System.Description','System.AreaPath','System.IterationPath','System.State','System.AreaId','System.IterationId']);
   const candidates = (data.value||[]).filter(f => f.alwaysRequired && !covered.has(f.referenceName));
   const missing = [];
   for(const f of candidates){
@@ -674,6 +674,11 @@ async function getMissingRequiredFields(c){
   }
   return { missing, checked:true };
 }
+
+// default values for known required fields — pre-filled, still editable
+const EXTRA_FIELD_DEFAULTS = {
+  'Purpose': 'To be reviewed for a potential gap'
+};
 
 function renderExtraFields(fields){
   const wrap = $('extraFieldsWrap');
@@ -690,6 +695,7 @@ function renderExtraFields(fields){
     const label = document.createElement('label');
     label.textContent = f.name;
     fieldDiv.appendChild(label);
+    const defaultVal = EXTRA_FIELD_DEFAULTS[f.name];
     let input;
     if(f.allowedValues && f.allowedValues.length){
       input = document.createElement('select');
@@ -701,10 +707,12 @@ function renderExtraFields(fields){
         opt.value = v; opt.textContent = v;
         input.appendChild(opt);
       });
+      if(defaultVal && f.allowedValues.includes(defaultVal)) input.value = defaultVal;
     } else {
       input = document.createElement('input');
       input.type = 'text';
       input.placeholder = f.name;
+      if(defaultVal) input.value = defaultVal;
     }
     input.dataset.refname = f.refName;
     fieldDiv.appendChild(input);
