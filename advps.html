@@ -380,7 +380,10 @@ function cfg(){
 }
 
 function adoBase(c){
-  return c.proxy ? c.proxy : 'https://dev.azure.com';
+  return c.proxy ? c.proxy + '/ado' : 'https://dev.azure.com';
+}
+function anthropicUrl(c){
+  return c.proxy ? c.proxy + '/anthropic/v1/messages' : 'https://api.anthropic.com/v1/messages';
 }
 
 // ---- test connection ----
@@ -421,7 +424,8 @@ $('analyzeBtn').addEventListener('click', async ()=>{
 Return ONLY a JSON array, no markdown fences, no commentary. Each element:
 {"title": "short meaningful name, 4-9 words, no numbering/prefix", "description": "full description in plain text preserving all relevant detail, context, sender/requester if apparent, and anything actionable. Use short paragraphs or a simple list, no markdown headers."}
 If the text clearly describes only one item, return an array with one element. If it describes multiple distinct items, split them out.`;
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const c = cfg();
+    const res = await fetch(anthropicUrl(c), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
