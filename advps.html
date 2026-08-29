@@ -12,124 +12,194 @@
 <link rel="manifest" href="manifest.json">
 <meta charset="UTF-8">
 <title>Review Item Creator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#fbfaf8;
+    /* -- paper & ink -- */
+    --bg:#fbfbf9;
     --panel:#ffffff;
-    --panel2:#f7f6f3;
-    --line:#ece9e3;
-    --text:#000000;
-    --muted:#000000;
-    --accent:#2383e2;
-    --accent-soft:#e7f2fd;
+    --panel2:#f4f4f1;
+    --line:#e7e7e1;
+    --text:#161814;
+    --muted:#6f7468;
+    --faint:#a7ab9f;
+
+    /* -- signature accent: deep verified-teal -- */
+    --accent:#0d7a6a;
+    --accent-dim:#0a6357;
+    --accent-soft:#e2f2ee;
     --accent-ink:#ffffff;
-    --danger:#eb5757;
-    --danger-soft:#fce9e9;
-    --warn:#d9822b;
-    --warn-soft:#fbf0dc;
-    --ok-soft:#e9f6ee;
-    --shadow: 0 1px 2px rgba(55,53,47,.06), 0 2px 8px rgba(55,53,47,.05);
-    --mono: "SF Mono", "Consolas", "Menlo", monospace;
-    --sans: -apple-system, "Segoe UI", ui-rounded, Inter, Arial, sans-serif;
+
+    /* -- states -- */
+    --danger:#b3402e;
+    --danger-soft:#fbeae6;
+    --warn:#9a6a12;
+    --warn-soft:#faf1de;
+    --ok:#1f7a4d;
+    --ok-soft:#e6f3ea;
+
+    --shadow-lift: 0 10px 30px -8px rgba(24,27,23,.16);
+
+    --display: "Space Grotesk", "Segoe UI", sans-serif;
+    --sans: "Inter", -apple-system, "Segoe UI", Arial, sans-serif;
+    --mono: "JetBrains Mono", "SF Mono", "Consolas", monospace;
+
+    --r-lg: 18px;
+    --r-md: 12px;
+    --r-sm: 9px;
   }
   *{box-sizing:border-box;}
   body{
     margin:0; background:var(--bg); color:var(--text); font-family:var(--sans);
-    padding:28px 16px 90px; line-height:1.55; -webkit-font-smoothing:antialiased;
+    padding:0 18px 90px; line-height:1.55; -webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:720px; margin:0 auto;}
-  h1{font-size:22px; font-weight:700; margin:0 0 5px; letter-spacing:-.01em;}
-  .sub{color:var(--muted); font-size:13.5px; margin:0 0 26px;}
+  .wrap{max-width:600px; margin:0 auto;}
+
+  /* -- hero -- */
+  .hero{
+    margin:0 -18px 8px; padding:44px 18px 34px; text-align:center;
+    background:
+      radial-gradient(circle at 50% -10%, rgba(13,122,106,.16), transparent 60%),
+      linear-gradient(180deg, #eef6f3, var(--bg) 88%);
+    border-radius:0 0 32px 32px;
+  }
+  .hero-mark{
+    width:52px; height:52px; margin:0 auto 16px; border-radius:16px;
+    background:linear-gradient(155deg, var(--accent), var(--accent-dim));
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 10px 24px -8px rgba(13,122,106,.55);
+  }
+  .hero-mark svg{ width:26px; height:26px; }
+  h1{
+    font-family:var(--display); font-size:26px; font-weight:700; margin:0 0 8px;
+    letter-spacing:-.02em; color:var(--text);
+  }
+  .sub{color:var(--muted); font-size:14.5px; margin:0 auto; max-width:340px; letter-spacing:-.005em;}
+
+  /* -- flow sections (borderless, whitespace-first) -- */
   .card{
-    background:var(--panel); border:1px solid var(--line); border-radius:6px;
-    padding:18px; margin-bottom:18px; box-shadow:var(--shadow);
+    background:transparent; border:0; border-top:1px solid var(--line);
+    padding:26px 0; margin:0;
   }
-  .card h2{font-size:12.5px; text-transform:uppercase; letter-spacing:.07em; color:var(--text); margin:0 0 18px; font-weight:700;}
-  .card-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; cursor:pointer;}
+  .card:first-of-type{ border-top:0; }
+  .card h2{
+    font-family:var(--display); font-size:19px; letter-spacing:-.01em;
+    color:var(--text); margin:0; font-weight:600;
+  }
+  .flow-hint{ color:var(--muted); font-size:13.5px; margin:5px 0 0; max-width:420px; }
+  .card-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; cursor:pointer; gap:10px;}
   .card-header h2{margin:0;}
   .card-header.no-collapse{cursor:default;}
-  .chevron{ display:inline-block; margin-right:8px; transition: transform .15s; font-size:11px; color:var(--muted); }
+  .chevron{
+    display:inline-flex; align-items:center; justify-content:center; margin-right:8px;
+    transition: transform .18s ease; font-size:11px; color:var(--faint);
+  }
   .card-header.collapsed{ margin-bottom:0; }
   .card-header.collapsed .chevron{ transform: rotate(-90deg); }
+  .card-body{ animation: reveal .18s ease; padding-top:18px; }
   .card-body.collapsed{ display:none; }
+  @keyframes reveal{ from{ opacity:0; transform:translateY(-2px); } to{ opacity:1; transform:none; } }
   .icon-btn{
     background:var(--panel2); border:1px solid var(--line); color:var(--muted);
-    border-radius:5px; padding:6px 10px; font-size:12px; font-weight:600; cursor:pointer;
+    border-radius:999px; padding:6px 13px; font-size:12px; font-weight:600; cursor:pointer;
+    transition: all .15s;
   }
   .icon-btn.active{ color:var(--accent); border-color:var(--accent); background:var(--accent-soft); }
   .setups-panel{ display:none; margin-bottom:4px; }
   .setups-panel.open{ display:block; }
-  label{display:block; font-size:12.5px; color:var(--text); margin-bottom:8px; font-weight:600;}
+  label{display:block; font-size:12px; color:var(--muted); margin-bottom:7px; font-weight:600; letter-spacing:.01em;}
   input[type=text], input[type=password], textarea, select{
     width:100%; background:var(--panel2); border:1px solid var(--line); color:var(--text);
-    border-radius:6px; padding:10px 12px; font-family:var(--sans); font-size:14px;
-    transition: border-color .15s, background .15s;
+    border-radius:var(--r-sm); padding:12px 13px; font-family:var(--sans); font-size:14.5px;
+    transition: border-color .15s, background .15s, box-shadow .15s;
   }
   input[type=text]:focus, input[type=password]:focus, textarea:focus, select:focus{
     outline:none; border-color:var(--accent); background:var(--panel);
+    box-shadow:0 0 0 3px var(--accent-soft);
   }
   textarea{resize:vertical; font-family:var(--mono); font-size:12.5px;}
-  select{appearance:none; -webkit-appearance:none; display:block; width:100%; text-align:left; box-sizing:border-box;}
+  select{appearance:none; -webkit-appearance:none; display:block; width:100%; text-align:left; box-sizing:border-box;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7166' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 13px center; padding-right:32px;
+  }
   .row, .row > div{width:100%;}
-  .row{display:flex; flex-direction:column; gap:20px;}
+  .row{display:flex; flex-direction:column; gap:16px;}
   .row.inline{flex-direction:row; gap:10px;}
   .row.inline > *{flex:1;}
-  .section-divider{border:none; border-top:1px solid var(--line); margin:24px 0;}
+  .section-divider{border:none; border-top:1px solid var(--line); margin:20px 0;}
   .btn{
-    background:var(--accent); color:var(--accent-ink); border:none; border-radius:6px;
-    padding:10px 18px; font-size:14px; font-weight:600; cursor:pointer;
-    box-shadow:0 1px 2px rgba(35,131,226,.25); transition: transform .1s, opacity .15s;
+    background:var(--accent); color:var(--accent-ink); border:none; border-radius:999px;
+    padding:14px 22px; font-size:15px; font-weight:600; cursor:pointer; width:100%;
+    box-shadow:0 6px 18px -6px rgba(13,122,106,.55); transition: transform .1s, opacity .15s, box-shadow .15s;
+    font-family:var(--sans); letter-spacing:-.005em;
   }
-  .btn:active{ transform: scale(.97); }
+  .btn:active{ transform: scale(.98); }
   .btn:disabled{opacity:.4; cursor:default; box-shadow:none;}
-  .btn.secondary{background:var(--panel2); color:var(--text); border:1px solid var(--line); box-shadow:none;}
-  .btn.danger{background:var(--danger-soft); color:var(--danger); border:none; box-shadow:none;}
-  .btn-row{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;}
-  .check{display:flex; align-items:center; gap:7px; font-size:13px; color:var(--muted); margin-top:10px;}
-  .status{font-size:13px; margin-top:12px; white-space:pre-wrap; padding:10px 12px; border-radius:6px; display:none;}
-  .status:not(:empty){display:block;}
-  .status.ok{color:#2b8a4e; background:var(--ok-soft);}
-  .status.err{color:var(--danger); background:var(--danger-soft);}
-  .status.warn{color:var(--warn); background:var(--warn-soft);}
-  .item{
-    background:var(--panel2); border:1px solid var(--line); border-radius:6px;
-    padding:14px; margin-bottom:12px;
+  .btn.secondary{background:var(--panel2); color:var(--text); border:1px solid var(--line); box-shadow:none; width:auto;}
+  .btn.danger{background:var(--danger-soft); color:var(--danger); border:none; box-shadow:none; width:auto;}
+  .btn-row{display:flex; gap:8px; margin-top:16px; flex-wrap:wrap;}
+  .btn-text{
+    display:block; margin:12px auto 0; background:none; border:none; color:var(--muted);
+    font-family:var(--sans); font-size:13.5px; font-weight:600; cursor:pointer; padding:6px;
+    text-decoration:underline; text-decoration-color:var(--line); text-underline-offset:3px;
   }
-  .item-head{display:flex; align-items:center; gap:8px; margin-bottom:9px;}
+  .btn-text:hover{ color:var(--accent); text-decoration-color:var(--accent); }
+  .check{display:flex; align-items:center; gap:7px; font-size:13px; color:var(--muted); margin-top:10px;}
+  .status{font-size:13px; margin-top:12px; white-space:pre-wrap; padding:11px 13px; border-radius:var(--r-sm); display:none; border-left:3px solid transparent;}
+  .status:not(:empty){display:block;}
+  .status.ok{color:var(--ok); background:var(--ok-soft); border-left-color:var(--ok);}
+  .status.err{color:var(--danger); background:var(--danger-soft); border-left-color:var(--danger);}
+  .status.warn{color:var(--warn); background:var(--warn-soft); border-left-color:var(--warn);}
+  .item{
+    background:transparent; border:0; border-bottom:1px solid var(--line);
+    padding:18px 0; margin:0;
+  }
+  .item:first-child{ padding-top:6px; }
+  .item:last-child{ border-bottom:0; }
+  .item-head{display:flex; align-items:center; gap:9px; margin-bottom:10px;}
   .badge{
     font-family:var(--mono); font-size:11.5px; color:var(--accent); background:var(--accent-soft);
-    padding:3px 8px; border-radius:4px; white-space:nowrap; font-weight:600;
+    padding:3px 9px; border-radius:6px; white-space:nowrap; font-weight:700; letter-spacing:.01em;
   }
-  .item input[type=text]{font-weight:600; margin-bottom:7px; background:var(--panel);}
-  .item textarea{background:var(--panel);}
+  .item input[type=text]{font-weight:600; margin-bottom:7px; background:var(--panel2); border:1px solid transparent; font-size:15.5px; font-family:var(--sans);}
+  .item textarea{background:var(--panel2); border:1px solid transparent;}
   .item-actions{display:flex; justify-content:space-between; align-items:center; margin-top:8px;}
-  .extra-fields{background:var(--panel2); border:1px solid var(--line); border-radius:6px; padding:14px; margin:14px 0;}
-  .extra-fields h3{font-size:12px; text-transform:uppercase; letter-spacing:.06em; margin:0 0 10px; font-weight:700; color:var(--text);}
+  .extra-fields{background:var(--accent-soft); border:0; border-left:3px solid var(--accent); border-radius:0 var(--r-md) var(--r-md) 0; padding:14px 16px; margin:18px 0;}
+  .extra-fields h3{font-family:var(--display); font-size:12.5px; margin:0 0 10px; font-weight:600; color:var(--text);}
   .extra-fields .field{margin-bottom:12px;}
   .extra-fields .field:last-child{margin-bottom:0;}
   .extra-fields label{margin-bottom:5px;}
-  .link{color:var(--accent); text-decoration:none; font-size:13px; font-weight:500;}
+  .link{color:var(--accent); text-decoration:none; font-size:13px; font-weight:600;}
   .empty{color:var(--muted); font-size:13px; font-style:italic;}
-  .result-line{font-size:13.5px; padding:7px 2px; border-bottom:1px solid var(--line);}
+  .result-line{font-size:13.5px; padding:8px 2px; border-bottom:1px solid var(--line);}
   .result-line:last-child{border-bottom:none;}
   .spinner{
-    display:inline-block; width:12px; height:12px; border:2px solid rgba(35,131,226,.2);
+    display:inline-block; width:12px; height:12px; border:2px solid var(--accent-soft);
     border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle; margin-right:6px;
   }
-  @keyframes spin{to{transform:rotate(360deg);}}  .title-row{display:flex; align-items:center; gap:10px; margin-bottom:5px;}
-  .app-mark{
-    width:30px; height:30px; border-radius:6px; background:#005a9e;
-    display:flex; align-items:center; justify-content:center; flex:0 0 auto;
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .title-row{display:flex; align-items:center; gap:10px; margin-bottom:5px;}
+  :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce){
+    .card-body, .chevron, .btn{ animation:none !important; transition:none !important; }
   }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div style="height:6px;"></div>
+  <header class="hero">
+    <div class="hero-mark">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <h1>Review Items</h1>
+    <p class="sub">Paste messy notes. Get clean, tracked review items in Azure DevOps.</p>
+  </header>
 
   <div class="card">
     <div class="card-header collapsed" data-collapse-target="body-connection">
-      <h2><span class="chevron">▾</span>Connection</h2>
+      <h2><span class="chevron">▾</span>Connect to Azure DevOps</h2>
       <button class="icon-btn" id="setupsToggle">Setups ▾</button>
     </div>
 
@@ -197,7 +267,7 @@
 
   <div class="card">
     <div class="card-header collapsed" data-collapse-target="body-workitem">
-      <h2><span class="chevron">▾</span>Work item settings</h2>
+      <h2><span class="chevron">▾</span>What type of item?</h2>
     </div>
     <div class="card-body collapsed" id="body-workitem">
     <div class="row">
@@ -216,28 +286,16 @@
   </div>
 
   <div class="card">
-    <div class="card-header" data-collapse-target="body-existing">
-      <h2><span class="chevron">▾</span>Existing items</h2>
+    <div class="card-header no-collapse">
+      <h2>Paste your notes</h2>
     </div>
-    <div class="card-body" id="body-existing">
-    <div class="btn-row" style="margin-top:0;">
-      <button class="btn secondary" id="loadExistingBtn">Load existing Review items</button>
-    </div>
-    <div class="status" id="existingStatus"></div>
-    <div id="existingList"></div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-header" data-collapse-target="body-paste">
-      <h2><span class="chevron">▾</span>Paste dump or email</h2>
-    </div>
+    <p class="flow-hint">Drop in raw notes or an email thread — we'll shape it into clean, titled review items.</p>
     <div class="card-body" id="body-paste">
-    <textarea id="dump" rows="9" placeholder="Paste your notes here. Separate each item with a blank line — one paragraph = one item. Or use AI: Generate items below for messy/raw notes."></textarea>
+    <textarea id="dump" rows="9" placeholder="Paste your notes here…"></textarea>
     <div class="btn-row">
-      <button class="btn secondary" id="analyzeBtn">Split by blank lines</button>
-      <button class="btn" id="aiSplitBtn">✦ AI: Generate items</button>
+      <button class="btn" id="aiSplitBtn">✦ Generate items with AI</button>
     </div>
+    <button class="btn-text" id="analyzeBtn">or just split by blank lines</button>
     <div class="status" id="analyzeStatus"></div>
     </div>
   </div>
@@ -250,11 +308,24 @@
     <div id="itemsList"></div>
     <div id="extraFieldsWrap"></div>
     <div class="btn-row">
-      <button class="btn secondary" id="addItemBtn">+ Add item manually</button>
       <button class="btn" id="createBtn">Create in Azure DevOps</button>
     </div>
+    <button class="btn-text" id="addItemBtn">+ add item manually</button>
     <div class="status" id="createStatus"></div>
     <div id="results"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header collapsed" data-collapse-target="body-existing">
+      <h2><span class="chevron">▾</span>Existing items</h2>
+    </div>
+    <div class="card-body collapsed" id="body-existing">
+    <div class="btn-row" style="margin-top:0;">
+      <button class="btn secondary" id="loadExistingBtn">Load existing Review items</button>
+    </div>
+    <div class="status" id="existingStatus"></div>
+    <div id="existingList"></div>
     </div>
   </div>
 </div>
