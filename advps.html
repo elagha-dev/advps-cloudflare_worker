@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Review Items">
-<meta name="theme-color" content="#12685a">
+<meta name="theme-color" content="#FBF7EE">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" type="image/png" href="icons/favicon-32.png">
 <link rel="manifest" href="manifest.json">
@@ -17,292 +17,334 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 /* =====================================================================
-   TOKENS — warm paper / near-black ink / one deep verified-teal.
-   Screens are color-blocked full-bleed by phase; components read their
-   colors from the active theme's variables, never fixed hex values.
+   TOKENS
    ===================================================================== */
 :root{
-  --ink:#15140f;
-  --paper:#f4efe2;
-  --teal:#0f6a5a;
-  --cream:#f4efe2;
-  --amber:#c98a2b;
-  --rose:#c24a34;
-  --rose-dark:#8a3223;
+  --bg:#FBF7EE;
+  --card:#FFFDF7;
+  --card-tint:#E6F2EA;
+  --card-tint-border:#c9e2d2;
+  --ink:#2A2620;
+  --ink-2:#55503F;
+  --ink-3:#7B7563;
+  --hair:#E7DFCF;
+  --hair-strong:#D8CDB4;
+  --green:#146C52;
+  --green-deep:#0e5642;
+  --amber:#a8691a;
+  --amber-soft:#f6ecd9;
+  --rose:#b23b2a;
+  --rose-soft:#f8e8e4;
 
   --display:"Space Grotesk","Segoe UI",sans-serif;
   --sans:"Inter",-apple-system,"Segoe UI",Arial,sans-serif;
   --mono:"JetBrains Mono","SF Mono",Consolas,monospace;
+
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px; --sp-6:32px; --sp-7:44px;
 }
 *{box-sizing:border-box;}
 html,body{height:100%;}
-body{margin:0; font-family:var(--sans); -webkit-font-smoothing:antialiased; overscroll-behavior:none; background:var(--ink);}
+body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); -webkit-font-smoothing:antialiased; overscroll-behavior:none;}
 button,input,textarea,select{font-family:inherit;}
-:focus-visible{outline:2px solid currentColor; outline-offset:3px;}
+:focus-visible{outline:2px solid var(--green); outline-offset:2px;}
 @media (prefers-reduced-motion:reduce){ *{animation-duration:.001ms !important; transition-duration:.001ms !important;} }
 
-.app{max-width:480px; margin:0 auto; min-height:100dvh; position:relative; display:flex; flex-direction:column; overflow:hidden;}
-
-/* ---- theme variables, applied per-screen ---- */
-.theme-paper{--bg:var(--paper); --fg:var(--ink); --fg-dim:rgba(21,20,15,.58); --fg-faint:rgba(21,20,15,.3); --hair:rgba(21,20,15,.16); --accent:var(--teal); --btn-bg:var(--ink); --btn-fg:var(--paper);}
-.theme-dark{--bg:var(--ink); --fg:var(--paper); --fg-dim:rgba(244,239,226,.62); --fg-faint:rgba(244,239,226,.32); --hair:rgba(244,239,226,.18); --accent:#8fd9c4; --btn-bg:var(--paper); --btn-fg:var(--ink);}
-.theme-teal{--bg:var(--teal); --fg:var(--cream); --fg-dim:rgba(244,239,226,.72); --fg-faint:rgba(244,239,226,.4); --hair:rgba(244,239,226,.24); --accent:var(--cream); --btn-bg:var(--ink); --btn-fg:var(--cream);}
+.app{max-width:480px; margin:0 auto; min-height:100dvh; background:var(--bg); position:relative; display:flex; flex-direction:column; overflow:hidden;}
 
 /* =====================================================================
-   TOPBAR — transparent, minimal, colored per-theme via body attribute
+   NAV BAR — conventional back chevron + label, centered title,
+   settings gear only ever appears on the root screen.
    ===================================================================== */
-.topbar{
-  position:relative; z-index:30; display:flex; align-items:center; justify-content:space-between;
-  padding:calc(env(safe-area-inset-top,0px) + 16px) 20px 6px; flex:none; pointer-events:none;
+.navbar{
+  position:relative; z-index:30; flex:none; height:48px; display:flex; align-items:center;
+  padding:calc(env(safe-area-inset-top,0px) + 6px) 6px 0;
+  min-height:calc(48px + env(safe-area-inset-top,0px));
 }
-.topbar > *{pointer-events:auto;}
-.chrome-btn{
-  width:38px; height:38px; border-radius:50%; border:1.5px solid var(--hair, rgba(0,0,0,.15));
-  background:transparent; color:var(--fg,#15140f); display:flex; align-items:center; justify-content:center;
-  cursor:pointer; transition:transform .12s, opacity .15s;
+.nav-back{
+  position:relative; z-index:2; display:flex; align-items:center; gap:2px; background:none; border:none;
+  color:var(--green-deep); font-size:15.5px; font-weight:600; cursor:pointer; padding:8px 10px 8px 4px;
+  max-width:62%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-.chrome-btn:active{transform:scale(.9);}
-.chrome-btn svg{width:16px; height:16px;}
-.chrome-btn[hidden]{visibility:hidden; pointer-events:none;}
-body{transition:background-color .3s ease;}
-/* the topbar picks up whichever screen is active via inherited CSS vars set in JS on #topbar */
-#topbar.theme-paper,#topbar.theme-dark,#topbar.theme-teal{background:transparent;}
+.nav-back svg{width:11px; height:18px; flex:none;}
+.nav-back[hidden]{display:none;}
+.nav-title{
+  position:absolute; left:56px; right:56px; text-align:center; z-index:1; pointer-events:none;
+  font-family:var(--sans); font-weight:600; font-size:15.5px; color:var(--ink);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.nav-gear{
+  position:relative; z-index:2; margin-left:auto; width:34px; height:34px; border-radius:50%;
+  border:none; background:none; color:var(--ink-2); display:flex; align-items:center; justify-content:center; cursor:pointer;
+}
+.nav-gear[hidden]{visibility:hidden;}
+.nav-gear svg{width:21px; height:21px;}
 
 .stage{position:relative; flex:1; overflow:hidden;}
 .screen{
   position:absolute; inset:0; display:none; flex-direction:column;
-  transform:translateX(0); opacity:1; background:var(--bg); color:var(--fg);
-  transition:transform .36s cubic-bezier(.22,.61,.36,1), opacity .3s ease, background-color .2s;
+  transform:translateX(0); opacity:1; background:var(--bg); color:var(--ink);
+  transition:transform .32s cubic-bezier(.22,.61,.36,1), opacity .26s ease;
 }
 .screen.active,.screen.leaving-l,.screen.leaving-r{display:flex;}
-.screen.entering-r{transform:translateX(10%); opacity:0;}
-.screen.entering-l{transform:translateX(-10%); opacity:0;}
-.screen.leaving-l{transform:translateX(-10%); opacity:0;}
-.screen.leaving-r{transform:translateX(10%); opacity:0;}
+.screen.entering-r{transform:translateX(8%); opacity:0;}
+.screen.entering-l{transform:translateX(-8%); opacity:0;}
+.screen.leaving-l{transform:translateX(-8%); opacity:0;}
+.screen.leaving-r{transform:translateX(8%); opacity:0;}
 
-.screen-scroll{flex:1; overflow-y:auto; padding:2px 26px 10px; -webkit-overflow-scrolling:touch; position:relative;}
-.screen-foot{flex:none; padding:16px 26px calc(env(safe-area-inset-bottom,0px) + 22px); display:flex; align-items:flex-end; justify-content:space-between; gap:14px;}
+.screen-scroll{flex:1; overflow-y:auto; padding:0 20px 20px; -webkit-overflow-scrolling:touch;}
+.screen-foot{flex:none; padding:12px 20px calc(env(safe-area-inset-bottom,0px) + 18px); background:linear-gradient(180deg, rgba(251,247,238,0), var(--bg) 40%);}
 
-/* =====================================================================
-   HEADLINE BLOCK — big type + a huge faint numeral for sequence steps
-   ===================================================================== */
-.head{position:relative; margin:18px 0 30px; z-index:1;}
-.head .step-mark{
-  position:absolute; top:-34px; right:-6px; font-family:var(--mono); font-weight:700;
-  font-size:118px; line-height:1; color:var(--fg); opacity:.08; z-index:0; user-select:none; pointer-events:none;
-}
-.head h1{
-  position:relative; z-index:1; font-family:var(--display); font-weight:700; font-size:35px;
-  line-height:1.04; letter-spacing:-.025em; margin:0; max-width:11ch;
-}
-.head .kicker{
-  position:relative; z-index:1; display:block; font-family:var(--mono); font-size:11.5px; font-weight:600;
-  letter-spacing:.08em; text-transform:uppercase; color:var(--accent); margin:0 0 10px;
-}
-.head .meta{position:relative; z-index:1; font-family:var(--mono); font-size:13px; color:var(--fg-dim); margin:10px 0 0;}
+/* large title — used only on the root (home) screen, scrolls with content */
+.large-title{font-family:var(--display); font-weight:700; font-size:30px; letter-spacing:-.015em; color:var(--ink); margin:2px 0 var(--sp-1);}
+.large-subtitle{font-size:14.5px; color:var(--ink-2); margin:0 0 var(--sp-5); font-weight:500;}
+
+/* section intro copy for pushed screens — replaces repeated on-page headings */
+.intro{font-size:13.5px; color:var(--ink-2); line-height:1.5; margin:var(--sp-3) 0 var(--sp-5);}
 
 /* =====================================================================
-   FIELDS — underline style, no boxes
+   FIELDS
    ===================================================================== */
-.field{margin-bottom:26px; position:relative;}
-.field label{display:block; font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--fg-faint); margin-bottom:9px;}
+.field{margin-bottom:var(--sp-4);}
+.field label{display:block; font-size:12px; font-weight:600; color:var(--ink-2); letter-spacing:.01em; margin-bottom:7px;}
 input[type=text],input[type=password],textarea,select{
-  width:100%; background:transparent; border:none; border-bottom:1.5px solid var(--hair);
-  color:var(--fg); border-radius:0; padding:8px 0 12px; font-size:19px; font-family:var(--display); font-weight:600;
-  transition:border-color .15s;
+  width:100%; background:var(--card); border:1.5px solid var(--hair); color:var(--ink);
+  border-radius:12px; padding:13px 14px; font-size:16px; font-family:var(--sans); font-weight:500;
+  transition:border-color .15s, box-shadow .15s; min-height:var(--sp-7);
 }
-input[type=text]::placeholder,input[type=password]::placeholder,textarea::placeholder{color:var(--fg-faint); font-weight:500;}
-input[type=text]:focus,input[type=password]:focus,textarea:focus,select:focus{outline:none; border-bottom-color:var(--accent);}
-textarea{resize:none; font-family:var(--sans); font-weight:400; font-size:16px; line-height:1.55;}
+input[type=text]::placeholder,input[type=password]::placeholder,textarea::placeholder{color:var(--ink-3);}
+input[type=text]:focus,input[type=password]:focus,textarea:focus,select:focus{outline:none; border-color:var(--green); box-shadow:0 0 0 3px var(--card-tint);}
+textarea{resize:vertical; line-height:1.55;}
 select{
-  appearance:none; -webkit-appearance:none; background-repeat:no-repeat; background-position:right 4px center; padding-right:26px;
+  appearance:none; -webkit-appearance:none; background-repeat:no-repeat; background-position:right 14px center; padding-right:36px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%2355503F' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
-.theme-paper select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%2315140f' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");}
-.theme-dark select,.theme-teal select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%23f4efe2' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");}
-.field .hint{font-size:12px; color:var(--fg-faint); margin-top:8px;}
-.field-row{display:flex; gap:22px;}
+.field .hint{font-size:12px; color:var(--ink-3); margin-top:7px;}
+.field-row{display:flex; gap:var(--sp-3);}
 .field-row .field{flex:1;}
 
-.toggle-row{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 0; border-top:1px solid var(--hair); margin-top:4px;}
-.toggle-row .toggle-copy{font-size:14px;}
-.toggle-row .toggle-copy small{display:block; font-size:12px; color:var(--fg-faint); margin-top:2px; font-weight:400;}
+.toggle-row{display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); padding:14px 16px; background:var(--card); border:1.5px solid var(--hair); border-radius:12px; margin-bottom:var(--sp-4);}
+.toggle-row .toggle-copy{font-size:14px; font-weight:500;}
+.toggle-row .toggle-copy small{display:block; font-size:12px; color:var(--ink-3); margin-top:2px; font-weight:400;}
 .switch{position:relative; width:44px; height:26px; flex:none;}
 .switch input{position:absolute; inset:0; opacity:0; cursor:pointer; margin:0;}
-.switch .track{position:absolute; inset:0; background:var(--hair); border-radius:999px; transition:background .18s;}
-.switch .knob{position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:var(--fg); box-shadow:0 1px 3px rgba(0,0,0,.25); transition:transform .18s;}
-.switch input:checked + .track{background:var(--accent);}
-.switch input:checked + .track + .knob{transform:translateX(18px); background:var(--bg);}
+.switch .track{position:absolute; inset:0; background:var(--hair-strong); border-radius:999px; transition:background .18s;}
+.switch .knob{position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.22); transition:transform .18s;}
+.switch input:checked + .track{background:var(--green);}
+.switch input:checked + .track + .knob{transform:translateX(18px);}
 
-/* quick-load text row instead of pill chips */
-.quickload{font-size:13px; color:var(--fg-dim); margin:-4px 0 24px; line-height:1.8;}
-.quickload button{background:none; border:none; padding:0; font:inherit; color:var(--fg); font-weight:600; cursor:pointer; text-decoration:underline; text-decoration-color:var(--hair); text-underline-offset:3px;}
-.quickload .sep{color:var(--fg-faint); margin:0 7px;}
+.quickload{font-size:13px; color:var(--ink-2); margin:0 0 var(--sp-4); line-height:1.9;}
+.quickload button{background:none; border:none; padding:0; font:inherit; color:var(--green-deep); font-weight:600; cursor:pointer; text-decoration:underline; text-decoration-color:var(--card-tint-border); text-underline-offset:3px;}
+.quickload .sep{color:var(--ink-3); margin:0 7px;}
 
 /* =====================================================================
-   CTA — label + circular arrow, bottom-anchored, replaces full pills
+   BUTTONS
    ===================================================================== */
-.side-link{background:none; border:none; padding:0; font-family:var(--sans); font-size:13.5px; font-weight:600; color:var(--fg-dim); cursor:pointer; text-decoration:underline; text-decoration-color:var(--hair); text-underline-offset:3px; margin-bottom:8px;}
-.side-link.danger{color:var(--rose);}
-.cta{display:flex; align-items:center; gap:14px; cursor:pointer; margin-left:auto; background:none; border:none; padding:0;}
-.cta:disabled{opacity:.35; cursor:default;}
-.cta .cta-label{font-family:var(--display); font-weight:700; font-size:15.5px; letter-spacing:-.01em; color:var(--fg); white-space:nowrap;}
-.cta .cta-circle{
-  width:58px; height:58px; border-radius:50%; background:var(--btn-bg); color:var(--btn-fg); flex:none;
-  display:flex; align-items:center; justify-content:center; box-shadow:0 12px 26px -12px rgba(0,0,0,.5); transition:transform .12s;
+.btn-primary{
+  display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
+  background:var(--green); color:#fffdf7; border:none; border-radius:12px;
+  padding:15px 22px; font-size:16px; font-weight:600; letter-spacing:-.005em;
+  cursor:pointer; min-height:var(--sp-7); transition:transform .1s, opacity .15s;
 }
-.cta:active .cta-circle{transform:scale(.92);}
-.cta .cta-circle svg{width:20px; height:20px;}
-.cta .spin{width:18px; height:18px; border:2.2px solid rgba(255,255,255,.28); border-top-color:currentColor; border-radius:50%; animation:spin .7s linear infinite;}
+.btn-primary:active{transform:scale(.98);}
+.btn-primary:disabled{opacity:.4; cursor:default;}
+.btn-primary .spin{width:16px; height:16px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.foot-empty{flex:1;}
+
+.btn-secondary{
+  display:block; width:100%; background:var(--card); border:1.5px solid var(--hair-strong); color:var(--ink);
+  border-radius:12px; padding:14px 22px; font-size:15.5px; font-weight:600; text-align:center; cursor:pointer; min-height:var(--sp-7);
+}
+.btn-secondary:active{background:var(--hair);}
+
+.btn-text{
+  display:inline-flex; align-items:center; gap:6px; background:none; border:none; color:var(--green-deep);
+  font-size:15px; font-weight:600; cursor:pointer; padding:8px 0; min-height:36px;
+}
+.btn-text:active{opacity:.6;}
+.btn-text.muted{color:var(--ink-2);}
+.btn-text.danger{color:var(--rose);}
+.text-row{display:flex; justify-content:center; margin:var(--sp-2) 0 0;}
+.text-row.left{justify-content:flex-start;}
 
 /* =====================================================================
-   FEEDBACK — plain text, no colored boxes
+   FEEDBACK
    ===================================================================== */
-.msg{font-size:13.5px; line-height:1.5; margin-top:16px; padding-top:14px; border-top:1px solid var(--hair); display:none;}
+.msg{font-size:13.5px; line-height:1.5; padding:12px 14px; border-radius:10px; margin-top:var(--sp-4); display:none; font-weight:500;}
 .msg:not(:empty){display:block;}
-.msg.err{color:var(--rose);}
-.msg.warn{color:var(--amber);}
-.msg.ok{color:var(--fg);}
-.msg.info{color:var(--fg-dim);}
-.theme-dark .msg.err,.theme-teal .msg.err{color:#ff9c85;}
-.theme-dark .msg.warn,.theme-teal .msg.warn{color:#f0c877;}
+.msg.ok{color:var(--green-deep); background:var(--card-tint);}
+.msg.err{color:var(--rose); background:var(--rose-soft);}
+.msg.warn{color:var(--amber); background:var(--amber-soft);}
+.msg.info{color:var(--ink-2); background:var(--card);}
 
 /* =====================================================================
-   STAMP — the signature seal motif
+   STAMP — used sparingly
    ===================================================================== */
-.stamp{display:inline-flex; transform:rotate(-8deg);}
-.stamp.pulse{animation:stampIn .55s cubic-bezier(.2,1.6,.4,1) both;}
-@keyframes stampIn{0%{transform:rotate(-8deg) scale(2.3); opacity:0;} 60%{transform:rotate(-8deg) scale(.92); opacity:1;} 100%{transform:rotate(-8deg) scale(1);}}
+.stamp{display:inline-flex; transform:rotate(-6deg);}
+.stamp.pulse{animation:stampIn .5s cubic-bezier(.2,1.6,.4,1) both;}
+@keyframes stampIn{0%{transform:rotate(-6deg) scale(1.9); opacity:0;} 60%{transform:rotate(-6deg) scale(.94); opacity:1;} 100%{transform:rotate(-6deg) scale(1);}}
 
 /* =====================================================================
-   HOME
+   HOME — single source of truth per state, no redundant messaging
    ===================================================================== */
-.home-stamp-wrap{position:absolute; top:-40px; right:-58px; opacity:.9; z-index:0; pointer-events:none;}
-.home-scroll{padding-top:26px;}
-.home-word{position:relative; z-index:1; font-family:var(--display); font-weight:700; font-size:52px; line-height:.98; letter-spacing:-.03em; margin:0 0 22px;}
-.home-line{font-family:var(--mono); font-size:13.5px; color:var(--fg-dim); margin:0 0 4px; position:relative; z-index:1;}
-.home-line b{color:var(--fg); font-weight:600;}
-.home-line .arrow-glyph{margin-right:8px; color:var(--accent);}
-.home-recent{font-family:var(--mono); font-size:12px; color:var(--fg-faint); margin-top:22px; position:relative; z-index:1;}
+.home-scroll{padding-top:2px; display:flex; flex-direction:column;}
+
+/* connected: top-anchored dashboard, natural flow, no forced spacer */
+.home-connected{display:none;}
+.home-connected.show{display:block;}
+.home-row{
+  display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 2px;
+  border-top:1px solid var(--hair); margin-top:var(--sp-2); cursor:pointer;
+}
+.home-row .label{font-size:16px; font-weight:500; color:var(--ink);}
+.home-row .chev{color:var(--ink-3); flex:none;}
+.home-recent{font-size:12.5px; color:var(--ink-2); margin:var(--sp-3) 2px 0; font-weight:500;}
+
+/* not connected: centered empty state, like a native empty inbox */
+.home-empty{display:none; flex:1; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:var(--sp-6) var(--sp-4); min-height:52vh;}
+.home-empty.show{display:flex;}
+.home-empty .mark{margin-bottom:var(--sp-4);}
+.home-empty .t{font-family:var(--display); font-weight:600; font-size:19px; margin:0 0 8px; color:var(--ink);}
+.home-empty .s{font-size:14px; color:var(--ink-2); line-height:1.5; max-width:30ch; margin:0 0 var(--sp-5);}
+.home-empty .btn-primary{max-width:280px;}
 
 /* =====================================================================
-   REVIEW ITEMS — plain numbered rows, no card boxes
+   ITEM CARDS (review) — the visual focus of the screen
    ===================================================================== */
-.item-row{padding:20px 0; border-top:1px solid var(--hair); position:relative;}
-.item-row:first-child{border-top:none;}
-.item-row.excluded{opacity:.4;}
-.item-row-top{display:flex; align-items:flex-start; gap:12px;}
-.item-num{font-family:var(--mono); font-size:13px; color:var(--fg-faint); flex:none; padding-top:9px; width:22px;}
+.item-card{
+  background:var(--card); border:1.5px solid var(--hair); border-radius:14px;
+  padding:15px; margin-bottom:var(--sp-3); display:flex; gap:12px;
+}
+.item-card.included{background:var(--card-tint); border-color:var(--card-tint-border);}
+.item-card.excluded{opacity:.55;}
+.item-toggle{
+  width:24px; height:24px; border-radius:50%; border:1.5px solid var(--hair-strong); background:var(--card);
+  display:flex; align-items:center; justify-content:center; cursor:pointer; flex:none; color:transparent; margin-top:1px; padding:0;
+}
+.item-toggle.on{background:var(--green); border-color:var(--green); color:#fffdf7;}
+.item-toggle svg{width:13px; height:13px;}
 .item-body{flex:1; min-width:0;}
-.item-row input[type=text]{font-size:18px; padding:6px 0 8px; border-bottom-color:transparent;}
-.item-row input[type=text]:focus{border-bottom-color:var(--accent);}
-.item-row textarea{font-size:14px; color:var(--fg-dim); min-height:44px; padding:0;}
-.item-row-actions{display:flex; align-items:center; gap:16px; flex:none; padding-top:9px;}
-.dot-toggle{width:20px; height:20px; border-radius:50%; border:1.5px solid var(--hair); background:none; cursor:pointer; display:flex; align-items:center; justify-content:center; color:transparent; padding:0;}
-.dot-toggle.on{background:var(--fg); border-color:var(--fg); color:var(--bg);}
-.dot-toggle svg{width:11px; height:11px;}
-.row-remove{background:none; border:none; color:var(--fg-faint); cursor:pointer; font-family:var(--mono); font-size:12px; padding:0;}
-.row-remove:active{color:var(--rose);}
-.items-count{font-family:var(--mono); font-size:12.5px; color:var(--fg-dim); margin:-18px 0 4px;}
+.item-card input[type=text]{
+  font-family:var(--display); font-weight:600; font-size:16px; border:none; background:transparent;
+  padding:0 0 6px; margin-bottom:2px; min-height:auto;
+}
+.item-card input[type=text]:focus{box-shadow:none; border-bottom:1.5px solid var(--green);}
+.item-card textarea{
+  border:none; background:transparent; font-size:13.5px; color:var(--ink-2); min-height:40px; padding:0; line-height:1.5;
+}
+.item-card textarea:focus{box-shadow:none;}
+.item-remove{background:none; border:1.5px solid var(--hair-strong); border-radius:8px; width:26px; height:26px; color:var(--ink-3); cursor:pointer; flex:none; display:flex; align-items:center; justify-content:center; margin-top:1px;}
+.item-remove:active{color:var(--rose); border-color:var(--rose-soft);}
+.item-remove svg{width:13px; height:13px;}
+.items-count{font-size:13.5px; color:var(--ink-2); margin:var(--sp-2) 0 var(--sp-4); font-weight:500;}
 
 /* =====================================================================
-   CONFIRM — receipt-style dark screen
+   CONFIRM SUMMARY
    ===================================================================== */
-.receipt-summary{font-family:var(--mono); font-size:13.5px; color:var(--fg-dim); line-height:2; margin-bottom:8px;}
-.receipt-summary b{color:var(--fg); font-weight:600;}
-.receipt-list{margin-top:22px; border-top:1px dashed var(--hair);}
-.receipt-row{display:flex; gap:12px; padding:13px 0; border-bottom:1px dashed var(--hair); font-size:14px;}
-.receipt-row .n{font-family:var(--mono); color:var(--fg-faint); flex:none;}
-.receipt-row .t{color:var(--fg); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.summary-card{background:var(--card); border:1.5px solid var(--hair); border-radius:14px; padding:16px 18px; margin:var(--sp-3) 0 var(--sp-5);}
+.summary-row{display:flex; justify-content:space-between; gap:14px; padding:9px 0; font-size:14px; border-bottom:1px solid var(--hair);}
+.summary-row:last-child{border-bottom:none;}
+.summary-row .k{color:var(--ink-2);}
+.summary-row .v{color:var(--ink); font-weight:600; text-align:right;}
+.section-label{font-size:12px; font-weight:600; color:var(--ink-2); letter-spacing:.02em; text-transform:uppercase; margin:0 0 10px;}
+.preview-card{background:var(--card); border:1.5px solid var(--hair); border-radius:14px; padding:4px 18px;}
+.preview-item{display:flex; gap:10px; align-items:baseline; padding:11px 0; border-bottom:1px solid var(--hair); font-size:13.5px;}
+.preview-item:last-child{border-bottom:none;}
+.preview-item .n{font-family:var(--mono); color:var(--ink-3); flex:none;}
+.preview-item .t{color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 
 /* =====================================================================
    TRANSIENT SCREENS
    ===================================================================== */
-.center-stage{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:26px;}
-.loader-ring{width:46px; height:46px; border-radius:50%; border:2.5px solid var(--hair); border-top-color:var(--fg); animation:spin 1s linear infinite; margin-bottom:26px;}
-.loader-title{font-family:var(--display); font-size:17px; font-weight:600; margin:0 0 6px;}
-.loader-sub{font-size:13.5px; color:var(--fg-dim);}
-.checklist{width:100%; max-width:320px; margin-top:26px; text-align:left;}
-.check-row{display:flex; align-items:center; gap:10px; padding:9px 0; font-size:13.5px; color:var(--fg-dim); border-bottom:1px solid var(--hair);}
+.center-stage{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:var(--sp-5);}
+.loader-ring{width:44px; height:44px; border-radius:50%; border:3px solid var(--card-tint-border); border-top-color:var(--green); animation:spin 1s linear infinite; margin-bottom:var(--sp-5);}
+.loader-title{font-family:var(--display); font-size:18px; font-weight:600; margin:0 0 6px;}
+.loader-sub{font-size:13.5px; color:var(--ink-2);}
+.checklist{width:100%; max-width:340px; margin-top:var(--sp-5); text-align:left; background:var(--card); border:1.5px solid var(--hair); border-radius:14px; padding:6px 16px;}
+.check-row{display:flex; align-items:center; gap:10px; padding:11px 0; font-size:13.5px; color:var(--ink-2); border-bottom:1px solid var(--hair);}
 .check-row:last-child{border-bottom:none;}
-.check-row .mark{width:16px; height:16px; border-radius:50%; border:1.5px solid var(--hair); flex:none; display:flex; align-items:center; justify-content:center; font-size:10px;}
-.check-row.done .mark{background:var(--fg); border-color:var(--fg); color:var(--bg);}
+.check-row .mark{width:18px; height:18px; border-radius:50%; border:1.5px solid var(--hair-strong); flex:none; display:flex; align-items:center; justify-content:center; font-size:10px;}
+.check-row.done .mark{background:var(--green); border-color:var(--green); color:#fffdf7;}
 .check-row.fail .mark{background:var(--rose); border-color:var(--rose); color:#fff;}
-.check-row.done{color:var(--fg);}
-.check-row.fail{color:#ffb3a0;}
+.check-row.done{color:var(--ink);}
+.check-row.fail{color:var(--rose);}
 .check-row .title{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-.check-row .link{color:var(--accent); font-weight:600; text-decoration:none; flex:none; font-size:12px;}
-.results-stamp-wrap{display:flex; justify-content:center; margin:12px 0 6px;}
+.check-row .link{color:var(--green-deep); font-weight:600; text-decoration:none; flex:none; font-size:12.5px;}
+.results-stamp-wrap{display:flex; justify-content:center; margin:var(--sp-4) 0 var(--sp-4);}
 
 /* =====================================================================
-   EXISTING / SETUPS — plain rows
+   GROUPED LISTS — existing items, saved setups (iOS Settings pattern)
    ===================================================================== */
-.plain-row{display:flex; align-items:center; gap:14px; padding:15px 0; border-top:1px solid var(--hair);}
-.plain-row:first-child{border-top:none;}
-.plain-row .id{font-family:var(--mono); font-size:12px; color:var(--accent); flex:none;}
-.plain-row .title{flex:1; font-size:14.5px; color:var(--fg); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-.plain-row .state{font-family:var(--mono); font-size:11px; color:var(--fg-faint); flex:none;}
+.list-card{background:var(--card); border:1.5px solid var(--hair); border-radius:14px; padding:4px 16px; margin:var(--sp-3) 0 var(--sp-5);}
+.plain-row{display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid var(--hair);}
+.plain-row:last-child{border-bottom:none;}
+.plain-row .id{font-family:var(--mono); font-size:11.5px; font-weight:700; color:var(--green-deep); background:var(--card-tint); padding:3px 8px; border-radius:6px; flex:none;}
+.plain-row .title{flex:1; font-size:15px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.plain-row .state{font-size:11.5px; color:var(--ink-3); flex:none; font-weight:600;}
 a.plain-row{text-decoration:none; color:inherit;}
-.setup-row-name{font-weight:600; font-size:15px;}
-.setup-row-meta{font-family:var(--mono); font-size:12px; color:var(--fg-faint); margin-top:2px;}
-.setup-row del-btn,.setup-del{background:none; border:none; color:var(--rose); cursor:pointer; flex:none; padding:6px;}
-.setup-del svg{width:15px; height:15px; display:block;}
-.save-preset{margin-top:30px; padding-top:26px; border-top:1px solid var(--hair);}
+.setup-row-name{font-weight:600; font-size:15px; color:var(--ink);}
+.setup-row-meta{font-size:12px; color:var(--ink-2); margin-top:2px;}
+.setup-del{background:none; border:1.5px solid var(--hair-strong); border-radius:8px; width:30px; height:30px; color:var(--rose); cursor:pointer; flex:none; display:flex; align-items:center; justify-content:center;}
+.setup-del svg{width:14px; height:14px;}
+.save-preset{margin-top:var(--sp-2);}
 
-.empty-state{text-align:center; padding:60px 10px;}
-.empty-state svg{width:38px; height:38px; color:var(--fg-faint); margin-bottom:18px;}
-.empty-state .t{font-family:var(--display); font-size:15px; font-weight:600; margin:0 0 6px;}
-.empty-state .s{font-size:13px; color:var(--fg-faint); max-width:26ch; margin:0 auto;}
-
-/* extra fields note */
-.field-note{font-size:13px; color:var(--fg-dim); margin:-6px 0 24px; line-height:1.5;}
+.empty-state{text-align:center; padding:var(--sp-6) var(--sp-4);}
+.empty-state svg{width:38px; height:38px; color:var(--ink-3); margin-bottom:var(--sp-4);}
+.empty-state .t{font-family:var(--display); font-size:16px; font-weight:600; margin:0 0 6px; color:var(--ink);}
+.empty-state .s{font-size:13.5px; color:var(--ink-2); max-width:28ch; margin:0 auto;}
 </style>
 </head>
 <body>
 <div class="app" id="app">
 
-  <header class="topbar" id="topbar">
-    <button class="chrome-btn" id="backBtn" aria-label="Back" hidden>
-      <svg viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <header class="navbar">
+    <button class="nav-back" id="backBtn" hidden>
+      <svg viewBox="0 0 12 20" fill="none"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span id="backBtnLabel">Back</span>
     </button>
-    <button class="chrome-btn" id="settingsBtn" aria-label="Connection settings" hidden style="margin-left:auto;">
-      <svg viewBox="0 0 24 24" fill="none"><path d="M12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z" stroke="currentColor" stroke-width="1.8"/><path d="M19.4 13.5a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1 1.55V19.5a2 2 0 11-4 0v-.09a1.7 1.7 0 00-1-1.56 1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.7 1.7 0 00.34-1.87 1.7 1.7 0 00-1.55-1H4.5a2 2 0 110-4h.09a1.7 1.7 0 001.56-1 1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06a1.7 1.7 0 001.87.34H10.5a1.7 1.7 0 001-1.55V4.5a2 2 0 114 0v.09a1.7 1.7 0 001 1.55 1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06a1.7 1.7 0 00-.34 1.87V10.5a1.7 1.7 0 001.55 1h.09a2 2 0 110 4h-.09a1.7 1.7 0 00-1.55 1z" stroke="currentColor" stroke-width="1.3"/></svg>
+    <span class="nav-title" id="navTitle"></span>
+    <button class="nav-gear" id="settingsBtn" aria-label="Connection settings" hidden>
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 2.5v2.3M12 19.2v2.3M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M2.5 12h2.3M19.2 12h2.3M4.9 19.1l1.6-1.6M17.5 6.5l1.6-1.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
     </button>
   </header>
 
   <main class="stage" id="stage">
 
-    <!-- ============ HOME ============ -->
-    <section class="screen theme-dark" data-screen="home">
+    <!-- ============ HOME (root) ============ -->
+    <section class="screen" data-screen="home">
       <div class="screen-scroll home-scroll">
-        <div class="home-stamp-wrap">
-          <svg width="190" height="190" viewBox="0 0 46 46" fill="none">
-            <circle cx="23" cy="23" r="21" stroke="#f4efe2" stroke-width="1"/>
-            <circle cx="23" cy="23" r="16" stroke="#f4efe2" stroke-width=".7" stroke-dasharray="2 3.4"/>
-            <path d="M15 23.5l5.5 5.5L32 17" stroke="#f4efe2" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+        <h1 class="large-title">Review Items</h1>
+
+        <!-- connected state: top-anchored, one status line, one primary action, one nav row -->
+        <div class="home-connected" id="homeConnected">
+          <p class="large-subtitle" id="homeProjectLine">TF100 PAM Gap Management</p>
+          <button class="btn-primary" id="homePrimaryBtn">New batch</button>
+          <p class="home-recent" id="homeRecentLine" style="display:none;"></p>
+          <div class="home-row" id="homeExistingBtn">
+            <span class="label">Existing items</span>
+            <span class="chev"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </div>
         </div>
-        <h1 class="home-word">Review<br>Items.</h1>
-        <p class="home-line"><span class="arrow-glyph">→</span><span id="homeStatusTitle">Not connected</span></p>
-        <p class="home-line" id="homeStatusMetaLine" style="display:none;"><b id="homeStatusMeta"></b></p>
-        <p class="home-recent" id="homeRecentLine" style="display:none;"></p>
-      </div>
-      <div class="screen-foot">
-        <button class="side-link" id="homeExistingBtn">Existing items</button>
-        <div class="foot-empty"></div>
-        <button class="cta" id="homePrimaryBtn"><span class="cta-label">New batch</span><span class="cta-circle"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+
+        <!-- not connected: single intentional empty state, one CTA -->
+        <div class="home-empty" id="homeEmpty">
+          <div class="mark">
+            <svg width="40" height="40" viewBox="0 0 46 46" fill="none">
+              <circle cx="23" cy="23" r="21" stroke="#146C52" stroke-width="1.6"/>
+              <circle cx="23" cy="23" r="16" stroke="#146C52" stroke-width="1" stroke-dasharray="2.4 3.2"/>
+              <path d="M15 23.5l5.5 5.5L32 17" stroke="#146C52" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <p class="t">Nothing to review yet</p>
+          <p class="s">Connect Azure DevOps to start turning notes into tracked items.</p>
+          <button class="btn-primary" id="homeConnectBtn">Connect Azure DevOps</button>
+        </div>
       </div>
     </section>
 
     <!-- ============ SETUP: ORG/PROJECT ============ -->
-    <section class="screen theme-paper" data-screen="setup-org">
+    <section class="screen" data-screen="setup-org">
       <div class="screen-scroll">
-        <div class="head">
-          <span class="step-mark">1</span>
-          <span class="kicker">Connect</span>
-          <h1>Org &amp; project</h1>
-        </div>
+        <p class="intro">Tell us the Azure DevOps organization and project that will receive your items.</p>
 
         <div class="field">
           <label for="org">Organization</label>
@@ -314,57 +356,49 @@ a.plain-row{text-decoration:none; color:inherit;}
         </div>
 
         <div class="quickload" id="quickSetupChips"></div>
-        <button class="side-link" id="manageSetupsLink">Manage saved setups</button>
+        <div class="text-row left"><button class="btn-text muted" id="manageSetupsLink">Manage saved setups</button></div>
       </div>
       <div class="screen-foot">
-        <div class="foot-empty"></div>
-        <button class="cta" id="orgContinueBtn"><span class="cta-label">Continue</span><span class="cta-circle"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+        <button class="btn-primary" id="orgContinueBtn">Continue</button>
       </div>
     </section>
 
     <!-- ============ SETUP: SAVED PRESETS ============ -->
-    <section class="screen theme-paper" data-screen="setup-presets">
+    <section class="screen" data-screen="setup-presets">
       <div class="screen-scroll">
-        <div class="head">
-          <span class="kicker">Connect</span>
-          <h1>Saved setups</h1>
-        </div>
+        <p class="intro">Jump straight into a project you've configured before.</p>
 
-        <div id="presetsList"></div>
+        <div class="list-card" id="presetsList"></div>
         <div id="presetsEmpty" class="empty-state" style="display:none;">
           <svg viewBox="0 0 24 24" fill="none"><path d="M4 7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V7z" stroke="currentColor" stroke-width="1.5"/></svg>
-          <div class="t">Nothing saved yet</div>
-          <div class="s">Save the current project as a preset to switch fast.</div>
+          <div class="t">No setups saved yet</div>
+          <div class="s">Save your current organization, project and token as a preset to switch projects fast.</div>
         </div>
 
         <div class="save-preset">
-          <div class="field" style="margin-bottom:14px;">
-            <label for="setupName">Save current fields as</label>
+          <div class="field">
+            <label for="setupName">Save current fields as a preset</label>
             <input type="text" id="setupName" placeholder="e.g. TF100 PAM">
           </div>
-          <button class="side-link" id="saveSetupBtn">Save preset</button>
+          <button class="btn-secondary" id="saveSetupBtn">Save preset</button>
         </div>
         <div class="msg" id="presetsStatus"></div>
       </div>
     </section>
 
     <!-- ============ SETUP: ACCESS ============ -->
-    <section class="screen theme-dark" data-screen="setup-access">
+    <section class="screen" data-screen="setup-access">
       <div class="screen-scroll">
-        <div class="head">
-          <span class="step-mark">2</span>
-          <span class="kicker">Connect</span>
-          <h1>Your access</h1>
-        </div>
+        <p class="intro">Your personal access token is stored only on this device.</p>
 
         <div class="field">
-          <label for="proxy">Worker proxy URL — optional</label>
+          <label for="proxy">Worker proxy URL <span style="font-weight:400; color:var(--ink-3);">(optional)</span></label>
           <input type="text" id="proxy" placeholder="https://ado-proxy.yourname.workers.dev">
+          <div class="hint">Needed for AI item generation, and if Azure DevOps blocks direct browser calls.</div>
         </div>
         <div class="field">
           <label for="pat">Personal access token</label>
           <input type="password" id="pat" placeholder="Paste your PAT">
-          <div class="hint">Stored only on this device.</div>
         </div>
 
         <div class="toggle-row">
@@ -375,20 +409,15 @@ a.plain-row{text-decoration:none; color:inherit;}
         <div class="msg" id="connStatus"></div>
       </div>
       <div class="screen-foot">
-        <button class="side-link danger" id="forgetBtn">Forget token</button>
-        <div class="foot-empty"></div>
-        <button class="cta" id="testBtn"><span class="cta-label" id="testBtnLabel">Test connection</span><span class="cta-circle"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+        <button class="btn-primary" id="testBtn"><span id="testBtnLabel">Test connection</span></button>
+        <div class="text-row"><button class="btn-text danger" id="forgetBtn">Forget saved token</button></div>
       </div>
     </section>
 
     <!-- ============ SETUP: WORK ITEM TYPE ============ -->
-    <section class="screen theme-paper" data-screen="setup-type">
+    <section class="screen" data-screen="setup-type">
       <div class="screen-scroll">
-        <div class="head">
-          <span class="step-mark">3</span>
-          <span class="kicker">Connect</span>
-          <h1>What you're<br>creating</h1>
-        </div>
+        <p class="intro">Choose the work item type your batches become, and how they'll be numbered.</p>
 
         <div class="field">
           <label for="witype">Work item type</label>
@@ -401,102 +430,81 @@ a.plain-row{text-decoration:none; color:inherit;}
           </div>
           <div class="field">
             <label>Preview</label>
-            <div style="padding:8px 0 12px; font-family:var(--mono); font-size:15px; color:var(--fg-dim);" id="prefixPreview">REV-004</div>
+            <div style="padding:13px 14px; background:var(--card-tint); border:1.5px solid var(--card-tint-border); border-radius:12px; font-family:var(--mono); font-size:14px; font-weight:700; color:var(--green-deep); min-height:var(--sp-7); display:flex; align-items:center;" id="prefixPreview">REV-004</div>
           </div>
         </div>
       </div>
       <div class="screen-foot">
-        <div class="foot-empty"></div>
-        <button class="cta" id="typeContinueBtn"><span class="cta-label">Finish</span><span class="cta-circle"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+        <button class="btn-primary" id="typeContinueBtn">Finish setup</button>
       </div>
     </section>
 
     <!-- ============ PASTE NOTES ============ -->
-    <section class="screen theme-teal" data-screen="paste">
+    <section class="screen" data-screen="paste">
       <div class="screen-scroll">
-        <div class="head">
-          <span class="step-mark">1</span>
-          <span class="kicker">New batch</span>
-          <h1>Paste your<br>notes</h1>
-        </div>
+        <p class="intro">Drop in raw notes or a meeting thread. We'll shape it into clean, titled review items.</p>
 
         <div class="field">
-          <textarea id="dump" rows="11" placeholder="Drop in raw notes or a meeting thread…"></textarea>
+          <textarea id="dump" rows="10" placeholder="Paste your notes here…"></textarea>
         </div>
+        <div class="text-row left"><button class="btn-text muted" id="analyzeBtn">Just split by blank lines instead</button></div>
         <div class="msg" id="analyzeStatus"></div>
       </div>
       <div class="screen-foot">
-        <button class="side-link" id="analyzeBtn" style="color:var(--fg-dim);">Split by blank lines</button>
-        <div class="foot-empty"></div>
-        <button class="cta" id="aiSplitBtn"><span class="cta-label" id="aiSplitLabel">Generate</span><span class="cta-circle"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+        <button class="btn-primary" id="aiSplitBtn"><span id="aiSplitLabel">Generate items</span></button>
       </div>
     </section>
 
     <!-- ============ GENERATING (transient) ============ -->
-    <section class="screen theme-teal" data-screen="generating">
+    <section class="screen" data-screen="generating">
       <div class="center-stage">
         <div class="loader-ring"></div>
         <h2 class="loader-title" id="generatingTitle">Reading through your notes…</h2>
         <p class="loader-sub" id="generatingSub">Pulling out the distinct topics.</p>
-        <div class="msg" id="generatingError" style="max-width:300px; border-top:none;"></div>
-        <button class="side-link" id="generatingRetryBtn" style="display:none; margin-top:16px;">Try again</button>
-        <button class="side-link" id="generatingManualBtn" style="display:none; margin-top:10px;">Split by blank lines instead</button>
+        <div class="msg" id="generatingError" style="max-width:320px; margin-top:20px;"></div>
+        <button class="btn-secondary" id="generatingRetryBtn" style="display:none; max-width:260px; margin-top:18px;">Try again</button>
+        <button class="btn-text muted" id="generatingManualBtn" style="display:none; margin-top:12px;">Split by blank lines instead</button>
       </div>
     </section>
 
     <!-- ============ REVIEW ITEMS ============ -->
-    <section class="screen theme-paper" data-screen="review">
+    <section class="screen" data-screen="review">
       <div class="screen-scroll">
-        <div class="head">
-          <span class="step-mark">2</span>
-          <span class="kicker">New batch</span>
-          <h1>Review</h1>
-          <p class="meta" id="itemsCount">0 items ready</p>
-        </div>
+        <p class="items-count" id="itemsCount">0 items ready</p>
         <div id="itemsList"></div>
-        <button class="side-link" id="addItemBtn" style="margin-top:6px;">+ Add item manually</button>
+        <div class="text-row left"><button class="btn-text" id="addItemBtn">Add item manually</button></div>
       </div>
       <div class="screen-foot">
-        <div class="foot-empty"></div>
-        <button class="cta" id="reviewContinueBtn"><span class="cta-label" id="reviewContinueLabel">Continue</span><span class="cta-circle"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+        <button class="btn-primary" id="reviewContinueBtn"><span id="reviewContinueLabel">Continue</span></button>
       </div>
     </section>
 
     <!-- ============ EXTRA REQUIRED FIELDS ============ -->
-    <section class="screen theme-paper" data-screen="extra-fields">
+    <section class="screen" data-screen="extra-fields">
       <div class="screen-scroll">
-        <div class="head">
-          <span class="kicker">New batch</span>
-          <h1 id="extraFieldsTitle">One more thing</h1>
-        </div>
-        <p class="field-note">Applies to every item in this batch.</p>
+        <p class="intro" id="extraFieldsTitle">This project requires a few extra fields on every item in this batch.</p>
         <div id="extraFieldsWrap"></div>
         <div class="msg" id="extraFieldsStatus"></div>
       </div>
       <div class="screen-foot">
-        <div class="foot-empty"></div>
-        <button class="cta" id="extraFieldsContinueBtn"><span class="cta-label">Continue</span><span class="cta-circle"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+        <button class="btn-primary" id="extraFieldsContinueBtn">Continue</button>
       </div>
     </section>
 
     <!-- ============ CONFIRM ============ -->
-    <section class="screen theme-dark" data-screen="confirm">
+    <section class="screen" data-screen="confirm">
       <div class="screen-scroll">
-        <div class="head">
-          <span class="kicker">New batch</span>
-          <h1>Ready</h1>
-        </div>
-        <div class="receipt-summary" id="summaryBox"></div>
-        <div class="receipt-list" id="previewList"></div>
+        <div class="summary-card" id="summaryBox"></div>
+        <p class="section-label">Items in this batch</p>
+        <div class="preview-card" id="previewList"></div>
       </div>
       <div class="screen-foot">
-        <div class="foot-empty"></div>
-        <button class="cta" id="createBtn"><span class="cta-label">Create</span><span class="cta-circle"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+        <button class="btn-primary" id="createBtn">Create in Azure DevOps</button>
       </div>
     </section>
 
     <!-- ============ CREATING (transient) ============ -->
-    <section class="screen theme-teal" data-screen="creating">
+    <section class="screen" data-screen="creating">
       <div class="center-stage">
         <div class="loader-ring"></div>
         <h2 class="loader-title">Creating your items…</h2>
@@ -506,37 +514,34 @@ a.plain-row{text-decoration:none; color:inherit;}
     </section>
 
     <!-- ============ RESULTS ============ -->
-    <section class="screen theme-teal" data-screen="results">
+    <section class="screen" data-screen="results">
       <div class="screen-scroll">
         <div class="results-stamp-wrap">
           <div class="stamp pulse" id="resultsStamp">
             <svg width="52" height="52" viewBox="0 0 46 46" fill="none">
-              <circle cx="23" cy="23" r="21" stroke="#f4efe2" stroke-width="1.6"/>
-              <circle cx="23" cy="23" r="16" stroke="#f4efe2" stroke-width="1" stroke-dasharray="2 3.4"/>
-              <path d="M15 23.5l5.5 5.5L32 17" stroke="#f4efe2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="23" cy="23" r="21" stroke="#146C52" stroke-width="2"/>
+              <circle cx="23" cy="23" r="16" stroke="#146C52" stroke-width="1.2" stroke-dasharray="2.4 3.2"/>
+              <path d="M15 23.5l5.5 5.5L32 17" stroke="#146C52" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
         </div>
-        <h1 style="text-align:center; font-family:var(--display); font-weight:700; font-size:22px; margin:0 0 22px;" id="resultsTitle">Done</h1>
-        <div id="resultsList"></div>
+        <h2 style="text-align:center; font-family:var(--display); font-weight:600; font-size:19px; margin:0 0 6px;" id="resultsTitle">Done — items are live</h2>
+        <p class="intro" style="text-align:center; margin-top:0;" id="resultsSub">Everything below has been created in Azure DevOps.</p>
+        <div class="list-card" id="resultsList"></div>
       </div>
       <div class="screen-foot">
-        <button class="side-link" id="resultsAgainBtn" style="color:var(--fg-dim);">New batch</button>
-        <div class="foot-empty"></div>
-        <button class="cta" id="resultsHomeBtn"><span class="cta-label">Home</span><span class="cta-circle"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+        <button class="btn-primary" id="resultsHomeBtn">Back to home</button>
+        <div class="text-row"><button class="btn-text muted" id="resultsAgainBtn">Create another batch</button></div>
       </div>
     </section>
 
     <!-- ============ EXISTING ITEMS ============ -->
-    <section class="screen theme-paper" data-screen="existing">
+    <section class="screen" data-screen="existing">
       <div class="screen-scroll">
-        <div class="head">
-          <span class="kicker" id="existingEyebrow">Existing items</span>
-          <h1>On file</h1>
-        </div>
+        <p class="intro" id="existingEyebrow" style="margin-bottom:var(--sp-3);">Existing items</p>
         <div class="msg" id="existingStatus"></div>
-        <div id="existingList"></div>
-        <button class="side-link" id="existingRefreshBtn" style="margin-top:14px;">Refresh</button>
+        <div class="list-card" id="existingList"></div>
+        <div class="text-row"><button class="btn-text muted" id="existingRefreshBtn">Refresh list</button></div>
       </div>
     </section>
 
@@ -547,25 +552,32 @@ a.plain-row{text-decoration:none; color:inherit;}
 const $ = id => document.getElementById(id);
 
 /* =========================================================
-   NAVIGATION — stack based wizard router with per-screen theme
+   NAVIGATION — stack based wizard router with conventional
+   back chevron + previous-screen label, single nav bar.
    ========================================================= */
 const screens = {};
 document.querySelectorAll('.screen').forEach(s => screens[s.dataset.screen] = s);
 let stack = ['home'];
 let activeId = 'home';
 screens.home.classList.add('active');
-document.body.dataset.theme = 'dark';
 
-function themeOf(id){
-  const el = screens[id];
-  if(el.classList.contains('theme-dark')) return 'dark';
-  if(el.classList.contains('theme-teal')) return 'teal';
-  return 'paper';
-}
+const NAV_TITLES = {
+  home:'Review Items', 'setup-org':'Org & project', 'setup-presets':'Saved setups',
+  'setup-access':'Your access', 'setup-type':'Work item type', paste:'New batch',
+  generating:'New batch', review:'Review items', 'extra-fields':'Required fields',
+  confirm:'Confirm', creating:'Creating', results:'Results', existing:'Existing items'
+};
+const NO_BACK = ['home','creating'];
+
 function paint(){
-  $('backBtn').hidden = stack.length < 2;
+  const showBack = !NO_BACK.includes(activeId) && stack.length > 1;
+  $('backBtn').hidden = !showBack;
+  if(showBack){
+    const prevId = stack[stack.length-2];
+    $('backBtnLabel').textContent = NAV_TITLES[prevId] || 'Back';
+  }
+  $('navTitle').textContent = activeId === 'home' ? '' : (NAV_TITLES[activeId] || '');
   $('settingsBtn').hidden = activeId !== 'home';
-  document.body.dataset.theme = themeOf(activeId);
 }
 
 function transitionTo(id, dir){
@@ -574,7 +586,7 @@ function transitionTo(id, dir){
   if(curEl && curEl !== nextEl){
     curEl.classList.remove('active');
     curEl.classList.add(dir==='forward' ? 'leaving-l' : 'leaving-r');
-    setTimeout(()=>{ curEl.classList.remove('leaving-l','leaving-r'); }, 360);
+    setTimeout(()=>{ curEl.classList.remove('leaving-l','leaving-r'); }, 330);
   }
   nextEl.classList.add(dir==='forward' ? 'entering-r' : 'entering-l');
   nextEl.classList.add('active');
@@ -592,6 +604,7 @@ function goBack(){ if(stack.length<2) return; stack.pop(); transitionTo(stack[st
 
 $('backBtn').addEventListener('click', goBack);
 $('settingsBtn').addEventListener('click', ()=> go('setup-org'));
+paint();
 
 const onEnter = {};
 
@@ -697,6 +710,7 @@ async function refreshPresetsList(){
   const list = $('presetsList');
   list.innerHTML = '';
   $('presetsEmpty').style.display = names.length ? 'none' : 'block';
+  list.style.display = names.length ? 'block' : 'none';
   names.forEach(name=>{
     const row = document.createElement('div');
     row.className = 'plain-row';
@@ -786,7 +800,7 @@ $('testBtn').addEventListener('click', async ()=>{
   const c = cfg();
   if(!c.pat){ setMsg('connStatus','Enter a PAT first.','err'); return; }
   $('testBtn').disabled = true;
-  $('testBtnLabel').innerHTML = '<span class="spin"></span>';
+  $('testBtnLabel').innerHTML = '<span class="spin"></span> Testing…';
   setMsg('connStatus','','');
   try{
     const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/workitemtypes/${encodeURIComponent(c.witype)}?api-version=7.1`;
@@ -836,35 +850,31 @@ $('typeContinueBtn').addEventListener('click', async ()=>{
 })();
 
 /* =========================================================
-   HOME
+   HOME — one state visible at a time, no redundant messaging
    ========================================================= */
 function isConfigured(){
   return !!($('org').value.trim() && $('project').value.trim() && $('pat').value.trim());
 }
 async function refreshHome(){
-  if(isConfigured()){
-    $('homeStatusTitle').textContent = $('project').value.trim();
-    $('homeStatusMetaLine').style.display = 'block';
-    $('homeStatusMeta').textContent = `${$('org').value.trim()} · ${$('witype').value || 'Review'}`;
-    document.querySelector('#homePrimaryBtn .cta-label').textContent = 'New batch';
-  } else {
-    $('homeStatusTitle').textContent = 'Not connected';
-    $('homeStatusMetaLine').style.display = 'none';
-    document.querySelector('#homePrimaryBtn .cta-label').textContent = 'Connect';
+  const connected = isConfigured();
+  $('homeConnected').classList.toggle('show', connected);
+  $('homeEmpty').classList.toggle('show', !connected);
+  if(connected){
+    $('homeProjectLine').textContent = `${$('project').value.trim()} · ${$('org').value.trim()}`;
+    try{
+      const r = await storage.get('ado_last_batch', false);
+      if(r && r.value){
+        const info = JSON.parse(r.value);
+        $('homeRecentLine').style.display = 'block';
+        $('homeRecentLine').textContent = `Last batch: ${info.count} item${info.count===1?'':'s'} created`;
+      } else {
+        $('homeRecentLine').style.display = 'none';
+      }
+    }catch(e){}
   }
-  try{
-    const r = await storage.get('ado_last_batch', false);
-    if(r && r.value){
-      const info = JSON.parse(r.value);
-      $('homeRecentLine').style.display = 'block';
-      $('homeRecentLine').textContent = `Last batch — ${info.count} item${info.count===1?'':'s'} created`;
-    }
-  }catch(e){}
 }
-$('homePrimaryBtn').addEventListener('click', ()=>{
-  if(isConfigured()) go('paste');
-  else go('setup-org');
-});
+$('homePrimaryBtn').addEventListener('click', ()=> go('paste'));
+$('homeConnectBtn').addEventListener('click', ()=> go('setup-org'));
 $('homeExistingBtn').addEventListener('click', ()=> go('existing'));
 onEnter['home'] = refreshHome;
 
@@ -948,8 +958,8 @@ function showGeneratingError(msg){
   $('generatingTitle').textContent = "Couldn't generate items";
   $('generatingSub').textContent = '';
   setMsg('generatingError', msg, 'err');
-  $('generatingRetryBtn').style.display = 'inline-block';
-  $('generatingManualBtn').style.display = 'inline-block';
+  $('generatingRetryBtn').style.display = 'block';
+  $('generatingManualBtn').style.display = 'inline-flex';
 }
 $('generatingRetryBtn').addEventListener('click', ()=> $('aiSplitBtn').click());
 $('generatingManualBtn').addEventListener('click', ()=>{
@@ -968,24 +978,21 @@ function renderItems(){
   const list = $('itemsList');
   list.innerHTML = '';
   const included = parsedItems.filter(it=>it.include).length;
-  $('itemsCount').textContent = `${included} of ${parsedItems.length} selected`;
+  $('itemsCount').textContent = `${included} of ${parsedItems.length} item${parsedItems.length===1?'':'s'} will be created`;
   parsedItems.forEach((it,i)=>{
     const div = document.createElement('div');
-    div.className = 'item-row' + (it.include ? '' : ' excluded');
+    div.className = 'item-card' + (it.include ? ' included' : ' excluded');
     div.innerHTML = `
-      <div class="item-row-top">
-        <span class="item-num">${String(i+1).padStart(2,'0')}</span>
-        <div class="item-body">
-          <input type="text" data-role="title" data-i="${i}" value="${escapeAttr(it.title)}" placeholder="Meaningful title">
-          <textarea data-role="desc" data-i="${i}" placeholder="Description">${it.description}</textarea>
-        </div>
-        <div class="item-row-actions">
-          <button class="dot-toggle ${it.include?'on':''}" data-role="include" data-i="${i}" aria-label="Include this item">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-          <button class="row-remove" data-role="remove" data-i="${i}" aria-label="Remove item">✕</button>
-        </div>
+      <button class="item-toggle ${it.include?'on':''}" data-role="include" data-i="${i}" aria-label="Include this item">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="item-body">
+        <input type="text" data-role="title" data-i="${i}" value="${escapeAttr(it.title)}" placeholder="Meaningful title">
+        <textarea data-role="desc" data-i="${i}" placeholder="Description">${it.description}</textarea>
       </div>
+      <button class="item-remove" data-role="remove" data-i="${i}" aria-label="Remove item">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0v12a2 2 0 002 2h6a2 2 0 002-2V7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      </button>
     `;
     list.appendChild(div);
   });
@@ -1030,7 +1037,7 @@ async function getMissingRequiredFields(c){
 function renderExtraFields(fields){
   const wrap = $('extraFieldsWrap');
   wrap.innerHTML = '';
-  $('extraFieldsTitle').textContent = `What "${$('witype').value}" needs`;
+  $('extraFieldsTitle').textContent = `"${$('witype').value}" requires a few extra fields on every item in this batch.`;
   fields.forEach(f=>{
     const fieldDiv = document.createElement('div'); fieldDiv.className='field';
     const label = document.createElement('label'); label.textContent = f.name; fieldDiv.appendChild(label);
@@ -1067,7 +1074,7 @@ $('reviewContinueBtn').addEventListener('click', async ()=>{
   if(toCreate.length === 0){ $('itemsCount').textContent = 'Select or add at least one item to continue.'; return; }
   const c = cfg();
   $('reviewContinueBtn').disabled = true;
-  $('reviewContinueLabel').innerHTML = '<span class="spin"></span>';
+  $('reviewContinueLabel').innerHTML = '<span class="spin"></span> Checking…';
   try{
     if(extraFieldsCheckedFor !== c.witype){
       const {missing} = await getMissingRequiredFields(c);
@@ -1106,14 +1113,17 @@ $('extraFieldsContinueBtn').addEventListener('click', ()=>{
 function buildConfirmScreen(){
   const c = cfg();
   const toCreate = parsedItems.filter(it=>it.include && it.title.trim());
-  $('summaryBox').innerHTML = `
-    <div><b>${toCreate.length}</b> item${toCreate.length===1?'':'s'} → <b>${escapeAttr(c.project)}</b></div>
-    <div>as <b>${escapeAttr(c.witype)}</b>, numbered <b>${escapeAttr(c.prefix)}0xx</b></div>
+  const box = $('summaryBox');
+  box.innerHTML = `
+    <div class="summary-row"><span class="k">Items</span><span class="v">${toCreate.length}</span></div>
+    <div class="summary-row"><span class="k">Project</span><span class="v">${escapeAttr(c.project)}</span></div>
+    <div class="summary-row"><span class="k">Work item type</span><span class="v">${escapeAttr(c.witype)}</span></div>
+    <div class="summary-row"><span class="k">Numbering</span><span class="v">${escapeAttr(c.prefix)}0xx</span></div>
   `;
   const list = $('previewList');
   list.innerHTML = '';
   toCreate.forEach((it,i)=>{
-    const row = document.createElement('div'); row.className='receipt-row';
+    const row = document.createElement('div'); row.className='preview-item';
     row.innerHTML = `<span class="n">${String(i+1).padStart(2,'0')}</span><span class="t">${escapeAttr(it.title)}</span>`;
     list.appendChild(row);
   });
@@ -1213,7 +1223,10 @@ $('createBtn').addEventListener('click', async ()=>{
 function buildResultsScreen(results){
   const okCount = results.filter(r=>r.ok).length;
   const failCount = results.length - okCount;
-  $('resultsTitle').textContent = failCount === 0 ? 'Done' : `${okCount} created, ${failCount} failed`;
+  $('resultsTitle').textContent = failCount === 0 ? 'Done — items are live' : `${okCount} created, ${failCount} failed`;
+  $('resultsSub').textContent = failCount === 0
+    ? 'Everything below has been created in Azure DevOps.'
+    : 'Some items could not be created — check the details below.';
   const stamp = $('resultsStamp');
   stamp.classList.remove('pulse'); void stamp.offsetWidth; stamp.classList.add('pulse');
   const list = $('resultsList');
@@ -1221,7 +1234,7 @@ function buildResultsScreen(results){
   results.forEach(r=>{
     const row = document.createElement('div'); row.className='check-row ' + (r.ok ? 'done' : 'fail');
     if(r.ok){
-      row.innerHTML = `<span class="mark">✓</span><span class="title">${escapeAttr(r.title)}</span><a class="link" href="${r.link}" target="_blank">#${r.id}</a>`;
+      row.innerHTML = `<span class="mark">✓</span><span class="title">${escapeAttr(r.title)}</span><a class="link" href="${r.link}" target="_blank">Open #${r.id}</a>`;
     } else {
       row.innerHTML = `<span class="mark">!</span><span class="title">${escapeAttr(r.title)} — ${escapeAttr(r.reason||'failed')}</span>`;
     }
@@ -1240,20 +1253,23 @@ $('resultsAgainBtn').addEventListener('click', ()=>{
 async function loadExisting(){
   const c = cfg();
   if(!c.pat){ setMsg('existingStatus','Connect Azure DevOps first.','err'); return; }
-  $('existingEyebrow').textContent = `"${c.witype}" items`;
+  $('existingEyebrow').textContent = `Showing "${c.witype}" items in ${c.project}.`;
   setMsg('existingStatus','Loading…','info');
   $('existingList').innerHTML = '';
+  $('existingList').style.display = 'block';
   try{
     const items = await fetchExistingItems(c);
     if(items.length === 0){
       setMsg('existingStatus','','');
-      $('existingList').innerHTML = `<div class="empty-state">
+      $('existingList').style.display = 'none';
+      $('existingList').insertAdjacentHTML('afterend', `<div class="empty-state" id="existingEmpty">
         <svg viewBox="0 0 24 24" fill="none"><path d="M4 7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V7z" stroke="currentColor" stroke-width="1.5"/></svg>
         <div class="t">No items yet</div>
         <div class="s">Items you create will show up here.</div>
-      </div>`;
+      </div>`);
       return;
     }
+    const oldEmpty = document.getElementById('existingEmpty'); if(oldEmpty) oldEmpty.remove();
     setMsg('existingStatus', `${items.length} item${items.length===1?'':'s'} found.`, 'ok');
     items.forEach(it=>{
       const link = `https://dev.azure.com/${c.org}/${encodeURIComponent(c.project)}/_workitems/edit/${it.id}`;
