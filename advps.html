@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Review Items">
-<meta name="theme-color" content="#FBF7EE">
+<meta name="theme-color" content="#FFFFFF">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" type="image/png" href="icons/favicon-32.png">
 <link rel="manifest" href="manifest.json">
@@ -20,17 +20,17 @@
    TOKENS
    ===================================================================== */
 :root{
-  --bg:#FBF7EE;
-  --card:#FFFDF7;
-  --card-tint:#E6F2EA;
-  --card-tint-border:#c9e2d2;
-  --ink:#2A2620;
-  --ink-2:#55503F;
-  --ink-3:#7B7563;
-  --hair:#E7DFCF;
-  --hair-strong:#D8CDB4;
-  --green:#146C52;
-  --green-deep:#0e5642;
+  --bg:#FFFFFF;
+  --card:#FFFFFF;
+  --card-tint:#EBEDFB;
+  --card-tint-border:#C7CCF5;
+  --ink:#0A0A0A;
+  --ink-2:#4B4B4B;
+  --ink-3:#7A7A7A;
+  --hair:#DCDCDC;
+  --hair-strong:#B4B4B4;
+  --green:#4338CA;
+  --green-deep:#332C9E;
   --amber:#a8691a;
   --amber-soft:#f6ecd9;
   --rose:#b23b2a;
@@ -77,7 +77,7 @@ button,input,textarea,select{font-family:inherit;}
 /* floating back button — bottom-right, reachable with a right thumb */
 .fab-back{
   position:absolute; right:16px; bottom:calc(env(safe-area-inset-bottom,0px) + 16px); z-index:40;
-  display:flex; align-items:center; gap:7px; background:var(--green); color:#fffdf7; border:none;
+  display:flex; align-items:center; gap:7px; background:var(--green); color:#fff; border:none;
   border-radius:26px; padding:12px 18px 12px 13px; font-size:14.5px; font-weight:600;
   box-shadow:0 6px 18px rgba(20,108,82,.32); cursor:pointer; transition:transform .12s, opacity .15s, bottom .15s ease;
 }
@@ -128,7 +128,7 @@ select{
 .field-row{display:flex; gap:var(--sp-3);}
 .field-row .field{flex:1;}
 
-.toggle-row{display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); padding:14px 2px; border-top:1px solid var(--hair); margin-top:var(--sp-1);}
+.toggle-row{display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); padding:2px; margin-top:var(--sp-2);}
 .toggle-row .toggle-copy{font-size:14px; font-weight:500;}
 .toggle-row .toggle-copy small{display:block; font-size:12px; color:var(--ink-3); margin-top:2px; font-weight:400;}
 .switch{position:relative; width:44px; height:26px; flex:none;}
@@ -138,21 +138,39 @@ select{
 .switch input:checked + .track{background:var(--green);}
 .switch input:checked + .track + .knob{transform:translateX(18px);}
 
-.quickload{font-size:13px; color:var(--ink-2); margin:0 0 var(--sp-4); line-height:1.9;}
-.quickload button{background:none; border:none; padding:0; font:inherit; color:var(--green-deep); font-weight:600; cursor:pointer; text-decoration:underline; text-decoration-color:var(--card-tint-border); text-underline-offset:3px;}
-.quickload .sep{color:var(--ink-3); margin:0 7px;}
+/* small "where am I" progress dots — sits at the very bottom of a
+   wizard screen's footer, above the primary button */
+.step-dots{display:flex; justify-content:center; align-items:center; gap:6px; padding:0 0 10px;}
+.step-dots[hidden]{display:none;}
+.step-dot{width:5px; height:5px; border-radius:50%; background:var(--hair-strong); transition:background .15s, width .15s;}
+.step-dot.active{width:14px; border-radius:3px; background:var(--green);}
+
+/* quick-capture row under the notes textarea: dictate or paste in one tap */
+.field-actions{display:flex; gap:8px; margin:-8px 0 var(--sp-4);}
+.icon-btn{display:flex; align-items:center; justify-content:center; gap:7px; flex:1; background:var(--card); border:1.5px solid var(--hair-strong); border-radius:12px; padding:10px 14px; font-size:13.5px; font-weight:600; color:var(--ink-2); cursor:pointer; min-height:42px;}
+.icon-btn svg{width:15px; height:15px; flex:none;}
+.icon-btn:active{background:var(--hair);}
+.icon-btn.recording{background:var(--rose-soft); border-color:var(--rose); color:var(--rose);}
+.icon-btn.recording .rec-dot{width:7px; height:7px; border-radius:50%; background:var(--rose); animation:recPulse 1s ease-in-out infinite; flex:none;}
+@keyframes recPulse{0%,100%{opacity:1;} 50%{opacity:.35;}}
+
+.quickload{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 0 var(--sp-4);}
+.quickload-label{width:100%; font-size:12px; font-weight:600; color:var(--ink-3); text-transform:uppercase; letter-spacing:.02em; margin-bottom:2px;}
+.quickload button{background:var(--card); border:1.5px solid var(--ink); color:var(--ink); font:inherit; font-size:13px; font-weight:600; cursor:pointer; padding:7px 14px; border-radius:999px;}
+.quickload button:active{background:var(--ink); color:#fff;}
 
 /* =====================================================================
    BUTTONS
    ===================================================================== */
 .btn-primary{
   display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
-  background:var(--green); color:#fffdf7; border:none; border-radius:12px;
+  background:var(--green); color:#fff; border:none; border-radius:12px;
   padding:15px 22px; font-size:16px; font-weight:600; letter-spacing:-.005em;
   cursor:pointer; min-height:var(--sp-7); transition:transform .1s, opacity .15s;
 }
 .btn-primary:active{transform:scale(.98);}
 .btn-primary:disabled{opacity:.4; cursor:default;}
+.btn-primary[hidden]{display:none;}
 .btn-primary .spin{width:16px; height:16px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
@@ -163,12 +181,14 @@ select{
 .btn-secondary:active{background:var(--hair);}
 
 .btn-text{
-  display:inline-flex; align-items:center; gap:6px; background:none; border:none; color:var(--green-deep);
-  font-size:15px; font-weight:600; cursor:pointer; padding:8px 0; min-height:36px;
+  display:inline-flex; align-items:center; gap:6px; background:var(--card); border:1.5px solid var(--ink); color:var(--ink);
+  font-size:14px; font-weight:600; cursor:pointer; padding:9px 16px; min-height:38px; border-radius:999px;
 }
-.btn-text:active{opacity:.6;}
-.btn-text.muted{color:var(--ink-2);}
-.btn-text.danger{color:var(--rose);}
+.btn-text:active{background:var(--ink); color:#fff;}
+.btn-text.muted{color:var(--ink-2); border-color:var(--hair-strong);}
+.btn-text.muted:active{background:var(--ink-2); border-color:var(--ink-2); color:#fff;}
+.btn-text.danger{color:var(--rose); border-color:var(--rose);}
+.btn-text.danger:active{background:var(--rose); color:#fff;}
 .text-row{display:flex; justify-content:center; margin:var(--sp-2) 0 0;}
 .text-row.left{justify-content:flex-start;}
 
@@ -198,9 +218,11 @@ select{
 .home-connected{display:none;}
 .home-connected.show{display:block;}
 .home-row{
-  display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 2px;
-  border-top:1px solid var(--hair); margin-top:var(--sp-2); cursor:pointer;
+  display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 18px;
+  border:1.5px solid var(--ink); border-radius:12px; margin-top:var(--sp-4); cursor:pointer; background:var(--card);
 }
+.home-row:active{background:var(--ink);}
+.home-row:active .label,.home-row:active .chev{color:#fff;}
 .home-row .label{font-size:16px; font-weight:500; color:var(--ink);}
 .home-row .chev{color:var(--ink-3); flex:none;}
 .home-recent{font-size:12.5px; color:var(--ink-2); margin:var(--sp-3) 2px 0; font-weight:500;}
@@ -226,7 +248,7 @@ select{
   width:24px; height:24px; border-radius:50%; border:1.5px solid var(--hair-strong); background:var(--card);
   display:flex; align-items:center; justify-content:center; cursor:pointer; flex:none; color:transparent; margin-top:1px; padding:0;
 }
-.item-toggle.on{background:var(--green); border-color:var(--green); color:#fffdf7;}
+.item-toggle.on{background:var(--green); border-color:var(--green); color:#fff;}
 .item-toggle svg{width:13px; height:13px;}
 .item-body{flex:1; min-width:0;}
 .item-card input[type=text]{
@@ -269,7 +291,7 @@ select{
 .check-row{display:flex; align-items:center; gap:10px; padding:11px 0; font-size:13.5px; color:var(--ink-2); border-bottom:1px solid var(--hair);}
 .check-row:last-child{border-bottom:none;}
 .check-row .mark{width:18px; height:18px; border-radius:50%; border:1.5px solid var(--hair-strong); flex:none; display:flex; align-items:center; justify-content:center; font-size:10px;}
-.check-row.done .mark{background:var(--green); border-color:var(--green); color:#fffdf7;}
+.check-row.done .mark{background:var(--green); border-color:var(--green); color:#fff;}
 .check-row.fail .mark{background:var(--rose); border-color:var(--rose); color:#fff;}
 .check-row.done{color:var(--ink);}
 .check-row.fail{color:var(--rose);}
@@ -350,7 +372,6 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
         <!-- connected state: top-anchored, one status line, one primary action, one nav row -->
         <div class="home-connected" id="homeConnected">
           <p class="large-subtitle" id="homeProjectLine">TF100 PAM Gap Management</p>
-          <button class="btn-primary" id="homePrimaryBtn">New batch</button>
           <p class="home-recent" id="homeRecentLine" style="display:none;"></p>
           <div class="home-row" id="homeExistingBtn">
             <span class="label">Existing items</span>
@@ -362,15 +383,18 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
         <div class="home-empty" id="homeEmpty">
           <div class="mark">
             <svg width="40" height="40" viewBox="0 0 46 46" fill="none">
-              <circle cx="23" cy="23" r="21" stroke="#146C52" stroke-width="1.6"/>
-              <circle cx="23" cy="23" r="16" stroke="#146C52" stroke-width="1" stroke-dasharray="2.4 3.2"/>
-              <path d="M15 23.5l5.5 5.5L32 17" stroke="#146C52" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M9 21L14 9h18l5 12" stroke="var(--ink-3)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M9 21v11a3 3 0 003 3h22a3 3 0 003-3V21h-9.7a1 1 0 00-.9.56l-1.3 2.7a1 1 0 01-.9.54h-4.4a1 1 0 01-.9-.54l-1.3-2.7a1 1 0 00-.9-.56H9z" stroke="var(--ink-3)" stroke-width="1.6" stroke-linejoin="round"/>
             </svg>
           </div>
           <p class="t">Nothing to review yet</p>
           <p class="s">Connect Azure DevOps to start turning notes into tracked items.</p>
-          <button class="btn-primary" id="homeConnectBtn">Connect Azure DevOps</button>
         </div>
+      </div>
+      <!-- primary action lives in the thumb zone, not up at the top of the scroll -->
+      <div class="screen-foot">
+        <button class="btn-primary" id="homePrimaryBtn" hidden>New batch</button>
+        <button class="btn-primary" id="homeConnectBtn" hidden>Connect Azure DevOps</button>
       </div>
     </section>
 
@@ -477,9 +501,23 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
       <div class="screen-scroll">
         <p class="intro">Drop in raw notes or a meeting thread. We'll shape it into clean, titled review items.</p>
 
+        <div class="text-row left" id="clipChipRow" style="display:none;">
+          <button class="btn-text" id="useClipboardBtn">📋 Use copied text — <span id="clipPreview"></span></button>
+        </div>
         <div class="field">
           <textarea id="dump" rows="10" placeholder="Paste your notes here…"></textarea>
         </div>
+        <div class="field-actions">
+          <button type="button" class="icon-btn" id="dictateBtn">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 003-3V6a3 3 0 10-6 0v6a3 3 0 003 3z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 11v1a6 6 0 0012 0v-1M12 18v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span id="dictateBtnLabel">Dictate</span>
+          </button>
+          <button type="button" class="icon-btn" id="pasteClipBtn">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M9 5h6a1 1 0 011 1v1H8V6a1 1 0 011-1z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><rect x="6" y="5" width="12" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/></svg>
+            <span>Paste clipboard</span>
+          </button>
+        </div>
+        <div class="msg" id="dictateStatus"></div>
         <div class="text-row left"><button class="btn-text muted" id="analyzeBtn">Just split by blank lines instead</button></div>
         <div class="msg" id="analyzeStatus"></div>
       </div>
@@ -552,9 +590,9 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
         <div class="results-stamp-wrap">
           <div class="stamp pulse" id="resultsStamp">
             <svg width="52" height="52" viewBox="0 0 46 46" fill="none">
-              <circle cx="23" cy="23" r="21" stroke="#146C52" stroke-width="2"/>
-              <circle cx="23" cy="23" r="16" stroke="#146C52" stroke-width="1.2" stroke-dasharray="2.4 3.2"/>
-              <path d="M15 23.5l5.5 5.5L32 17" stroke="#146C52" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="23" cy="23" r="21" stroke="#4338CA" stroke-width="2"/>
+              <circle cx="23" cy="23" r="16" stroke="#4338CA" stroke-width="1.2" stroke-dasharray="2.4 3.2"/>
+              <path d="M15 23.5l5.5 5.5L32 17" stroke="#4338CA" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
         </div>
@@ -608,6 +646,7 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
     <svg viewBox="0 0 12 20" fill="none"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <span id="fabBackLabel">Back</span>
   </button>
+  <div class="step-dots" id="stepDots" hidden></div>
 </div>
 
 <script>
@@ -632,6 +671,22 @@ const NAV_TITLES = {
 };
 const NO_BACK = ['home','creating'];
 
+/* the "new batch" flow, in order — used only to show a faint dot trail
+   at the bottom of the screen so it's obvious how far along you are.
+   Screens outside this list (home, saved setups, transient loaders,
+   existing items, item detail) show no dots at all. */
+const WIZARD_STEPS = ['setup-org','setup-access','setup-type','paste','review','extra-fields','confirm'];
+function renderStepDots(){
+  const dots = $('stepDots');
+  const idx = WIZARD_STEPS.indexOf(activeId);
+  const screenEl = screens[activeId];
+  const footEl = screenEl && screenEl.querySelector('.screen-foot');
+  if(idx === -1 || !footEl){ dots.hidden = true; return; }
+  dots.innerHTML = WIZARD_STEPS.map((_,i)=>`<span class="step-dot${i===idx?' active':''}"></span>`).join('');
+  footEl.prepend(dots);
+  dots.hidden = false;
+}
+
 function paint(){
   const showBack = !NO_BACK.includes(activeId) && stack.length > 1;
   $('fabBack').hidden = !showBack;
@@ -641,6 +696,7 @@ function paint(){
   }
   $('navTitle').textContent = activeId === 'home' ? '' : (NAV_TITLES[activeId] || '');
   $('settingsBtn').hidden = activeId !== 'home';
+  renderStepDots();
   watchFabPosition();
 }
 
@@ -804,10 +860,13 @@ async function refreshQuickChips(){
   const setups = await getSetups();
   const names = Object.keys(setups).sort();
   const row = $('quickSetupChips');
-  if(!names.length){ row.innerHTML=''; return; }
-  row.innerHTML = 'Quick load: ';
-  names.forEach((name,i)=>{
-    if(i>0){ const sep=document.createElement('span'); sep.className='sep'; sep.textContent='·'; row.appendChild(sep); }
+  row.innerHTML = '';
+  if(!names.length) return;
+  const label = document.createElement('span');
+  label.className = 'quickload-label';
+  label.textContent = 'Quick load';
+  row.appendChild(label);
+  names.forEach(name=>{
     const btn = document.createElement('button');
     btn.type='button'; btn.textContent = name;
     btn.addEventListener('click', async ()=>{
@@ -959,7 +1018,24 @@ $('typeContinueBtn').addEventListener('click', async ()=>{
   await loadSavedPat();
   await refreshQuickChips();
   refreshHome();
+  handleIncomingShare();
 })();
+
+/* =========================================================
+   SHARE TARGET — if the app was opened via the OS share sheet
+   (Android/Chrome; iOS Safari doesn't support this yet), the
+   shared text lands in the URL. Drop it straight into notes.
+   ========================================================= */
+function handleIncomingShare(){
+  const params = new URLSearchParams(location.search);
+  const shared = [params.get('shared_title'), params.get('shared_text'), params.get('shared_url')]
+    .filter(Boolean).join('\n\n').trim();
+  if(!shared) return;
+  history.replaceState(null, '', location.pathname);
+  $('dump').value = shared;
+  stack = ['home','paste'];
+  transitionTo('paste','forward');
+}
 
 /* =========================================================
    HOME — one state visible at a time, no redundant messaging
@@ -971,6 +1047,8 @@ async function refreshHome(){
   const connected = isConfigured();
   $('homeConnected').classList.toggle('show', connected);
   $('homeEmpty').classList.toggle('show', !connected);
+  $('homePrimaryBtn').hidden = !connected;
+  $('homeConnectBtn').hidden = connected;
   if(connected){
     $('homeProjectLine').textContent = `${$('project').value.trim()} · ${$('org').value.trim()}`;
     try{
@@ -1014,6 +1092,114 @@ $('analyzeBtn').addEventListener('click', ()=>{
   if(splitByBlankLines()){ renderItems(); go('review'); }
   else setMsg('analyzeStatus','Nothing to split.','err');
 });
+
+/* =========================================================
+   DICTATE — one-handed voice capture into the notes textarea,
+   using the browser's built-in speech recognition. English only.
+   ========================================================= */
+const SpeechRecognitionImpl = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognizer = null;
+let dictating = false;
+let dictateBaseText = '';
+
+function setDictateUi(on){
+  dictating = on;
+  $('dictateBtn').classList.toggle('recording', on);
+  $('dictateBtnLabel').textContent = on ? 'Listening…' : 'Dictate';
+  if(on){
+    $('dictateBtn').querySelector('.rec-dot')?.remove();
+    const dot = document.createElement('span');
+    dot.className = 'rec-dot';
+    $('dictateBtn').prepend(dot);
+  } else {
+    $('dictateBtn').querySelector('.rec-dot')?.remove();
+  }
+}
+
+if(!SpeechRecognitionImpl){
+  // No speech API on this browser/device — hide the control rather than
+  // show a button that can never work.
+  $('dictateBtn').hidden = true;
+} else {
+  recognizer = new SpeechRecognitionImpl();
+  recognizer.lang = 'en-US';
+  recognizer.continuous = true;
+  recognizer.interimResults = true;
+
+  recognizer.addEventListener('result', (e)=>{
+    let finalChunk = '';
+    let interimChunk = '';
+    for(let i = e.resultIndex; i < e.results.length; i++){
+      const res = e.results[i];
+      if(res.isFinal) finalChunk += res[0].transcript;
+      else interimChunk += res[0].transcript;
+    }
+    if(finalChunk) dictateBaseText = (dictateBaseText + ' ' + finalChunk).trim();
+    const joiner = dictateBaseText && interimChunk ? ' ' : '';
+    $('dump').value = dictateBaseText + joiner + interimChunk;
+  });
+  recognizer.addEventListener('error', (e)=>{
+    setDictateUi(false);
+    if(e.error === 'not-allowed' || e.error === 'service-not-allowed'){
+      setMsg('dictateStatus','Microphone access was blocked — allow it in your browser settings to dictate.','err');
+    } else if(e.error !== 'no-speech' && e.error !== 'aborted'){
+      setMsg('dictateStatus','Dictation stopped unexpectedly — tap Dictate to try again.','err');
+    }
+  });
+  recognizer.addEventListener('end', ()=>{
+    // Some browsers end the session on a pause even mid-thought; if the
+    // user hasn't tapped stop, just pick the mic back up automatically.
+    if(dictating){ try{ recognizer.start(); }catch(e){} }
+    else setDictateUi(false);
+  });
+
+  $('dictateBtn').addEventListener('click', ()=>{
+    if(dictating){
+      dictating = false; // set before stop() so the 'end' handler doesn't restart it
+      recognizer.stop();
+      setDictateUi(false);
+      return;
+    }
+    setMsg('dictateStatus','','');
+    dictateBaseText = $('dump').value ? $('dump').value + ' ' : '';
+    dictateBaseText = dictateBaseText.trim();
+    try{
+      recognizer.start();
+      setDictateUi(true);
+    }catch(e){
+      setMsg('dictateStatus','Could not start the microphone.','err');
+    }
+  });
+}
+
+$('pasteClipBtn').addEventListener('click', async ()=>{
+  try{
+    const text = await navigator.clipboard.readText();
+    if(!text || !text.trim()){ setMsg('dictateStatus','Clipboard is empty.','warn'); return; }
+    const cur = $('dump').value;
+    $('dump').value = cur && !cur.endsWith('\n') ? cur + '\n\n' + text : cur + text;
+    setMsg('dictateStatus','','');
+    $('clipChipRow').style.display = 'none';
+  }catch(e){
+    setMsg('dictateStatus','Could not read the clipboard — your browser may require a tap directly on this button, or clipboard permission.','err');
+  }
+});
+
+/* one-tap "Use copied text" chip — if something's already sitting in
+   the clipboard when you land here, offer it instead of making you
+   tap Paste clipboard yourself. Fails silently where the browser
+   won't allow a background clipboard read (e.g. iOS Safari). */
+onEnter['paste'] = async ()=>{
+  $('clipChipRow').style.display = 'none';
+  try{
+    const text = await navigator.clipboard.readText();
+    const trimmed = (text||'').trim();
+    if(!trimmed || $('dump').value.includes(trimmed)) return;
+    $('clipPreview').textContent = trimmed.length > 40 ? trimmed.slice(0,40) + '…' : trimmed;
+    $('clipChipRow').style.display = '';
+  }catch(e){ /* no permission / nothing to offer — stay quiet */ }
+};
+$('useClipboardBtn').addEventListener('click', ()=>{ $('pasteClipBtn').click(); });
 
 const AI_SYSTEM_PROMPT = `You turn raw, messy, stream-of-consciousness notes (often dictated live while someone else is talking) into individual Azure DevOps work items.
 
@@ -1273,22 +1459,10 @@ async function getNextNumber(c){
   return max + 1;
 }
 
-$('createBtn').addEventListener('click', async ()=>{
-  const c = cfg();
-  const toCreate = parsedItems.filter(it=>it.include && it.title.trim());
-  if(toCreate.length === 0) return;
-
-  go('creating');
-  const checklist = $('creatingChecklist');
-  checklist.innerHTML = '';
-  const rows = toCreate.map(it=>{
-    const row = document.createElement('div'); row.className='check-row';
-    row.innerHTML = `<span class="mark"></span><span class="title">${escapeAttr(it.title)}</span>`;
-    checklist.appendChild(row);
-    return row;
-  });
-
-  const { values } = getExtraFieldValues();
+/* Creates every item in toCreate against Azure DevOps. `rows` (optional)
+   are the live checklist DOM rows to update as each one lands — omitted
+   when this runs silently in the background (offline queue flush). */
+async function createItemsInAdo(c, toCreate, values, rows){
   const results = [];
   try{
     let next = await getNextNumber(c);
@@ -1309,25 +1483,88 @@ $('createBtn').addEventListener('click', async ()=>{
         if(res.ok){
           const data = await res.json();
           const link = `https://dev.azure.com/${c.org}/${encodeURIComponent(c.project)}/_workitems/edit/${data.id}`;
-          rows[i].classList.add('done');
-          rows[i].innerHTML = `<span class="mark">✓</span><span class="title">${escapeAttr(title)}</span>`;
+          if(rows){ rows[i].classList.add('done'); rows[i].innerHTML = `<span class="mark">✓</span><span class="title">${escapeAttr(title)}</span>`; }
           results.push({ ok:true, title, id:data.id, link });
           next++;
         } else {
           const txt = await res.text();
           let reason = txt;
           try{ const j = JSON.parse(txt); reason = j.message || (j.value && j.value.Message) || txt; }catch(e){}
-          rows[i].classList.add('fail');
-          rows[i].innerHTML = `<span class="mark">!</span><span class="title">${escapeAttr(title)}</span>`;
+          if(rows){ rows[i].classList.add('fail'); rows[i].innerHTML = `<span class="mark">!</span><span class="title">${escapeAttr(title)}</span>`; }
           results.push({ ok:false, title, reason: reason.slice(0,220) });
         }
       }catch(err){
-        rows[i].classList.add('fail');
+        if(rows) rows[i].classList.add('fail');
         results.push({ ok:false, title, reason:'Network error' });
       }
       await new Promise(r=>setTimeout(r, 120));
     }
   }catch(err){ /* getNextNumber failure — results stays partial */ }
+  return results;
+}
+
+/* =========================================================
+   OFFLINE QUEUE — a batch created with no connection is saved
+   locally and sent automatically the next time the app notices
+   it's back online, instead of just failing item by item.
+   ========================================================= */
+async function getQueue(){
+  try{ const r = await storage.get('ado_queue', false); return r && r.value ? JSON.parse(r.value) : []; }catch(e){ return []; }
+}
+async function setQueue(list){ try{ await storage.set('ado_queue', JSON.stringify(list), false); }catch(e){} }
+
+let flushingQueue = false;
+async function flushQueue(){
+  if(flushingQueue || !navigator.onLine) return;
+  flushingQueue = true;
+  try{
+    const queue = await getQueue();
+    if(!queue.length) return;
+    const remaining = [];
+    for(const q of queue){
+      const results = await createItemsInAdo(q.cfg, q.items, q.values);
+      const okCount = results.filter(r=>r.ok).length;
+      if(okCount < q.items.length) remaining.push(q); // partial/failed — keep queued for the next retry
+      else{ try{ await storage.set('ado_last_batch', JSON.stringify({count:okCount, at:Date.now()}), false); }catch(e){} }
+    }
+    await setQueue(remaining);
+    if(activeId === 'home') refreshHome();
+  } finally { flushingQueue = false; }
+}
+window.addEventListener('online', flushQueue);
+flushQueue(); // in case connectivity came back while the app was closed
+
+$('createBtn').addEventListener('click', async ()=>{
+  const c = cfg();
+  const toCreate = parsedItems.filter(it=>it.include && it.title.trim());
+  if(toCreate.length === 0) return;
+
+  // No connection right now — queue the whole batch locally instead of
+  // letting every request fail one by one. It's sent automatically the
+  // next time the app notices it's back online.
+  if(!navigator.onLine){
+    const { values } = getExtraFieldValues();
+    const queue = await getQueue();
+    queue.push({ cfg:c, items:toCreate, values, queuedAt:Date.now() });
+    await setQueue(queue);
+    buildResultsScreen([], toCreate);
+    stack = ['home','results'];
+    transitionTo('results','forward');
+    return;
+  }
+
+  go('creating');
+  const checklist = $('creatingChecklist');
+  checklist.innerHTML = '';
+  const rows = toCreate.map(it=>{
+    const row = document.createElement('div'); row.className='check-row';
+    row.innerHTML = `<span class="mark"></span><span class="title">${escapeAttr(it.title)}</span>`;
+    checklist.appendChild(row);
+    return row;
+  });
+
+  const { values } = getExtraFieldValues();
+  const results = await createItemsInAdo(c, toCreate, values, rows);
 
   const okCount = results.filter(r=>r.ok).length;
   try{ await storage.set('ado_last_batch', JSON.stringify({count:okCount, at:Date.now()}), false); }catch(e){}
@@ -1337,7 +1574,21 @@ $('createBtn').addEventListener('click', async ()=>{
   transitionTo('results','forward');
 });
 
-function buildResultsScreen(results){
+function buildResultsScreen(results, queuedItems){
+  if(queuedItems){
+    $('resultsTitle').textContent = 'Saved — will send when back online';
+    $('resultsSub').textContent = `No connection right now. ${queuedItems.length} item${queuedItems.length===1?'':'s'} queued and will be created in Azure DevOps automatically once you're back online.`;
+    const stamp = $('resultsStamp');
+    stamp.classList.remove('pulse'); void stamp.offsetWidth; stamp.classList.add('pulse');
+    const list = $('resultsList');
+    list.innerHTML = '';
+    queuedItems.forEach(it=>{
+      const row = document.createElement('div'); row.className='check-row';
+      row.innerHTML = `<span class="mark">⏳</span><span class="title">${escapeAttr(it.title)}</span>`;
+      list.appendChild(row);
+    });
+    return;
+  }
   const okCount = results.filter(r=>r.ok).length;
   const failCount = results.length - okCount;
   $('resultsTitle').textContent = failCount === 0 ? 'Done — items are live' : `${okCount} created, ${failCount} failed`;
