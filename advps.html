@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Review Items">
-<meta name="theme-color" content="#0d6e5e">
+<meta name="theme-color" content="#12685a">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" type="image/png" href="icons/favicon-32.png">
 <link rel="manifest" href="manifest.json">
@@ -16,374 +16,257 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-/* =========================================================
-   TOKENS
-   Paper & ink base, one verified-teal signal, warm amber
-   for "in progress", a stamp motif as the signature element.
-   ========================================================= */
+/* =====================================================================
+   TOKENS — warm paper / near-black ink / one deep verified-teal.
+   Screens are color-blocked full-bleed by phase; components read their
+   colors from the active theme's variables, never fixed hex values.
+   ===================================================================== */
 :root{
-  --paper:#f7f4ec;
-  --paper-deep:#efe9da;
-  --panel:#fffdf7;
-  --line:#e4dcc8;
-  --line-soft:#ece5d4;
-  --ink:#1c1a13;
-  --ink-soft:#6b6555;
-  --ink-faint:#a39c88;
-
-  --teal:#0d6e5e;
-  --teal-deep:#08493e;
-  --teal-soft:#e2efe9;
-  --teal-ink:#fffdf7;
-
-  --amber:#a8691a;
-  --amber-soft:#f7ecd8;
-
-  --rose:#a83b2a;
-  --rose-soft:#f7e6e0;
-
-  --shadow-lift:0 18px 40px -18px rgba(28,26,19,.35);
-  --shadow-soft:0 8px 22px -14px rgba(28,26,19,.28);
+  --ink:#15140f;
+  --paper:#f4efe2;
+  --teal:#0f6a5a;
+  --cream:#f4efe2;
+  --amber:#c98a2b;
+  --rose:#c24a34;
+  --rose-dark:#8a3223;
 
   --display:"Space Grotesk","Segoe UI",sans-serif;
   --sans:"Inter",-apple-system,"Segoe UI",Arial,sans-serif;
   --mono:"JetBrains Mono","SF Mono",Consolas,monospace;
-
-  --r-lg:22px;
-  --r-md:14px;
-  --r-sm:10px;
 }
 *{box-sizing:border-box;}
 html,body{height:100%;}
-body{
-  margin:0; background:var(--paper-deep); color:var(--ink); font-family:var(--sans);
-  -webkit-font-smoothing:antialiased; overscroll-behavior:none;
-}
+body{margin:0; font-family:var(--sans); -webkit-font-smoothing:antialiased; overscroll-behavior:none; background:var(--ink);}
 button,input,textarea,select{font-family:inherit;}
-:focus-visible{outline:2px solid var(--teal); outline-offset:2px;}
-@media (prefers-reduced-motion:reduce){
-  *{animation-duration:.001ms !important; transition-duration:.001ms !important;}
-}
+:focus-visible{outline:2px solid currentColor; outline-offset:3px;}
+@media (prefers-reduced-motion:reduce){ *{animation-duration:.001ms !important; transition-duration:.001ms !important;} }
 
-/* =========================================================
-   APP SHELL
-   ========================================================= */
-.app{
-  max-width:480px; margin:0 auto; min-height:100dvh; background:var(--paper);
-  position:relative; display:flex; flex-direction:column;
-  box-shadow:0 0 60px rgba(0,0,0,.06);
-}
+.app{max-width:480px; margin:0 auto; min-height:100dvh; position:relative; display:flex; flex-direction:column; overflow:hidden;}
+
+/* ---- theme variables, applied per-screen ---- */
+.theme-paper{--bg:var(--paper); --fg:var(--ink); --fg-dim:rgba(21,20,15,.58); --fg-faint:rgba(21,20,15,.3); --hair:rgba(21,20,15,.16); --accent:var(--teal); --btn-bg:var(--ink); --btn-fg:var(--paper);}
+.theme-dark{--bg:var(--ink); --fg:var(--paper); --fg-dim:rgba(244,239,226,.62); --fg-faint:rgba(244,239,226,.32); --hair:rgba(244,239,226,.18); --accent:#8fd9c4; --btn-bg:var(--paper); --btn-fg:var(--ink);}
+.theme-teal{--bg:var(--teal); --fg:var(--cream); --fg-dim:rgba(244,239,226,.72); --fg-faint:rgba(244,239,226,.4); --hair:rgba(244,239,226,.24); --accent:var(--cream); --btn-bg:var(--ink); --btn-fg:var(--cream);}
+
+/* =====================================================================
+   TOPBAR — transparent, minimal, colored per-theme via body attribute
+   ===================================================================== */
 .topbar{
-  position:relative; z-index:20; display:flex; align-items:center; gap:10px;
-  padding:calc(env(safe-area-inset-top,0px) + 14px) 14px 10px;
-  background:var(--paper); flex:none;
+  position:relative; z-index:30; display:flex; align-items:center; justify-content:space-between;
+  padding:calc(env(safe-area-inset-top,0px) + 16px) 20px 6px; flex:none; pointer-events:none;
 }
+.topbar > *{pointer-events:auto;}
 .chrome-btn{
-  width:38px; height:38px; border-radius:50%; border:1px solid var(--line);
-  background:var(--panel); display:flex; align-items:center; justify-content:center;
-  color:var(--ink); cursor:pointer; transition:transform .12s, background .15s; flex:none;
+  width:38px; height:38px; border-radius:50%; border:1.5px solid var(--hair, rgba(0,0,0,.15));
+  background:transparent; color:var(--fg,#15140f); display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:transform .12s, opacity .15s;
 }
-.chrome-btn:active{transform:scale(.92);}
-.chrome-btn svg{width:17px; height:17px;}
+.chrome-btn:active{transform:scale(.9);}
+.chrome-btn svg{width:16px; height:16px;}
 .chrome-btn[hidden]{visibility:hidden; pointer-events:none;}
-.progress{flex:1; display:flex; gap:5px; padding:0 4px;}
-.progress .seg{height:4px; flex:1; border-radius:3px; background:var(--line-soft); overflow:hidden;}
-.progress .seg i{display:block; height:100%; width:0; background:var(--teal); border-radius:3px; transition:width .35s ease;}
-.progress .seg.filled i{width:100%;}
-.progress[hidden]{visibility:hidden;}
+body{transition:background-color .3s ease;}
+/* the topbar picks up whichever screen is active via inherited CSS vars set in JS on #topbar */
+#topbar.theme-paper,#topbar.theme-dark,#topbar.theme-teal{background:transparent;}
 
 .stage{position:relative; flex:1; overflow:hidden;}
 .screen{
   position:absolute; inset:0; display:none; flex-direction:column;
-  transform:translateX(0); opacity:1;
-  transition:transform .34s cubic-bezier(.22,.61,.36,1), opacity .28s ease;
-  background:var(--paper);
+  transform:translateX(0); opacity:1; background:var(--bg); color:var(--fg);
+  transition:transform .36s cubic-bezier(.22,.61,.36,1), opacity .3s ease, background-color .2s;
 }
 .screen.active,.screen.leaving-l,.screen.leaving-r{display:flex;}
-.screen.entering-r{transform:translateX(9%); opacity:0;}
-.screen.entering-l{transform:translateX(-9%); opacity:0;}
-.screen.leaving-l{transform:translateX(-9%); opacity:0;}
-.screen.leaving-r{transform:translateX(9%); opacity:0;}
+.screen.entering-r{transform:translateX(10%); opacity:0;}
+.screen.entering-l{transform:translateX(-10%); opacity:0;}
+.screen.leaving-l{transform:translateX(-10%); opacity:0;}
+.screen.leaving-r{transform:translateX(10%); opacity:0;}
 
-.screen-scroll{flex:1; overflow-y:auto; padding:6px 24px 28px; -webkit-overflow-scrolling:touch;}
-.screen-foot{
-  flex:none; padding:14px 24px calc(env(safe-area-inset-bottom,0px) + 18px);
-  background:linear-gradient(180deg, rgba(247,244,236,0), var(--paper) 30%);
-}
+.screen-scroll{flex:1; overflow-y:auto; padding:2px 26px 10px; -webkit-overflow-scrolling:touch; position:relative;}
+.screen-foot{flex:none; padding:16px 26px calc(env(safe-area-inset-bottom,0px) + 22px); display:flex; align-items:flex-end; justify-content:space-between; gap:14px;}
 
-/* =========================================================
-   TYPE
-   ========================================================= */
-.screen-label{
-  font-size:12.5px; font-weight:700; letter-spacing:.03em; text-transform:uppercase;
-  color:var(--ink-soft); margin:6px 0 18px;
+/* =====================================================================
+   HEADLINE BLOCK — big type + a huge faint numeral for sequence steps
+   ===================================================================== */
+.head{position:relative; margin:18px 0 30px; z-index:1;}
+.head .step-mark{
+  position:absolute; top:-34px; right:-6px; font-family:var(--mono); font-weight:700;
+  font-size:118px; line-height:1; color:var(--fg); opacity:.08; z-index:0; user-select:none; pointer-events:none;
 }
+.head h1{
+  position:relative; z-index:1; font-family:var(--display); font-weight:700; font-size:35px;
+  line-height:1.04; letter-spacing:-.025em; margin:0; max-width:11ch;
+}
+.head .kicker{
+  position:relative; z-index:1; display:block; font-family:var(--mono); font-size:11.5px; font-weight:600;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--accent); margin:0 0 10px;
+}
+.head .meta{position:relative; z-index:1; font-family:var(--mono); font-size:13px; color:var(--fg-dim); margin:10px 0 0;}
 
-/* =========================================================
-   FORM ELEMENTS
-   ========================================================= */
-.field{margin-bottom:18px;}
-.field label{
-  display:block; font-size:12px; font-weight:600; color:var(--ink-soft);
-  letter-spacing:.02em; margin-bottom:7px;
-}
-.field .hint{font-size:12px; color:var(--ink-faint); margin-top:6px;}
+/* =====================================================================
+   FIELDS — underline style, no boxes
+   ===================================================================== */
+.field{margin-bottom:26px; position:relative;}
+.field label{display:block; font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--fg-faint); margin-bottom:9px;}
 input[type=text],input[type=password],textarea,select{
-  width:100%; background:var(--panel); border:1.5px solid var(--line); color:var(--ink);
-  border-radius:var(--r-sm); padding:13px 14px; font-size:15.5px; font-family:var(--sans);
-  transition:border-color .15s, box-shadow .15s;
+  width:100%; background:transparent; border:none; border-bottom:1.5px solid var(--hair);
+  color:var(--fg); border-radius:0; padding:8px 0 12px; font-size:19px; font-family:var(--display); font-weight:600;
+  transition:border-color .15s;
 }
-input[type=text]:focus,input[type=password]:focus,textarea:focus,select:focus{
-  outline:none; border-color:var(--teal); box-shadow:0 0 0 4px var(--teal-soft);
-}
-textarea{resize:vertical; font-family:var(--sans); font-size:15px; line-height:1.5;}
+input[type=text]::placeholder,input[type=password]::placeholder,textarea::placeholder{color:var(--fg-faint); font-weight:500;}
+input[type=text]:focus,input[type=password]:focus,textarea:focus,select:focus{outline:none; border-bottom-color:var(--accent);}
+textarea{resize:none; font-family:var(--sans); font-weight:400; font-size:16px; line-height:1.55;}
 select{
-  appearance:none; -webkit-appearance:none; background-repeat:no-repeat;
-  background-position:right 14px center; padding-right:36px;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%236b6555' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  appearance:none; -webkit-appearance:none; background-repeat:no-repeat; background-position:right 4px center; padding-right:26px;
 }
-.field-row{display:flex; gap:12px;}
+.theme-paper select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%2315140f' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");}
+.theme-dark select,.theme-teal select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%23f4efe2' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");}
+.field .hint{font-size:12px; color:var(--fg-faint); margin-top:8px;}
+.field-row{display:flex; gap:22px;}
 .field-row .field{flex:1;}
 
-.toggle-row{
-  display:flex; align-items:center; justify-content:space-between; gap:12px;
-  padding:13px 0; border-top:1px solid var(--line-soft);
-}
-.toggle-row .toggle-copy{font-size:14px; color:var(--ink);}
-.toggle-row .toggle-copy small{display:block; font-size:12px; color:var(--ink-faint); margin-top:2px; font-weight:400;}
+.toggle-row{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 0; border-top:1px solid var(--hair); margin-top:4px;}
+.toggle-row .toggle-copy{font-size:14px;}
+.toggle-row .toggle-copy small{display:block; font-size:12px; color:var(--fg-faint); margin-top:2px; font-weight:400;}
 .switch{position:relative; width:44px; height:26px; flex:none;}
 .switch input{position:absolute; inset:0; opacity:0; cursor:pointer; margin:0;}
-.switch .track{
-  position:absolute; inset:0; background:var(--line); border-radius:999px; transition:background .18s;
-}
-.switch .knob{
-  position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%;
-  background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.25); transition:transform .18s;
-}
-.switch input:checked + .track{background:var(--teal);}
-.switch input:checked + .track + .knob{transform:translateX(18px);}
+.switch .track{position:absolute; inset:0; background:var(--hair); border-radius:999px; transition:background .18s;}
+.switch .knob{position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:var(--fg); box-shadow:0 1px 3px rgba(0,0,0,.25); transition:transform .18s;}
+.switch input:checked + .track{background:var(--accent);}
+.switch input:checked + .track + .knob{transform:translateX(18px); background:var(--bg);}
 
-/* chips: saved setups / quick picks */
-.chip-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px;}
-.chip{
-  font-family:var(--mono); font-size:12.5px; font-weight:600; color:var(--teal-deep);
-  background:var(--teal-soft); border:1px solid transparent; border-radius:999px;
-  padding:8px 14px; cursor:pointer; transition:transform .12s, background .15s;
-}
-.chip:active{transform:scale(.95);}
+/* quick-load text row instead of pill chips */
+.quickload{font-size:13px; color:var(--fg-dim); margin:-4px 0 24px; line-height:1.8;}
+.quickload button{background:none; border:none; padding:0; font:inherit; color:var(--fg); font-weight:600; cursor:pointer; text-decoration:underline; text-decoration-color:var(--hair); text-underline-offset:3px;}
+.quickload .sep{color:var(--fg-faint); margin:0 7px;}
 
-/* =========================================================
-   BUTTONS
-   ========================================================= */
-.btn-primary{
-  display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
-  background:var(--ink); color:var(--paper); border:none; border-radius:999px;
-  padding:16px 22px; font-size:15.5px; font-weight:600; letter-spacing:-.005em;
-  cursor:pointer; box-shadow:var(--shadow-soft); transition:transform .1s, opacity .15s, background .15s;
+/* =====================================================================
+   CTA — label + circular arrow, bottom-anchored, replaces full pills
+   ===================================================================== */
+.side-link{background:none; border:none; padding:0; font-family:var(--sans); font-size:13.5px; font-weight:600; color:var(--fg-dim); cursor:pointer; text-decoration:underline; text-decoration-color:var(--hair); text-underline-offset:3px; margin-bottom:8px;}
+.side-link.danger{color:var(--rose);}
+.cta{display:flex; align-items:center; gap:14px; cursor:pointer; margin-left:auto; background:none; border:none; padding:0;}
+.cta:disabled{opacity:.35; cursor:default;}
+.cta .cta-label{font-family:var(--display); font-weight:700; font-size:15.5px; letter-spacing:-.01em; color:var(--fg); white-space:nowrap;}
+.cta .cta-circle{
+  width:58px; height:58px; border-radius:50%; background:var(--btn-bg); color:var(--btn-fg); flex:none;
+  display:flex; align-items:center; justify-content:center; box-shadow:0 12px 26px -12px rgba(0,0,0,.5); transition:transform .12s;
 }
-.btn-primary.teal{background:var(--teal); box-shadow:0 14px 30px -14px rgba(13,110,94,.55);}
-.btn-primary:active{transform:scale(.98);}
-.btn-primary:disabled{opacity:.38; cursor:default; box-shadow:none;}
-.btn-primary .spin{width:16px; height:16px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite;}
-
-.btn-ghost{
-  display:block; width:100%; background:none; border:1.5px solid var(--line); color:var(--ink);
-  border-radius:999px; padding:14px 22px; font-size:15px; font-weight:600; text-align:center;
-  cursor:pointer; margin-top:10px; transition:border-color .15s, background .15s;
-}
-.btn-ghost:active{background:var(--paper-deep);}
-
-.btn-text{
-  display:inline-flex; align-items:center; gap:6px; background:none; border:none; color:var(--ink-soft);
-  font-size:13.5px; font-weight:600; cursor:pointer; padding:8px 2px; text-underline-offset:3px;
-  text-decoration:underline; text-decoration-color:var(--line);
-}
-.btn-text:active{color:var(--teal);}
-.btn-text.danger{color:var(--rose); text-decoration-color:var(--rose-soft);}
-.text-link-row{display:flex; justify-content:center; margin-top:6px;}
-
+.cta:active .cta-circle{transform:scale(.92);}
+.cta .cta-circle svg{width:20px; height:20px;}
+.cta .spin{width:18px; height:18px; border:2.2px solid rgba(255,255,255,.28); border-top-color:currentColor; border-radius:50%; animation:spin .7s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
+.foot-empty{flex:1;}
 
-/* =========================================================
-   STATUS / BANNERS
-   ========================================================= */
-.banner{
-  display:none; align-items:flex-start; gap:10px; font-size:13.5px; line-height:1.45;
-  padding:13px 14px; border-radius:var(--r-sm); margin-top:14px; border-left:3px solid transparent;
-}
-.banner:not(:empty){display:flex;}
-.banner.ok{color:var(--teal-deep); background:var(--teal-soft); border-left-color:var(--teal);}
-.banner.err{color:var(--rose); background:var(--rose-soft); border-left-color:var(--rose);}
-.banner.warn{color:var(--amber); background:var(--amber-soft); border-left-color:var(--amber);}
-.banner.info{color:var(--ink-soft); background:var(--paper-deep); border-left-color:var(--line);}
+/* =====================================================================
+   FEEDBACK — plain text, no colored boxes
+   ===================================================================== */
+.msg{font-size:13.5px; line-height:1.5; margin-top:16px; padding-top:14px; border-top:1px solid var(--hair); display:none;}
+.msg:not(:empty){display:block;}
+.msg.err{color:var(--rose);}
+.msg.warn{color:var(--amber);}
+.msg.ok{color:var(--fg);}
+.msg.info{color:var(--fg-dim);}
+.theme-dark .msg.err,.theme-teal .msg.err{color:#ff9c85;}
+.theme-dark .msg.warn,.theme-teal .msg.warn{color:#f0c877;}
 
-/* =========================================================
-   STAMP — the signature mark
-   ========================================================= */
-.stamp{display:inline-flex; transform:rotate(-7deg);}
-.stamp svg{display:block;}
-.stamp.pulse{animation:stampIn .5s cubic-bezier(.2,1.6,.4,1) both;}
-@keyframes stampIn{
-  0%{transform:rotate(-7deg) scale(2.1); opacity:0;}
-  60%{transform:rotate(-7deg) scale(.94); opacity:1;}
-  100%{transform:rotate(-7deg) scale(1);}
-}
+/* =====================================================================
+   STAMP — the signature seal motif
+   ===================================================================== */
+.stamp{display:inline-flex; transform:rotate(-8deg);}
+.stamp.pulse{animation:stampIn .55s cubic-bezier(.2,1.6,.4,1) both;}
+@keyframes stampIn{0%{transform:rotate(-8deg) scale(2.3); opacity:0;} 60%{transform:rotate(-8deg) scale(.92); opacity:1;} 100%{transform:rotate(-8deg) scale(1);}}
 
-/* =========================================================
+/* =====================================================================
    HOME
-   ========================================================= */
-.home-hero{padding:6px 0 20px; display:flex; align-items:center; gap:12px;}
-.home-mark{flex:none;}
-.home-title{font-family:var(--display); font-weight:700; font-size:19px; letter-spacing:-.01em; margin:0; color:var(--ink);}
+   ===================================================================== */
+.home-stamp-wrap{position:absolute; top:-40px; right:-58px; opacity:.9; z-index:0; pointer-events:none;}
+.home-scroll{padding-top:26px;}
+.home-word{position:relative; z-index:1; font-family:var(--display); font-weight:700; font-size:52px; line-height:.98; letter-spacing:-.03em; margin:0 0 22px;}
+.home-line{font-family:var(--mono); font-size:13.5px; color:var(--fg-dim); margin:0 0 4px; position:relative; z-index:1;}
+.home-line b{color:var(--fg); font-weight:600;}
+.home-line .arrow-glyph{margin-right:8px; color:var(--accent);}
+.home-recent{font-family:var(--mono); font-size:12px; color:var(--fg-faint); margin-top:22px; position:relative; z-index:1;}
 
-.status-strip{
-  display:flex; align-items:center; gap:12px; background:var(--panel); border:1px solid var(--line);
-  border-radius:var(--r-md); padding:14px 16px; margin-bottom:14px;
-}
-.status-strip .dot{width:9px; height:9px; border-radius:50%; background:var(--ink-faint); flex:none;}
-.status-strip.on .dot{background:var(--teal); box-shadow:0 0 0 4px var(--teal-soft);}
-.status-strip .body{flex:1; min-width:0;}
-.status-strip .title{font-size:14px; font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.status-strip .meta{font-size:12.5px; color:var(--ink-faint); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.status-strip .chev{color:var(--ink-faint); flex:none;}
+/* =====================================================================
+   REVIEW ITEMS — plain numbered rows, no card boxes
+   ===================================================================== */
+.item-row{padding:20px 0; border-top:1px solid var(--hair); position:relative;}
+.item-row:first-child{border-top:none;}
+.item-row.excluded{opacity:.4;}
+.item-row-top{display:flex; align-items:flex-start; gap:12px;}
+.item-num{font-family:var(--mono); font-size:13px; color:var(--fg-faint); flex:none; padding-top:9px; width:22px;}
+.item-body{flex:1; min-width:0;}
+.item-row input[type=text]{font-size:18px; padding:6px 0 8px; border-bottom-color:transparent;}
+.item-row input[type=text]:focus{border-bottom-color:var(--accent);}
+.item-row textarea{font-size:14px; color:var(--fg-dim); min-height:44px; padding:0;}
+.item-row-actions{display:flex; align-items:center; gap:16px; flex:none; padding-top:9px;}
+.dot-toggle{width:20px; height:20px; border-radius:50%; border:1.5px solid var(--hair); background:none; cursor:pointer; display:flex; align-items:center; justify-content:center; color:transparent; padding:0;}
+.dot-toggle.on{background:var(--fg); border-color:var(--fg); color:var(--bg);}
+.dot-toggle svg{width:11px; height:11px;}
+.row-remove{background:none; border:none; color:var(--fg-faint); cursor:pointer; font-family:var(--mono); font-size:12px; padding:0;}
+.row-remove:active{color:var(--rose);}
+.items-count{font-family:var(--mono); font-size:12.5px; color:var(--fg-dim); margin:-18px 0 4px;}
 
-.recent-line{font-size:13px; color:var(--ink-faint); margin:2px 0 22px; padding-left:2px;}
+/* =====================================================================
+   CONFIRM — receipt-style dark screen
+   ===================================================================== */
+.receipt-summary{font-family:var(--mono); font-size:13.5px; color:var(--fg-dim); line-height:2; margin-bottom:8px;}
+.receipt-summary b{color:var(--fg); font-weight:600;}
+.receipt-list{margin-top:22px; border-top:1px dashed var(--hair);}
+.receipt-row{display:flex; gap:12px; padding:13px 0; border-bottom:1px dashed var(--hair); font-size:14px;}
+.receipt-row .n{font-family:var(--mono); color:var(--fg-faint); flex:none;}
+.receipt-row .t{color:var(--fg); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 
-.home-actions{margin-top:auto;}
-
-/* =========================================================
-   ITEM CARDS (review screen)
-   ========================================================= */
-.item-card{
-  position:relative; background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md);
-  padding:16px 16px 14px; margin-bottom:14px; border-left:4px solid var(--teal);
-}
-.item-card.excluded{opacity:.45; border-left-color:var(--line);}
-.item-card-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; gap:10px;}
-.ticket-badge{
-  font-family:var(--mono); font-size:11.5px; font-weight:700; color:var(--teal-deep);
-  background:var(--teal-soft); padding:4px 9px; border-radius:6px; letter-spacing:.02em;
-  transform:rotate(-2deg); display:inline-block;
-}
-.item-card.excluded .ticket-badge{color:var(--ink-faint); background:var(--paper-deep);}
-.item-card-actions{display:flex; align-items:center; gap:14px;}
-.icon-toggle{
-  width:22px; height:22px; border-radius:6px; border:1.5px solid var(--line); background:var(--panel);
-  display:flex; align-items:center; justify-content:center; cursor:pointer; flex:none; color:transparent;
-  transition:all .15s;
-}
-.icon-toggle.checked{background:var(--teal); border-color:var(--teal); color:#fff;}
-.icon-toggle svg{width:13px; height:13px;}
-.icon-remove{background:none; border:none; color:var(--ink-faint); cursor:pointer; padding:2px; display:flex;}
-.icon-remove:active{color:var(--rose);}
-.icon-remove svg{width:16px; height:16px;}
-.item-card input[type=text]{
-  font-family:var(--display); font-weight:600; font-size:16.5px; border:1.5px solid transparent;
-  background:var(--paper-deep); padding:10px 12px; margin-bottom:8px;
-}
-.item-card textarea{
-  border:1.5px solid transparent; background:var(--paper-deep); font-size:13.5px; color:var(--ink-soft);
-  min-height:64px; padding:10px 12px;
-}
-.items-count{font-size:13px; color:var(--ink-faint); margin:-14px 0 18px;}
-
-/* =========================================================
-   EXTRA FIELDS
-   ========================================================= */
-.extra-field-note{
-  background:var(--amber-soft); border-left:3px solid var(--amber); border-radius:0 var(--r-sm) var(--r-sm) 0;
-  padding:12px 14px; font-size:13px; color:var(--amber); margin-bottom:20px;
-}
-
-/* =========================================================
-   CONFIRM SUMMARY
-   ========================================================= */
-.summary-box{
-  background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md);
-  padding:18px; margin-bottom:20px;
-}
-.summary-row{display:flex; justify-content:space-between; gap:14px; padding:9px 0; font-size:14px; border-bottom:1px solid var(--line-soft);}
-.summary-row:last-child{border-bottom:none;}
-.summary-row .k{color:var(--ink-faint);}
-.summary-row .v{color:var(--ink); font-weight:600; text-align:right;}
-.preview-list{margin-bottom:6px;}
-.preview-item{
-  display:flex; gap:10px; align-items:baseline; padding:9px 0; border-bottom:1px solid var(--line-soft); font-size:13.5px;
-}
-.preview-item:last-child{border-bottom:none;}
-.preview-item .n{font-family:var(--mono); color:var(--ink-faint); flex:none;}
-.preview-item .t{color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-
-/* =========================================================
-   TRANSIENT / LOADING SCREENS
-   ========================================================= */
-.center-stage{
-  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
-  text-align:center; padding:24px;
-}
-.loader-mark{margin-bottom:26px;}
-.loader-ring{width:54px; height:54px; border-radius:50%; border:3px solid var(--teal-soft); border-top-color:var(--teal); animation:spin 1s linear infinite;}
-.loader-title{font-family:var(--display); font-size:16px; font-weight:600; margin:0 0 6px;}
-.loader-sub{font-size:14px; color:var(--ink-soft); max-width:28ch;}
-
-.checklist{width:100%; max-width:340px; margin-top:8px; text-align:left;}
-.check-row{display:flex; align-items:center; gap:10px; padding:9px 2px; font-size:13.5px; color:var(--ink-soft); border-bottom:1px solid var(--line-soft);}
+/* =====================================================================
+   TRANSIENT SCREENS
+   ===================================================================== */
+.center-stage{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:26px;}
+.loader-ring{width:46px; height:46px; border-radius:50%; border:2.5px solid var(--hair); border-top-color:var(--fg); animation:spin 1s linear infinite; margin-bottom:26px;}
+.loader-title{font-family:var(--display); font-size:17px; font-weight:600; margin:0 0 6px;}
+.loader-sub{font-size:13.5px; color:var(--fg-dim);}
+.checklist{width:100%; max-width:320px; margin-top:26px; text-align:left;}
+.check-row{display:flex; align-items:center; gap:10px; padding:9px 0; font-size:13.5px; color:var(--fg-dim); border-bottom:1px solid var(--hair);}
 .check-row:last-child{border-bottom:none;}
-.check-row .mark{width:18px; height:18px; border-radius:50%; border:1.5px solid var(--line); flex:none; display:flex; align-items:center; justify-content:center;}
-.check-row.done .mark{background:var(--teal); border-color:var(--teal);}
-.check-row.done .mark svg{width:10px; height:10px;}
-.check-row.fail .mark{background:var(--rose); border-color:var(--rose);}
-.check-row.pending .mark{border-color:var(--line);}
-.check-row.active .mark{border-color:var(--teal);}
-.check-row.done{color:var(--ink);}
-.check-row.fail{color:var(--rose);}
+.check-row .mark{width:16px; height:16px; border-radius:50%; border:1.5px solid var(--hair); flex:none; display:flex; align-items:center; justify-content:center; font-size:10px;}
+.check-row.done .mark{background:var(--fg); border-color:var(--fg); color:var(--bg);}
+.check-row.fail .mark{background:var(--rose); border-color:var(--rose); color:#fff;}
+.check-row.done{color:var(--fg);}
+.check-row.fail{color:#ffb3a0;}
 .check-row .title{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-.check-row .link{color:var(--teal); font-weight:600; text-decoration:none; flex:none; font-size:12.5px;}
+.check-row .link{color:var(--accent); font-weight:600; text-decoration:none; flex:none; font-size:12px;}
+.results-stamp-wrap{display:flex; justify-content:center; margin:12px 0 6px;}
 
-/* =========================================================
-   RESULTS
-   ========================================================= */
-.results-stamp-wrap{display:flex; justify-content:center; margin:6px 0 20px;}
+/* =====================================================================
+   EXISTING / SETUPS — plain rows
+   ===================================================================== */
+.plain-row{display:flex; align-items:center; gap:14px; padding:15px 0; border-top:1px solid var(--hair);}
+.plain-row:first-child{border-top:none;}
+.plain-row .id{font-family:var(--mono); font-size:12px; color:var(--accent); flex:none;}
+.plain-row .title{flex:1; font-size:14.5px; color:var(--fg); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.plain-row .state{font-family:var(--mono); font-size:11px; color:var(--fg-faint); flex:none;}
+a.plain-row{text-decoration:none; color:inherit;}
+.setup-row-name{font-weight:600; font-size:15px;}
+.setup-row-meta{font-family:var(--mono); font-size:12px; color:var(--fg-faint); margin-top:2px;}
+.setup-row del-btn,.setup-del{background:none; border:none; color:var(--rose); cursor:pointer; flex:none; padding:6px;}
+.setup-del svg{width:15px; height:15px; display:block;}
+.save-preset{margin-top:30px; padding-top:26px; border-top:1px solid var(--hair);}
 
-/* =========================================================
-   EXISTING ITEMS LIST
-   ========================================================= */
-.existing-row{
-  display:flex; align-items:center; gap:12px; padding:13px 2px; border-bottom:1px solid var(--line-soft);
-}
-.existing-row .id{font-family:var(--mono); font-size:12px; color:var(--teal-deep); background:var(--teal-soft); padding:3px 8px; border-radius:6px; flex:none;}
-.existing-row .title{flex:1; font-size:14px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-.existing-row .state{font-size:11.5px; color:var(--ink-faint); flex:none;}
-.existing-row a{color:inherit; text-decoration:none; display:contents;}
-
-.empty-state{text-align:center; padding:50px 20px;}
-.empty-state svg{width:44px; height:44px; color:var(--ink-faint); margin-bottom:16px;}
+.empty-state{text-align:center; padding:60px 10px;}
+.empty-state svg{width:38px; height:38px; color:var(--fg-faint); margin-bottom:18px;}
 .empty-state .t{font-family:var(--display); font-size:15px; font-weight:600; margin:0 0 6px;}
-.empty-state .s{font-size:13.5px; color:var(--ink-faint); max-width:26ch; margin:0 auto;}
+.empty-state .s{font-size:13px; color:var(--fg-faint); max-width:26ch; margin:0 auto;}
 
-/* saved setups list */
-.setup-row{
-  display:flex; align-items:center; justify-content:space-between; gap:10px;
-  padding:14px 16px; background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md); margin-bottom:10px;
-}
-.setup-row .name{font-weight:600; font-size:14.5px;}
-.setup-row .meta{font-size:12px; color:var(--ink-faint); margin-top:2px;}
-.setup-row button{background:none; border:none; color:var(--rose); cursor:pointer; padding:6px; flex:none;}
-.setup-row button svg{width:16px; height:16px; display:block;}
-.save-preset-box{
-  background:var(--panel); border:1px dashed var(--line); border-radius:var(--r-md); padding:16px; margin-top:6px;
-}
+/* extra fields note */
+.field-note{font-size:13px; color:var(--fg-dim); margin:-6px 0 24px; line-height:1.5;}
 </style>
 </head>
 <body>
 <div class="app" id="app">
 
-  <header class="topbar">
+  <header class="topbar" id="topbar">
     <button class="chrome-btn" id="backBtn" aria-label="Back" hidden>
       <svg viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
-    <div class="progress" id="progressBar" hidden></div>
-    <button class="chrome-btn" id="settingsBtn" aria-label="Connection settings" hidden>
+    <button class="chrome-btn" id="settingsBtn" aria-label="Connection settings" hidden style="margin-left:auto;">
       <svg viewBox="0 0 24 24" fill="none"><path d="M12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z" stroke="currentColor" stroke-width="1.8"/><path d="M19.4 13.5a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1 1.55V19.5a2 2 0 11-4 0v-.09a1.7 1.7 0 00-1-1.56 1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.7 1.7 0 00.34-1.87 1.7 1.7 0 00-1.55-1H4.5a2 2 0 110-4h.09a1.7 1.7 0 001.56-1 1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06a1.7 1.7 0 001.87.34H10.5a1.7 1.7 0 001-1.55V4.5a2 2 0 114 0v.09a1.7 1.7 0 001 1.55 1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06a1.7 1.7 0 00-.34 1.87V10.5a1.7 1.7 0 001.55 1h.09a2 2 0 110 4h-.09a1.7 1.7 0 00-1.55 1z" stroke="currentColor" stroke-width="1.3"/></svg>
     </button>
   </header>
@@ -391,43 +274,35 @@ select{
   <main class="stage" id="stage">
 
     <!-- ============ HOME ============ -->
-    <section class="screen" data-screen="home">
-      <div class="screen-scroll">
-        <div class="home-hero">
-          <div class="home-mark stamp" id="homeStamp">
-            <svg width="34" height="34" viewBox="0 0 46 46" fill="none">
-              <circle cx="23" cy="23" r="21" stroke="#0d6e5e" stroke-width="2"/>
-              <circle cx="23" cy="23" r="16" stroke="#0d6e5e" stroke-width="1.2" stroke-dasharray="2.4 3.2"/>
-              <path d="M15 23.5l5.5 5.5L32 17" stroke="#0d6e5e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <h1 class="home-title">Review Items</h1>
+    <section class="screen theme-dark" data-screen="home">
+      <div class="screen-scroll home-scroll">
+        <div class="home-stamp-wrap">
+          <svg width="190" height="190" viewBox="0 0 46 46" fill="none">
+            <circle cx="23" cy="23" r="21" stroke="#f4efe2" stroke-width="1"/>
+            <circle cx="23" cy="23" r="16" stroke="#f4efe2" stroke-width=".7" stroke-dasharray="2 3.4"/>
+            <path d="M15 23.5l5.5 5.5L32 17" stroke="#f4efe2" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </div>
-
-        <div class="status-strip" id="homeStatusStrip">
-          <span class="dot"></span>
-          <div class="body">
-            <div class="title" id="homeStatusTitle">Not connected yet</div>
-            <div class="meta" id="homeStatusMeta">Set up your Azure DevOps project to begin</div>
-          </div>
-          <span class="chev">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </span>
-        </div>
-        <div class="recent-line" id="homeRecentLine" style="display:none;"></div>
+        <h1 class="home-word">Review<br>Items.</h1>
+        <p class="home-line"><span class="arrow-glyph">→</span><span id="homeStatusTitle">Not connected</span></p>
+        <p class="home-line" id="homeStatusMetaLine" style="display:none;"><b id="homeStatusMeta"></b></p>
+        <p class="home-recent" id="homeRecentLine" style="display:none;"></p>
       </div>
       <div class="screen-foot">
-        <button class="btn-primary teal" id="homePrimaryBtn">New batch</button>
-        <button class="btn-ghost" id="homeExistingBtn">View existing items</button>
+        <button class="side-link" id="homeExistingBtn">Existing items</button>
+        <div class="foot-empty"></div>
+        <button class="cta" id="homePrimaryBtn"><span class="cta-label">New batch</span><span class="cta-circle"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
       </div>
     </section>
 
     <!-- ============ SETUP: ORG/PROJECT ============ -->
-    <section class="screen" data-screen="setup-org">
+    <section class="screen theme-paper" data-screen="setup-org">
       <div class="screen-scroll">
-        <p class="screen-label">Organization &amp; project</p>
-
-        <div class="chip-row" id="quickSetupChips"></div>
+        <div class="head">
+          <span class="step-mark">1</span>
+          <span class="kicker">Connect</span>
+          <h1>Org &amp; project</h1>
+        </div>
 
         <div class="field">
           <label for="org">Organization</label>
@@ -438,47 +313,53 @@ select{
           <input type="text" id="project" placeholder="e.g. TF100 PAM Gap Management" value="TF100 PAM Gap Management">
         </div>
 
-        <div class="text-link-row" style="justify-content:flex-start;">
-          <button class="btn-text" id="manageSetupsLink">Manage saved setups</button>
-        </div>
+        <div class="quickload" id="quickSetupChips"></div>
+        <button class="side-link" id="manageSetupsLink">Manage saved setups</button>
       </div>
       <div class="screen-foot">
-        <button class="btn-primary teal" id="orgContinueBtn">Continue</button>
+        <div class="foot-empty"></div>
+        <button class="cta" id="orgContinueBtn"><span class="cta-label">Continue</span><span class="cta-circle"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
       </div>
     </section>
 
     <!-- ============ SETUP: SAVED PRESETS ============ -->
-    <section class="screen" data-screen="setup-presets">
+    <section class="screen theme-paper" data-screen="setup-presets">
       <div class="screen-scroll">
-        <p class="screen-label">Saved setups</p>
+        <div class="head">
+          <span class="kicker">Connect</span>
+          <h1>Saved setups</h1>
+        </div>
 
         <div id="presetsList"></div>
-        <div id="presetsEmpty" class="empty-state" style="display:none; padding:34px 10px;">
+        <div id="presetsEmpty" class="empty-state" style="display:none;">
           <svg viewBox="0 0 24 24" fill="none"><path d="M4 7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V7z" stroke="currentColor" stroke-width="1.5"/></svg>
-          <div class="t">No setups saved yet</div>
-          <div class="s">Save your current organization, project and token as a preset to switch projects fast.</div>
+          <div class="t">Nothing saved yet</div>
+          <div class="s">Save the current project as a preset to switch fast.</div>
         </div>
 
-        <div class="save-preset-box">
-          <div class="field" style="margin-bottom:12px;">
-            <label for="setupName">Save current fields as a preset</label>
+        <div class="save-preset">
+          <div class="field" style="margin-bottom:14px;">
+            <label for="setupName">Save current fields as</label>
             <input type="text" id="setupName" placeholder="e.g. TF100 PAM">
           </div>
-          <button class="btn-ghost" id="saveSetupBtn" style="margin-top:0;">Save preset</button>
+          <button class="side-link" id="saveSetupBtn">Save preset</button>
         </div>
-        <div class="banner" id="presetsStatus"></div>
+        <div class="msg" id="presetsStatus"></div>
       </div>
     </section>
 
     <!-- ============ SETUP: ACCESS ============ -->
-    <section class="screen" data-screen="setup-access">
+    <section class="screen theme-dark" data-screen="setup-access">
       <div class="screen-scroll">
-        <p class="screen-label">Access</p>
+        <div class="head">
+          <span class="step-mark">2</span>
+          <span class="kicker">Connect</span>
+          <h1>Your access</h1>
+        </div>
 
         <div class="field">
-          <label for="proxy">Worker proxy URL <span style="font-weight:400; color:var(--ink-faint);">(optional)</span></label>
+          <label for="proxy">Worker proxy URL — optional</label>
           <input type="text" id="proxy" placeholder="https://ado-proxy.yourname.workers.dev">
-          <div class="hint">Needed for AI item generation, and if Azure DevOps blocks direct browser calls.</div>
         </div>
         <div class="field">
           <label for="pat">Personal access token</label>
@@ -491,20 +372,23 @@ select{
           <label class="switch"><input type="checkbox" id="rememberPat"><span class="track"></span><span class="knob"></span></label>
         </div>
 
-        <div class="banner" id="connStatus"></div>
+        <div class="msg" id="connStatus"></div>
       </div>
       <div class="screen-foot">
-        <button class="btn-primary teal" id="testBtn">
-          <span id="testBtnLabel">Test connection</span>
-        </button>
-        <button class="btn-text danger" id="forgetBtn" style="display:block; margin:12px auto 0;">Forget saved token</button>
+        <button class="side-link danger" id="forgetBtn">Forget token</button>
+        <div class="foot-empty"></div>
+        <button class="cta" id="testBtn"><span class="cta-label" id="testBtnLabel">Test connection</span><span class="cta-circle"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
       </div>
     </section>
 
     <!-- ============ SETUP: WORK ITEM TYPE ============ -->
-    <section class="screen" data-screen="setup-type">
+    <section class="screen theme-paper" data-screen="setup-type">
       <div class="screen-scroll">
-        <p class="screen-label">Work item type</p>
+        <div class="head">
+          <span class="step-mark">3</span>
+          <span class="kicker">Connect</span>
+          <h1>What you're<br>creating</h1>
+        </div>
 
         <div class="field">
           <label for="witype">Work item type</label>
@@ -517,93 +401,104 @@ select{
           </div>
           <div class="field">
             <label>Preview</label>
-            <div style="padding:13px 14px;"><span class="ticket-badge" id="prefixPreview">REV-004</span></div>
+            <div style="padding:8px 0 12px; font-family:var(--mono); font-size:15px; color:var(--fg-dim);" id="prefixPreview">REV-004</div>
           </div>
         </div>
       </div>
       <div class="screen-foot">
-        <button class="btn-primary teal" id="typeContinueBtn">Finish setup</button>
+        <div class="foot-empty"></div>
+        <button class="cta" id="typeContinueBtn"><span class="cta-label">Finish</span><span class="cta-circle"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
       </div>
     </section>
 
     <!-- ============ PASTE NOTES ============ -->
-    <section class="screen" data-screen="paste">
+    <section class="screen theme-teal" data-screen="paste">
       <div class="screen-scroll">
-        <p class="screen-label">Paste notes</p>
+        <div class="head">
+          <span class="step-mark">1</span>
+          <span class="kicker">New batch</span>
+          <h1>Paste your<br>notes</h1>
+        </div>
 
         <div class="field">
-          <textarea id="dump" rows="11" placeholder="Paste your notes here…"></textarea>
+          <textarea id="dump" rows="11" placeholder="Drop in raw notes or a meeting thread…"></textarea>
         </div>
-        <div class="banner" id="analyzeStatus"></div>
+        <div class="msg" id="analyzeStatus"></div>
       </div>
       <div class="screen-foot">
-        <button class="btn-primary teal" id="aiSplitBtn">
-          <span id="aiSplitLabel">Generate items</span>
-        </button>
-        <div class="text-link-row">
-          <button class="btn-text" id="analyzeBtn">Just split by blank lines instead</button>
-        </div>
+        <button class="side-link" id="analyzeBtn" style="color:var(--fg-dim);">Split by blank lines</button>
+        <div class="foot-empty"></div>
+        <button class="cta" id="aiSplitBtn"><span class="cta-label" id="aiSplitLabel">Generate</span><span class="cta-circle"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
       </div>
     </section>
 
     <!-- ============ GENERATING (transient) ============ -->
-    <section class="screen" data-screen="generating">
+    <section class="screen theme-teal" data-screen="generating">
       <div class="center-stage">
-        <div class="loader-mark"><div class="loader-ring"></div></div>
+        <div class="loader-ring"></div>
         <h2 class="loader-title" id="generatingTitle">Reading through your notes…</h2>
         <p class="loader-sub" id="generatingSub">Pulling out the distinct topics.</p>
-        <div class="banner" id="generatingError" style="max-width:320px; margin-top:22px;"></div>
-        <button class="btn-ghost" id="generatingRetryBtn" style="display:none; max-width:280px;">Try again</button>
-        <button class="btn-text" id="generatingManualBtn" style="display:none; margin-top:10px;">Split by blank lines instead</button>
+        <div class="msg" id="generatingError" style="max-width:300px; border-top:none;"></div>
+        <button class="side-link" id="generatingRetryBtn" style="display:none; margin-top:16px;">Try again</button>
+        <button class="side-link" id="generatingManualBtn" style="display:none; margin-top:10px;">Split by blank lines instead</button>
       </div>
     </section>
 
     <!-- ============ REVIEW ITEMS ============ -->
-    <section class="screen" data-screen="review">
+    <section class="screen theme-paper" data-screen="review">
       <div class="screen-scroll">
-        <p class="screen-label">Review items</p>
-        <p class="items-count" id="itemsCount">0 items ready</p>
-        <div id="itemsList"></div>
-        <div class="text-link-row" style="justify-content:flex-start;">
-          <button class="btn-text" id="addItemBtn">+ Add item manually</button>
+        <div class="head">
+          <span class="step-mark">2</span>
+          <span class="kicker">New batch</span>
+          <h1>Review</h1>
+          <p class="meta" id="itemsCount">0 items ready</p>
         </div>
+        <div id="itemsList"></div>
+        <button class="side-link" id="addItemBtn" style="margin-top:6px;">+ Add item manually</button>
       </div>
       <div class="screen-foot">
-        <button class="btn-primary teal" id="reviewContinueBtn">
-          <span id="reviewContinueLabel">Continue</span>
-        </button>
+        <div class="foot-empty"></div>
+        <button class="cta" id="reviewContinueBtn"><span class="cta-label" id="reviewContinueLabel">Continue</span><span class="cta-circle"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
       </div>
     </section>
 
     <!-- ============ EXTRA REQUIRED FIELDS ============ -->
-    <section class="screen" data-screen="extra-fields">
+    <section class="screen theme-paper" data-screen="extra-fields">
       <div class="screen-scroll">
-        <p class="screen-label" id="extraFieldsTitle">Required fields</p>
+        <div class="head">
+          <span class="kicker">New batch</span>
+          <h1 id="extraFieldsTitle">One more thing</h1>
+        </div>
+        <p class="field-note">Applies to every item in this batch.</p>
         <div id="extraFieldsWrap"></div>
-        <div class="banner" id="extraFieldsStatus"></div>
+        <div class="msg" id="extraFieldsStatus"></div>
       </div>
       <div class="screen-foot">
-        <button class="btn-primary teal" id="extraFieldsContinueBtn">Continue</button>
+        <div class="foot-empty"></div>
+        <button class="cta" id="extraFieldsContinueBtn"><span class="cta-label">Continue</span><span class="cta-circle"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
       </div>
     </section>
 
     <!-- ============ CONFIRM ============ -->
-    <section class="screen" data-screen="confirm">
+    <section class="screen theme-dark" data-screen="confirm">
       <div class="screen-scroll">
-        <p class="screen-label">Confirm</p>
-        <div class="summary-box" id="summaryBox"></div>
-        <p class="screen-label" style="margin-top:22px;">Items in this batch</p>
-        <div class="preview-list" id="previewList"></div>
+        <div class="head">
+          <span class="kicker">New batch</span>
+          <h1>Ready</h1>
+        </div>
+        <div class="receipt-summary" id="summaryBox"></div>
+        <div class="receipt-list" id="previewList"></div>
       </div>
       <div class="screen-foot">
-        <button class="btn-primary teal" id="createBtn">Create in Azure DevOps</button>
+        <div class="foot-empty"></div>
+        <button class="cta" id="createBtn"><span class="cta-label">Create</span><span class="cta-circle"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
       </div>
     </section>
 
     <!-- ============ CREATING (transient) ============ -->
-    <section class="screen" data-screen="creating">
+    <section class="screen theme-teal" data-screen="creating">
       <div class="center-stage">
-        <div class="loader-mark"><div class="loader-ring"></div></div>
+        <div class="loader-ring"></div>
         <h2 class="loader-title">Creating your items…</h2>
         <p class="loader-sub">Sending each one to Azure DevOps.</p>
         <div class="checklist" id="creatingChecklist"></div>
@@ -611,35 +506,37 @@ select{
     </section>
 
     <!-- ============ RESULTS ============ -->
-    <section class="screen" data-screen="results">
+    <section class="screen theme-teal" data-screen="results">
       <div class="screen-scroll">
         <div class="results-stamp-wrap">
           <div class="stamp pulse" id="resultsStamp">
-            <svg width="40" height="40" viewBox="0 0 46 46" fill="none">
-              <circle cx="23" cy="23" r="21" stroke="#0d6e5e" stroke-width="2"/>
-              <circle cx="23" cy="23" r="16" stroke="#0d6e5e" stroke-width="1.2" stroke-dasharray="2.4 3.2"/>
-              <path d="M15 23.5l5.5 5.5L32 17" stroke="#0d6e5e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <svg width="52" height="52" viewBox="0 0 46 46" fill="none">
+              <circle cx="23" cy="23" r="21" stroke="#f4efe2" stroke-width="1.6"/>
+              <circle cx="23" cy="23" r="16" stroke="#f4efe2" stroke-width="1" stroke-dasharray="2 3.4"/>
+              <path d="M15 23.5l5.5 5.5L32 17" stroke="#f4efe2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
         </div>
-        <p class="screen-label" style="text-align:center;" id="resultsTitle">Done</p>
+        <h1 style="text-align:center; font-family:var(--display); font-weight:700; font-size:22px; margin:0 0 22px;" id="resultsTitle">Done</h1>
         <div id="resultsList"></div>
       </div>
       <div class="screen-foot">
-        <button class="btn-primary teal" id="resultsHomeBtn">Back to home</button>
-        <button class="btn-ghost" id="resultsAgainBtn">Create another batch</button>
+        <button class="side-link" id="resultsAgainBtn" style="color:var(--fg-dim);">New batch</button>
+        <div class="foot-empty"></div>
+        <button class="cta" id="resultsHomeBtn"><span class="cta-label">Home</span><span class="cta-circle"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
       </div>
     </section>
 
     <!-- ============ EXISTING ITEMS ============ -->
-    <section class="screen" data-screen="existing">
+    <section class="screen theme-paper" data-screen="existing">
       <div class="screen-scroll">
-        <p class="screen-label" id="existingEyebrow">Existing items</p>
-        <div class="banner" id="existingStatus"></div>
-        <div id="existingList"></div>
-        <div class="text-link-row">
-          <button class="btn-text" id="existingRefreshBtn">Refresh list</button>
+        <div class="head">
+          <span class="kicker" id="existingEyebrow">Existing items</span>
+          <h1>On file</h1>
         </div>
+        <div class="msg" id="existingStatus"></div>
+        <div id="existingList"></div>
+        <button class="side-link" id="existingRefreshBtn" style="margin-top:14px;">Refresh</button>
       </div>
     </section>
 
@@ -650,39 +547,25 @@ select{
 const $ = id => document.getElementById(id);
 
 /* =========================================================
-   NAVIGATION — stack based wizard router
+   NAVIGATION — stack based wizard router with per-screen theme
    ========================================================= */
 const screens = {};
 document.querySelectorAll('.screen').forEach(s => screens[s.dataset.screen] = s);
 let stack = ['home'];
 let activeId = 'home';
 screens.home.classList.add('active');
+document.body.dataset.theme = 'dark';
 
+function themeOf(id){
+  const el = screens[id];
+  if(el.classList.contains('theme-dark')) return 'dark';
+  if(el.classList.contains('theme-teal')) return 'teal';
+  return 'paper';
+}
 function paint(){
   $('backBtn').hidden = stack.length < 2;
   $('settingsBtn').hidden = activeId !== 'home';
-  const map = {
-    'setup-org':1,'setup-access':2,'setup-type':3,'setup-presets':1,
-    'paste':1,'generating':1,'review':2,'extra-fields':3,'confirm':4,'creating':4,'results':4
-  };
-  const totals = { setup:3, create: hasExtraStepThisRun ? 4 : 3 };
-  const flow = ['setup-org','setup-access','setup-type','setup-presets'].includes(activeId) ? 'setup'
-             : ['paste','generating','review','extra-fields','confirm','creating','results'].includes(activeId) ? 'create'
-             : null;
-  const bar = $('progressBar');
-  if(!flow){ bar.hidden = true; return; }
-  let step = map[activeId] || 1;
-  const total = totals[flow];
-  if(flow==='create' && !hasExtraStepThisRun && step>3) step = 3;
-  if(flow==='create' && (activeId==='creating' || activeId==='results')) step = total;
-  bar.hidden = false;
-  bar.innerHTML = '';
-  for(let i=0;i<total;i++){
-    const seg = document.createElement('span');
-    seg.className = 'seg' + (i < step ? ' filled' : '');
-    seg.innerHTML = '<i></i>';
-    bar.appendChild(seg);
-  }
+  document.body.dataset.theme = themeOf(activeId);
 }
 
 function transitionTo(id, dir){
@@ -691,7 +574,7 @@ function transitionTo(id, dir){
   if(curEl && curEl !== nextEl){
     curEl.classList.remove('active');
     curEl.classList.add(dir==='forward' ? 'leaving-l' : 'leaving-r');
-    setTimeout(()=>{ curEl.classList.remove('leaving-l','leaving-r'); }, 340);
+    setTimeout(()=>{ curEl.classList.remove('leaving-l','leaving-r'); }, 360);
   }
   nextEl.classList.add(dir==='forward' ? 'entering-r' : 'entering-l');
   nextEl.classList.add('active');
@@ -733,10 +616,10 @@ const storage = (function(){
   };
 })();
 
-function setBanner(id, msg, cls){
+function setMsg(id, msg, cls){
   const el = $(id);
   el.textContent = msg;
-  el.className = 'banner ' + (cls||'');
+  el.className = 'msg ' + (cls||'');
 }
 
 /* =========================================================
@@ -773,15 +656,14 @@ $('rememberPat').addEventListener('change', async e=>{
 $('forgetBtn').addEventListener('click', async ()=>{
   try{ await storage.delete('ado_pat', false); }catch(e){}
   $('pat').value=''; $('rememberPat').checked=false;
-  setBanner('connStatus','Saved token cleared.','ok');
+  setMsg('connStatus','Saved token cleared.','ok');
 });
 
-/* invalidate a successful test whenever connection fields change */
 let testState = 'idle';
 function resetTestState(){
   testState='idle';
   $('testBtnLabel').textContent = 'Test connection';
-  if(activeId==='setup-access') setBanner('connStatus','','');
+  if(activeId==='setup-access') setMsg('connStatus','','');
 }
 ['org','project','proxy','pat'].forEach(id => $(id).addEventListener('input', resetTestState));
 
@@ -797,15 +679,16 @@ async function refreshQuickChips(){
   const setups = await getSetups();
   const names = Object.keys(setups).sort();
   const row = $('quickSetupChips');
-  row.innerHTML = '';
-  names.forEach(name=>{
-    const chip = document.createElement('button');
-    chip.className = 'chip'; chip.type='button'; chip.textContent = name;
-    chip.addEventListener('click', async ()=>{
+  if(!names.length){ row.innerHTML=''; return; }
+  row.innerHTML = 'Quick load: ';
+  names.forEach((name,i)=>{
+    if(i>0){ const sep=document.createElement('span'); sep.className='sep'; sep.textContent='·'; row.appendChild(sep); }
+    const btn = document.createElement('button');
+    btn.type='button'; btn.textContent = name;
+    btn.addEventListener('click', async ()=>{
       applyFields(setups[name]); await saveLastFields(); await savePatIfRemembering();
-      setBanner('connStatus', `Loaded "${name}". Test the connection to continue.`, 'info');
     });
-    row.appendChild(chip);
+    row.appendChild(btn);
   });
 }
 async function refreshPresetsList(){
@@ -816,25 +699,26 @@ async function refreshPresetsList(){
   $('presetsEmpty').style.display = names.length ? 'none' : 'block';
   names.forEach(name=>{
     const row = document.createElement('div');
-    row.className = 'setup-row';
+    row.className = 'plain-row';
+    row.style.cursor='pointer';
     row.innerHTML = `
-      <div>
-        <div class="name">${escapeAttr(name)}</div>
-        <div class="meta">${escapeAttr(setups[name].project || '')}</div>
+      <div style="flex:1;">
+        <div class="setup-row-name">${escapeAttr(name)}</div>
+        <div class="setup-row-meta">${escapeAttr(setups[name].project || '')}</div>
       </div>
-      <button data-name="${escapeAttr(name)}" aria-label="Delete">
+      <button class="setup-del" data-name="${escapeAttr(name)}" aria-label="Delete">
         <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0v12a2 2 0 002 2h6a2 2 0 002-2V7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
       </button>`;
     row.querySelector('div').addEventListener('click', async ()=>{
       applyFields(setups[name]); await saveLastFields(); await savePatIfRemembering();
-      setBanner('presetsStatus', `Loaded "${name}".`, 'ok');
+      setMsg('presetsStatus', `Loaded "${name}".`, 'ok');
       goBack();
     });
-    row.querySelector('button').addEventListener('click', async (e)=>{
+    row.querySelector('.setup-del').addEventListener('click', async (e)=>{
       e.stopPropagation();
       const s = await getSetups(); delete s[name]; await setSetups(s);
       await refreshPresetsList(); await refreshQuickChips();
-      setBanner('presetsStatus', `Deleted "${name}".`, 'ok');
+      setMsg('presetsStatus', `Deleted "${name}".`, 'ok');
     });
     list.appendChild(row);
   });
@@ -842,20 +726,20 @@ async function refreshPresetsList(){
 $('manageSetupsLink').addEventListener('click', ()=> go('setup-presets'));
 $('saveSetupBtn').addEventListener('click', async ()=>{
   const name = $('setupName').value.trim();
-  if(!name){ setBanner('presetsStatus','Give this setup a name first.','err'); return; }
+  if(!name){ setMsg('presetsStatus','Give this setup a name first.','err'); return; }
   const setups = await getSetups();
   setups[name] = currentFields();
   await setSetups(setups);
   $('setupName').value = '';
   await refreshPresetsList(); await refreshQuickChips();
   const patNote = $('rememberPat').checked ? ' — including your token' : '';
-  setBanner('presetsStatus', `Saved "${name}"${patNote}.`, 'ok');
+  setMsg('presetsStatus', `Saved "${name}"${patNote}.`, 'ok');
 });
 onEnter['setup-presets'] = ()=>{ refreshPresetsList(); };
 onEnter['setup-org'] = ()=>{ refreshQuickChips(); };
 
 /* =========================================================
-   ADO HELPERS (unchanged wire logic)
+   ADO HELPERS
    ========================================================= */
 function adoHeaders(pat){ return { 'Authorization':'Basic '+btoa(':'+pat), 'Content-Type':'application/json' }; }
 function cfg(){
@@ -896,14 +780,14 @@ function updatePrefixPreview(){
 }
 updatePrefixPreview();
 
-/* ---- test connection (setup-access) ---- */
+/* ---- test connection ---- */
 $('testBtn').addEventListener('click', async ()=>{
   if(testState === 'ok'){ go('setup-type'); return; }
   const c = cfg();
-  if(!c.pat){ setBanner('connStatus','Enter a PAT first.','err'); return; }
+  if(!c.pat){ setMsg('connStatus','Enter a PAT first.','err'); return; }
   $('testBtn').disabled = true;
-  $('testBtnLabel').innerHTML = '<span class="spin"></span> Testing…';
-  setBanner('connStatus','','');
+  $('testBtnLabel').innerHTML = '<span class="spin"></span>';
+  setMsg('connStatus','','');
   try{
     const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/workitemtypes/${encodeURIComponent(c.witype)}?api-version=7.1`;
     const res = await fetch(url, { headers: adoHeaders(c.pat) });
@@ -915,17 +799,17 @@ $('testBtn').addEventListener('click', async ()=>{
         const count = await loadWorkItemTypes(c);
         msg += ` Loaded ${count} work item types.`;
       }catch(werr){ msg += ` (Could not load full type list.)`; }
-      setBanner('connStatus', msg, 'ok');
+      setMsg('connStatus', msg, 'ok');
       testState = 'ok';
       $('testBtnLabel').textContent = 'Continue';
       await saveLastFields();
     } else {
       const txt = await res.text();
-      setBanner('connStatus', `Failed (${res.status}): ${txt.slice(0,180)}`, 'err');
+      setMsg('connStatus', `Failed (${res.status}): ${txt.slice(0,180)}`, 'err');
       testState = 'idle'; $('testBtnLabel').textContent = 'Try again';
     }
   }catch(err){
-    setBanner('connStatus',
+    setMsg('connStatus',
       'Could not reach Azure DevOps from the browser — likely a CORS restriction. Set a Worker proxy URL above and try again.',
       'err');
     testState='idle'; $('testBtnLabel').textContent = 'Try again';
@@ -934,9 +818,7 @@ $('testBtn').addEventListener('click', async ()=>{
 });
 
 $('orgContinueBtn').addEventListener('click', async ()=>{
-  if(!$('org').value.trim() || !$('project').value.trim()){
-    return;
-  }
+  if(!$('org').value.trim() || !$('project').value.trim()) return;
   await saveLastFields();
   go('setup-access');
 });
@@ -960,28 +842,25 @@ function isConfigured(){
   return !!($('org').value.trim() && $('project').value.trim() && $('pat').value.trim());
 }
 async function refreshHome(){
-  const strip = $('homeStatusStrip');
   if(isConfigured()){
-    strip.classList.add('on');
     $('homeStatusTitle').textContent = $('project').value.trim();
-    $('homeStatusMeta').textContent = `${$('org').value.trim()} · ${$('witype').value || 'Review'} items`;
-    $('homePrimaryBtn').textContent = 'New batch';
+    $('homeStatusMetaLine').style.display = 'block';
+    $('homeStatusMeta').textContent = `${$('org').value.trim()} · ${$('witype').value || 'Review'}`;
+    document.querySelector('#homePrimaryBtn .cta-label').textContent = 'New batch';
   } else {
-    strip.classList.remove('on');
-    $('homeStatusTitle').textContent = 'Not connected yet';
-    $('homeStatusMeta').textContent = 'Set up your Azure DevOps project to begin';
-    $('homePrimaryBtn').textContent = 'Connect Azure DevOps';
+    $('homeStatusTitle').textContent = 'Not connected';
+    $('homeStatusMetaLine').style.display = 'none';
+    document.querySelector('#homePrimaryBtn .cta-label').textContent = 'Connect';
   }
   try{
     const r = await storage.get('ado_last_batch', false);
     if(r && r.value){
       const info = JSON.parse(r.value);
       $('homeRecentLine').style.display = 'block';
-      $('homeRecentLine').textContent = `Last batch: ${info.count} item${info.count===1?'':'s'} created`;
+      $('homeRecentLine').textContent = `Last batch — ${info.count} item${info.count===1?'':'s'} created`;
     }
   }catch(e){}
 }
-$('homeStatusStrip').addEventListener('click', ()=> go('setup-org'));
 $('homePrimaryBtn').addEventListener('click', ()=>{
   if(isConfigured()) go('paste');
   else go('setup-org');
@@ -993,7 +872,6 @@ onEnter['home'] = refreshHome;
    PASTE + SPLIT
    ========================================================= */
 let parsedItems = [];
-let hasExtraStepThisRun = false;
 
 function titleFromLine(line){
   const clean = line.replace(/\s+/g,' ').trim();
@@ -1002,7 +880,7 @@ function titleFromLine(line){
 }
 function splitByBlankLines(){
   const text = $('dump').value.trim();
-  if(!text){ setBanner('analyzeStatus','Paste something first.','err'); return false; }
+  if(!text){ setMsg('analyzeStatus','Paste something first.','err'); return false; }
   const chunks = text.split(/\n\s*\n+/).map(c=>c.trim()).filter(Boolean);
   parsedItems = chunks.map(chunk=>{
     const lines = chunk.split('\n').map(l=>l.trim()).filter(Boolean);
@@ -1012,7 +890,7 @@ function splitByBlankLines(){
 }
 $('analyzeBtn').addEventListener('click', ()=>{
   if(splitByBlankLines()){ renderItems(); go('review'); }
-  else setBanner('analyzeStatus','Nothing to split.','err');
+  else setMsg('analyzeStatus','Nothing to split.','err');
 });
 
 const AI_SYSTEM_PROMPT = `You turn raw, messy, stream-of-consciousness notes (often dictated live while someone else is talking) into individual Azure DevOps work items.
@@ -1047,21 +925,18 @@ async function callWorkerAi(c, userText){
 
 $('aiSplitBtn').addEventListener('click', async ()=>{
   const text = $('dump').value.trim();
-  if(!text){ setBanner('analyzeStatus','Paste something first.','err'); return; }
+  if(!text){ setMsg('analyzeStatus','Paste something first.','err'); return; }
   const c = cfg();
-  if(!c.proxy){ setBanner('analyzeStatus','Set a Worker proxy URL in the connection step first.','err'); return; }
+  if(!c.proxy){ setMsg('analyzeStatus','Set a Worker proxy URL in the connection step first.','err'); return; }
   go('generating');
   $('generatingTitle').textContent = 'Reading through your notes…';
   $('generatingSub').textContent = 'Pulling out the distinct topics.';
-  setBanner('generatingError','','');
+  setMsg('generatingError','','');
   $('generatingRetryBtn').style.display = 'none';
   $('generatingManualBtn').style.display = 'none';
   try{
     const items = await callWorkerAi(c, text);
-    if(items.length === 0){
-      showGeneratingError('AI found nothing usable in that text.');
-      return;
-    }
+    if(items.length === 0){ showGeneratingError('AI found nothing usable in that text.'); return; }
     parsedItems = items.map(it => ({ title:(it.title||'').trim(), description:(it.description||'').trim(), include:true })).filter(it=>it.title);
     renderItems();
     replaceTop('review');
@@ -1072,9 +947,9 @@ $('aiSplitBtn').addEventListener('click', async ()=>{
 function showGeneratingError(msg){
   $('generatingTitle').textContent = "Couldn't generate items";
   $('generatingSub').textContent = '';
-  setBanner('generatingError', msg, 'err');
-  $('generatingRetryBtn').style.display = 'block';
-  $('generatingManualBtn').style.display = 'inline-flex';
+  setMsg('generatingError', msg, 'err');
+  $('generatingRetryBtn').style.display = 'inline-block';
+  $('generatingManualBtn').style.display = 'inline-block';
 }
 $('generatingRetryBtn').addEventListener('click', ()=> $('aiSplitBtn').click());
 $('generatingManualBtn').addEventListener('click', ()=>{
@@ -1093,25 +968,24 @@ function renderItems(){
   const list = $('itemsList');
   list.innerHTML = '';
   const included = parsedItems.filter(it=>it.include).length;
-  $('itemsCount').textContent = `${included} of ${parsedItems.length} item${parsedItems.length===1?'':'s'} will be created`;
-  const prefix = $('prefix').value.trim() || 'REV-';
+  $('itemsCount').textContent = `${included} of ${parsedItems.length} selected`;
   parsedItems.forEach((it,i)=>{
     const div = document.createElement('div');
-    div.className = 'item-card' + (it.include ? '' : ' excluded');
+    div.className = 'item-row' + (it.include ? '' : ' excluded');
     div.innerHTML = `
-      <div class="item-card-top">
-        <span class="ticket-badge">${prefix}0##</span>
-        <div class="item-card-actions">
-          <button class="icon-toggle ${it.include?'checked':''}" data-role="include" data-i="${i}" aria-label="Include this item">
+      <div class="item-row-top">
+        <span class="item-num">${String(i+1).padStart(2,'0')}</span>
+        <div class="item-body">
+          <input type="text" data-role="title" data-i="${i}" value="${escapeAttr(it.title)}" placeholder="Meaningful title">
+          <textarea data-role="desc" data-i="${i}" placeholder="Description">${it.description}</textarea>
+        </div>
+        <div class="item-row-actions">
+          <button class="dot-toggle ${it.include?'on':''}" data-role="include" data-i="${i}" aria-label="Include this item">
             <svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
-          <button class="icon-remove" data-role="remove" data-i="${i}" aria-label="Remove item">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0v12a2 2 0 002 2h6a2 2 0 002-2V7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
-          </button>
+          <button class="row-remove" data-role="remove" data-i="${i}" aria-label="Remove item">✕</button>
         </div>
       </div>
-      <input type="text" data-role="title" data-i="${i}" value="${escapeAttr(it.title)}" placeholder="Meaningful title">
-      <textarea data-role="desc" data-i="${i}" placeholder="Description">${it.description}</textarea>
     `;
     list.appendChild(div);
   });
@@ -1157,10 +1031,6 @@ function renderExtraFields(fields){
   const wrap = $('extraFieldsWrap');
   wrap.innerHTML = '';
   $('extraFieldsTitle').textContent = `What "${$('witype').value}" needs`;
-  const note = document.createElement('div');
-  note.className='extra-field-note';
-  note.textContent = `These apply to every item in this batch.`;
-  wrap.appendChild(note);
   fields.forEach(f=>{
     const fieldDiv = document.createElement('div'); fieldDiv.className='field';
     const label = document.createElement('label'); label.textContent = f.name; fieldDiv.appendChild(label);
@@ -1190,15 +1060,14 @@ function getExtraFieldValues(){
   });
   return {values, missingNames};
 }
-$('witype').addEventListener('change', ()=>{ extraFieldsCheckedFor = null; updateHomeAfterTypeChange(); });
-function updateHomeAfterTypeChange(){ /* keep home meta text current */ }
+$('witype').addEventListener('change', ()=>{ extraFieldsCheckedFor = null; });
 
 $('reviewContinueBtn').addEventListener('click', async ()=>{
   const toCreate = parsedItems.filter(it=>it.include && it.title.trim());
   if(toCreate.length === 0){ $('itemsCount').textContent = 'Select or add at least one item to continue.'; return; }
   const c = cfg();
   $('reviewContinueBtn').disabled = true;
-  $('reviewContinueLabel').innerHTML = '<span class="spin"></span> Checking…';
+  $('reviewContinueLabel').innerHTML = '<span class="spin"></span>';
   try{
     if(extraFieldsCheckedFor !== c.witype){
       const {missing} = await getMissingRequiredFields(c);
@@ -1207,15 +1076,12 @@ $('reviewContinueBtn').addEventListener('click', async ()=>{
     }
     if(requiredFieldDefs.length){
       renderExtraFields(requiredFieldDefs);
-      hasExtraStepThisRun = true;
       go('extra-fields');
     } else {
-      hasExtraStepThisRun = false;
       buildConfirmScreen();
       go('confirm');
     }
   }catch(e){
-    hasExtraStepThisRun = false;
     buildConfirmScreen();
     go('confirm');
   }
@@ -1226,10 +1092,10 @@ $('reviewContinueBtn').addEventListener('click', async ()=>{
 $('extraFieldsContinueBtn').addEventListener('click', ()=>{
   const {missingNames} = getExtraFieldValues();
   if(requiredFieldDefs.length && missingNames.length){
-    setBanner('extraFieldsStatus', `Please fill in: ${missingNames.join(', ')}.`, 'err');
+    setMsg('extraFieldsStatus', `Please fill in: ${missingNames.join(', ')}.`, 'err');
     return;
   }
-  setBanner('extraFieldsStatus','','');
+  setMsg('extraFieldsStatus','','');
   buildConfirmScreen();
   go('confirm');
 });
@@ -1240,17 +1106,14 @@ $('extraFieldsContinueBtn').addEventListener('click', ()=>{
 function buildConfirmScreen(){
   const c = cfg();
   const toCreate = parsedItems.filter(it=>it.include && it.title.trim());
-  const box = $('summaryBox');
-  box.innerHTML = `
-    <div class="summary-row"><span class="k">Items</span><span class="v">${toCreate.length}</span></div>
-    <div class="summary-row"><span class="k">Project</span><span class="v">${escapeAttr(c.project)}</span></div>
-    <div class="summary-row"><span class="k">Work item type</span><span class="v">${escapeAttr(c.witype)}</span></div>
-    <div class="summary-row"><span class="k">Numbering</span><span class="v">${escapeAttr(c.prefix)}0xx</span></div>
+  $('summaryBox').innerHTML = `
+    <div><b>${toCreate.length}</b> item${toCreate.length===1?'':'s'} → <b>${escapeAttr(c.project)}</b></div>
+    <div>as <b>${escapeAttr(c.witype)}</b>, numbered <b>${escapeAttr(c.prefix)}0xx</b></div>
   `;
   const list = $('previewList');
   list.innerHTML = '';
   toCreate.forEach((it,i)=>{
-    const row = document.createElement('div'); row.className='preview-item';
+    const row = document.createElement('div'); row.className='receipt-row';
     row.innerHTML = `<span class="n">${String(i+1).padStart(2,'0')}</span><span class="t">${escapeAttr(it.title)}</span>`;
     list.appendChild(row);
   });
@@ -1292,7 +1155,7 @@ $('createBtn').addEventListener('click', async ()=>{
   const checklist = $('creatingChecklist');
   checklist.innerHTML = '';
   const rows = toCreate.map(it=>{
-    const row = document.createElement('div'); row.className='check-row pending';
+    const row = document.createElement('div'); row.className='check-row';
     row.innerHTML = `<span class="mark"></span><span class="title">${escapeAttr(it.title)}</span>`;
     checklist.appendChild(row);
     return row;
@@ -1305,7 +1168,6 @@ $('createBtn').addEventListener('click', async ()=>{
     const witUrl = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/workitems/$${encodeURIComponent(c.witype)}?api-version=7.1`;
     for(let i=0;i<toCreate.length;i++){
       const it = toCreate[i];
-      rows[i].classList.remove('pending'); rows[i].classList.add('active');
       const num = String(next).padStart(3,'0');
       const title = `${c.prefix}${num}: ${it.title.trim()}`;
       const body = [
@@ -1317,12 +1179,11 @@ $('createBtn').addEventListener('click', async ()=>{
       Object.entries(values).forEach(([refName,val])=> body.push({op:'add', path:`/fields/${refName}`, value:val}));
       try{
         const res = await fetch(witUrl, { method:'POST', headers:{...adoHeaders(c.pat), 'Content-Type':'application/json-patch+json'}, body:JSON.stringify(body) });
-        rows[i].classList.remove('active');
         if(res.ok){
           const data = await res.json();
           const link = `https://dev.azure.com/${c.org}/${encodeURIComponent(c.project)}/_workitems/edit/${data.id}`;
           rows[i].classList.add('done');
-          rows[i].innerHTML = `<span class="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="title">${escapeAttr(title)}</span>`;
+          rows[i].innerHTML = `<span class="mark">✓</span><span class="title">${escapeAttr(title)}</span>`;
           results.push({ ok:true, title, id:data.id, link });
           next++;
         } else {
@@ -1330,17 +1191,16 @@ $('createBtn').addEventListener('click', async ()=>{
           let reason = txt;
           try{ const j = JSON.parse(txt); reason = j.message || (j.value && j.value.Message) || txt; }catch(e){}
           rows[i].classList.add('fail');
+          rows[i].innerHTML = `<span class="mark">!</span><span class="title">${escapeAttr(title)}</span>`;
           results.push({ ok:false, title, reason: reason.slice(0,220) });
         }
       }catch(err){
-        rows[i].classList.remove('active'); rows[i].classList.add('fail');
+        rows[i].classList.add('fail');
         results.push({ ok:false, title, reason:'Network error' });
       }
       await new Promise(r=>setTimeout(r, 120));
     }
-  }catch(err){
-    // getNextNumber or setup failure — mark all remaining as failed
-  }
+  }catch(err){ /* getNextNumber failure — results stays partial */ }
 
   const okCount = results.filter(r=>r.ok).length;
   try{ await storage.set('ado_last_batch', JSON.stringify({count:okCount, at:Date.now()}), false); }catch(e){}
@@ -1361,7 +1221,7 @@ function buildResultsScreen(results){
   results.forEach(r=>{
     const row = document.createElement('div'); row.className='check-row ' + (r.ok ? 'done' : 'fail');
     if(r.ok){
-      row.innerHTML = `<span class="mark"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></span><span class="title">${escapeAttr(r.title)}</span><a class="link" href="${r.link}" target="_blank">Open #${r.id}</a>`;
+      row.innerHTML = `<span class="mark">✓</span><span class="title">${escapeAttr(r.title)}</span><a class="link" href="${r.link}" target="_blank">#${r.id}</a>`;
     } else {
       row.innerHTML = `<span class="mark">!</span><span class="title">${escapeAttr(r.title)} — ${escapeAttr(r.reason||'failed')}</span>`;
     }
@@ -1370,7 +1230,7 @@ function buildResultsScreen(results){
 }
 $('resultsHomeBtn').addEventListener('click', ()=>{ resetTo('home'); refreshHome(); });
 $('resultsAgainBtn').addEventListener('click', ()=>{
-  $('dump').value=''; parsedItems=[]; setBanner('analyzeStatus','','');
+  $('dump').value=''; parsedItems=[]; setMsg('analyzeStatus','','');
   stack = ['home','paste']; transitionTo('paste','forward');
 });
 
@@ -1379,14 +1239,14 @@ $('resultsAgainBtn').addEventListener('click', ()=>{
    ========================================================= */
 async function loadExisting(){
   const c = cfg();
-  if(!c.pat){ setBanner('existingStatus','Connect Azure DevOps first.','err'); return; }
-  $('existingEyebrow').textContent = `Existing "${c.witype}" items`;
-  setBanner('existingStatus','Loading…','info');
+  if(!c.pat){ setMsg('existingStatus','Connect Azure DevOps first.','err'); return; }
+  $('existingEyebrow').textContent = `"${c.witype}" items`;
+  setMsg('existingStatus','Loading…','info');
   $('existingList').innerHTML = '';
   try{
     const items = await fetchExistingItems(c);
     if(items.length === 0){
-      setBanner('existingStatus','','');
+      setMsg('existingStatus','','');
       $('existingList').innerHTML = `<div class="empty-state">
         <svg viewBox="0 0 24 24" fill="none"><path d="M4 7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V7z" stroke="currentColor" stroke-width="1.5"/></svg>
         <div class="t">No items yet</div>
@@ -1394,16 +1254,16 @@ async function loadExisting(){
       </div>`;
       return;
     }
-    setBanner('existingStatus', `${items.length} item${items.length===1?'':'s'} found.`, 'ok');
+    setMsg('existingStatus', `${items.length} item${items.length===1?'':'s'} found.`, 'ok');
     items.forEach(it=>{
       const link = `https://dev.azure.com/${c.org}/${encodeURIComponent(c.project)}/_workitems/edit/${it.id}`;
       const row = document.createElement('a');
-      row.className = 'existing-row'; row.href = link; row.target = '_blank';
+      row.className = 'plain-row'; row.href = link; row.target = '_blank';
       row.innerHTML = `<span class="id">#${it.id}</span><span class="title">${escapeAttr(it.title)}</span><span class="state">${escapeAttr(it.state)}</span>`;
       $('existingList').appendChild(row);
     });
   }catch(err){
-    setBanner('existingStatus','Could not load items — check your connection.','err');
+    setMsg('existingStatus','Could not load items — check your connection.','err');
   }
 }
 $('existingRefreshBtn').addEventListener('click', loadExisting);
