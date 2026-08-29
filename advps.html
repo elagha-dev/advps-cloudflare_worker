@@ -291,6 +291,26 @@ a.plain-row{text-decoration:none; color:inherit;}
 .empty-state svg{width:38px; height:38px; color:var(--ink-3); margin-bottom:var(--sp-4);}
 .empty-state .t{font-family:var(--display); font-size:16px; font-weight:600; margin:0 0 6px; color:var(--ink);}
 .empty-state .s{font-size:13.5px; color:var(--ink-2); max-width:28ch; margin:0 auto;}
+
+/* row is now a button that opens the in-app detail screen */
+button.plain-row{width:100%; background:none; border:none; text-align:left; cursor:pointer; font:inherit;}
+.plain-row .chev{color:var(--ink-3); flex:none;}
+.plain-row .chev svg{width:9px; height:14px; display:block;}
+
+/* =====================================================================
+   ITEM DETAIL — single work item, read-only view
+   ===================================================================== */
+.detail-title{font-family:var(--display); font-weight:700; font-size:22px; letter-spacing:-.01em; color:var(--ink); margin:var(--sp-2) 0 4px; line-height:1.25;}
+.detail-id{font-family:var(--mono); font-size:12.5px; font-weight:700; color:var(--green-deep); background:var(--card-tint); padding:3px 8px; border-radius:6px; display:inline-block; margin-bottom:var(--sp-4);}
+.detail-desc-card{background:var(--card); border:1.5px solid var(--hair); border-radius:14px; padding:16px 18px; margin:var(--sp-3) 0 var(--sp-5); font-size:14.5px; line-height:1.6; color:var(--ink); overflow-wrap:anywhere;}
+.detail-desc-card p{margin:0 0 10px;}
+.detail-desc-card p:last-child{margin-bottom:0;}
+.detail-desc-card ul,.detail-desc-card ol{margin:0 0 10px; padding-left:22px;}
+.detail-desc-card.empty{color:var(--ink-3); font-style:italic;}
+.detail-desc-card img{max-width:100%; border-radius:8px;}
+.detail-skel{background:var(--card); border:1.5px solid var(--hair); border-radius:14px; height:120px; margin:var(--sp-3) 0 var(--sp-5); position:relative; overflow:hidden;}
+.detail-skel::after{content:''; position:absolute; inset:0; background:linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent); animation:shimmer 1.3s infinite;}
+@keyframes shimmer{0%{transform:translateX(-100%);} 100%{transform:translateX(100%);}}
 </style>
 </head>
 <body>
@@ -545,6 +565,28 @@ a.plain-row{text-decoration:none; color:inherit;}
       </div>
     </section>
 
+    <!-- ============ ITEM DETAIL ============ -->
+    <section class="screen" data-screen="item-detail">
+      <div class="screen-scroll">
+        <div id="detailBody">
+          <div class="detail-id" id="detailId">#—</div>
+          <h2 class="detail-title" id="detailTitle">Loading…</h2>
+          <div class="summary-card" id="detailMetaCard">
+            <div class="summary-row"><span class="k">State</span><span class="v" id="detailState">—</span></div>
+            <div class="summary-row"><span class="k">Type</span><span class="v" id="detailType">—</span></div>
+            <div class="summary-row"><span class="k">Last updated</span><span class="v" id="detailChanged">—</span></div>
+            <div class="summary-row"><span class="k">Created</span><span class="v" id="detailCreated">—</span></div>
+          </div>
+          <p class="section-label">Description</p>
+          <div class="detail-desc-card" id="detailDescription">Loading…</div>
+        </div>
+        <div class="msg" id="detailStatus"></div>
+      </div>
+      <div class="screen-foot">
+        <a class="btn-primary" id="detailOpenAdoBtn" href="#" target="_blank" style="text-decoration:none;">Open in Azure DevOps</a>
+      </div>
+    </section>
+
   </main>
 </div>
 
@@ -565,7 +607,8 @@ const NAV_TITLES = {
   home:'Review Items', 'setup-org':'Org & project', 'setup-presets':'Saved setups',
   'setup-access':'Your access', 'setup-type':'Work item type', paste:'New batch',
   generating:'New batch', review:'Review items', 'extra-fields':'Required fields',
-  confirm:'Confirm', creating:'Creating', results:'Results', existing:'Existing items'
+  confirm:'Confirm', creating:'Creating', results:'Results', existing:'Existing items',
+  'item-detail':'Item details'
 };
 const NO_BACK = ['home','creating'];
 
@@ -1272,10 +1315,11 @@ async function loadExisting(){
     const oldEmpty = document.getElementById('existingEmpty'); if(oldEmpty) oldEmpty.remove();
     setMsg('existingStatus', `${items.length} item${items.length===1?'':'s'} found.`, 'ok');
     items.forEach(it=>{
-      const link = `https://dev.azure.com/${c.org}/${encodeURIComponent(c.project)}/_workitems/edit/${it.id}`;
-      const row = document.createElement('a');
-      row.className = 'plain-row'; row.href = link; row.target = '_blank';
-      row.innerHTML = `<span class="id">#${it.id}</span><span class="title">${escapeAttr(it.title)}</span><span class="state">${escapeAttr(it.state)}</span>`;
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'plain-row';
+      row.innerHTML = `<span class="id">#${it.id}</span><span class="title">${escapeAttr(it.title)}</span><span class="state">${escapeAttr(it.state)}</span><span class="chev"><svg viewBox="0 0 8 13" fill="none"><path d="M1 1l5.5 5.5L1 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
+      row.addEventListener('click', ()=> openItemDetail(it.id));
       $('existingList').appendChild(row);
     });
   }catch(err){
@@ -1284,6 +1328,73 @@ async function loadExisting(){
 }
 $('existingRefreshBtn').addEventListener('click', loadExisting);
 onEnter['existing'] = loadExisting;
+
+/* =========================================================
+   ITEM DETAIL — fetch one work item and show who last
+   touched it plus its full description.
+   ========================================================= */
+const DETAIL_FIELDS = ['System.Title','System.State','System.WorkItemType','System.Description','System.ChangedBy','System.ChangedDate','System.CreatedBy','System.CreatedDate'];
+
+async function fetchItemDetail(c, id){
+  const fieldsParam = DETAIL_FIELDS.join(',');
+  const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/_apis/wit/workitems/${id}?fields=${encodeURIComponent(fieldsParam)}&api-version=7.1`;
+  const r = await fetch(url, { headers: adoHeaders(c.pat) });
+  if(!r.ok) throw new Error('work item fetch failed: ' + r.status);
+  const data = await r.json();
+  const f = data.fields || {};
+  const who = v => (v && v.displayName) ? v.displayName : '—';
+  const when = v => v ? new Date(v).toLocaleString(undefined,{dateStyle:'medium', timeStyle:'short'}) : '—';
+  return {
+    id: data.id,
+    title: f['System.Title'] || '(no title)',
+    state: f['System.State'] || '—',
+    type: f['System.WorkItemType'] || '—',
+    description: f['System.Description'] || '',
+    changedBy: who(f['System.ChangedBy']),
+    changedDate: when(f['System.ChangedDate']),
+    createdBy: who(f['System.CreatedBy']),
+    createdDate: when(f['System.CreatedDate'])
+  };
+}
+
+let detailLoadToken = 0;
+async function openItemDetail(id){
+  const c = cfg();
+  go('item-detail');
+  const token = ++detailLoadToken;
+  setMsg('detailStatus','','');
+  $('detailId').textContent = `#${id}`;
+  $('detailTitle').textContent = 'Loading…';
+  $('detailState').textContent = '—';
+  $('detailType').textContent = '—';
+  $('detailChanged').textContent = '—';
+  $('detailCreated').textContent = '—';
+  $('detailDescription').className = 'detail-desc-card';
+  $('detailDescription').textContent = 'Loading…';
+  $('detailOpenAdoBtn').href = `https://dev.azure.com/${c.org}/${encodeURIComponent(c.project)}/_workitems/edit/${id}`;
+  try{
+    const detail = await fetchItemDetail(c, id);
+    if(token !== detailLoadToken) return; // a newer item was opened before this one finished
+    $('detailId').textContent = `#${detail.id}`;
+    $('detailTitle').textContent = detail.title;
+    $('detailState').textContent = detail.state;
+    $('detailType').textContent = detail.type;
+    $('detailChanged').textContent = `${detail.changedBy} · ${detail.changedDate}`;
+    $('detailCreated').textContent = `${detail.createdBy} · ${detail.createdDate}`;
+    if(detail.description && detail.description.trim()){
+      $('detailDescription').innerHTML = detail.description;
+    } else {
+      $('detailDescription').className = 'detail-desc-card empty';
+      $('detailDescription').textContent = 'No description on this item yet.';
+    }
+  }catch(err){
+    if(token !== detailLoadToken) return;
+    $('detailTitle').textContent = 'Couldn\u2019t load this item';
+    $('detailDescription').className = 'detail-desc-card empty';
+    $('detailDescription').textContent = '';
+    setMsg('detailStatus','Could not load this item — check your connection and try again.','err');
+  }
+}
 
 </script>
 </body>
