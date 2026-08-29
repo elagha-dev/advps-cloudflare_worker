@@ -52,21 +52,16 @@ button,input,textarea,select{font-family:inherit;}
 .app{max-width:480px; margin:0 auto; min-height:100dvh; background:var(--bg); position:relative; display:flex; flex-direction:column; overflow:hidden;}
 
 /* =====================================================================
-   NAV BAR — conventional back chevron + label, centered title,
-   settings gear only ever appears on the root screen.
+   NAV BAR — centered title; settings gear only ever appears on the
+   root screen. Back navigation lives at the bottom-right (see .fab-back)
+   plus a right-swipe gesture, both easier to reach one-handed than a
+   top-left button.
    ===================================================================== */
 .navbar{
   position:relative; z-index:30; flex:none; height:48px; display:flex; align-items:center;
   padding:calc(env(safe-area-inset-top,0px) + 6px) 6px 0;
   min-height:calc(48px + env(safe-area-inset-top,0px));
 }
-.nav-back{
-  position:relative; z-index:2; display:flex; align-items:center; gap:2px; background:none; border:none;
-  color:var(--green-deep); font-size:15.5px; font-weight:600; cursor:pointer; padding:8px 10px 8px 4px;
-  max-width:62%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
-.nav-back svg{width:11px; height:18px; flex:none;}
-.nav-back[hidden]{display:none;}
 .nav-title{
   position:absolute; left:56px; right:56px; text-align:center; z-index:1; pointer-events:none;
   font-family:var(--sans); font-weight:600; font-size:15.5px; color:var(--ink);
@@ -78,6 +73,17 @@ button,input,textarea,select{font-family:inherit;}
 }
 .nav-gear[hidden]{visibility:hidden;}
 .nav-gear svg{width:21px; height:21px;}
+
+/* floating back button — bottom-right, reachable with a right thumb */
+.fab-back{
+  position:absolute; right:16px; bottom:calc(env(safe-area-inset-bottom,0px) + 16px); z-index:40;
+  display:flex; align-items:center; gap:7px; background:var(--green); color:#fffdf7; border:none;
+  border-radius:26px; padding:12px 18px 12px 13px; font-size:14.5px; font-weight:600;
+  box-shadow:0 6px 18px rgba(20,108,82,.32); cursor:pointer; transition:transform .12s, opacity .15s, bottom .15s ease;
+}
+.fab-back svg{width:13px; height:20px; flex:none;}
+.fab-back:active{transform:scale(.93);}
+.fab-back[hidden]{display:none;}
 
 .stage{position:relative; flex:1; overflow:hidden;}
 .screen{
@@ -122,7 +128,7 @@ select{
 .field-row{display:flex; gap:var(--sp-3);}
 .field-row .field{flex:1;}
 
-.toggle-row{display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); padding:14px 16px; background:var(--card); border:1.5px solid var(--hair); border-radius:12px; margin-bottom:var(--sp-4);}
+.toggle-row{display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); padding:14px 2px; border-top:1px solid var(--hair); margin-top:var(--sp-1);}
 .toggle-row .toggle-copy{font-size:14px; font-weight:500;}
 .toggle-row .toggle-copy small{display:block; font-size:12px; color:var(--ink-3); margin-top:2px; font-weight:400;}
 .switch{position:relative; width:44px; height:26px; flex:none;}
@@ -293,9 +299,13 @@ a.plain-row{text-decoration:none; color:inherit;}
 .empty-state .s{font-size:13.5px; color:var(--ink-2); max-width:28ch; margin:0 auto;}
 
 /* row is now a button that opens the in-app detail screen */
-button.plain-row{width:100%; background:none; border:none; text-align:left; cursor:pointer; font:inherit;}
-.plain-row .chev{color:var(--ink-3); flex:none;}
+button.plain-row{width:100%; background:none; border:none; text-align:left; cursor:pointer; font:inherit; padding-right:2px;}
+.plain-row .chev{
+  color:var(--green-deep); flex:none; width:34px; height:34px; border-radius:50%;
+  background:var(--card-tint); display:flex; align-items:center; justify-content:center; margin-left:2px;
+}
 .plain-row .chev svg{width:9px; height:14px; display:block;}
+.disc-badge{font-size:11px; font-weight:700; color:var(--amber); background:var(--amber-soft); padding:3px 7px; border-radius:20px; flex:none; white-space:nowrap;}
 
 /* =====================================================================
    ITEM DETAIL — single work item, read-only view
@@ -308,6 +318,13 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
 .detail-desc-card ul,.detail-desc-card ol{margin:0 0 10px; padding-left:22px;}
 .detail-desc-card.empty{color:var(--ink-3); font-style:italic;}
 .detail-desc-card img{max-width:100%; border-radius:8px;}
+.comment-entry{padding:10px 0; border-bottom:1px solid var(--hair);}
+.comment-entry:last-child{border-bottom:none; padding-bottom:0;}
+.comment-entry:first-child{padding-top:0;}
+.comment-meta{font-size:12px; font-weight:600; color:var(--ink-2); margin-bottom:4px;}
+.comment-body{font-size:14px; line-height:1.55;}
+.comment-body p{margin:0 0 8px;}
+.comment-body p:last-child{margin-bottom:0;}
 .detail-skel{background:var(--card); border:1.5px solid var(--hair); border-radius:14px; height:120px; margin:var(--sp-3) 0 var(--sp-5); position:relative; overflow:hidden;}
 .detail-skel::after{content:''; position:absolute; inset:0; background:linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent); animation:shimmer 1.3s infinite;}
 @keyframes shimmer{0%{transform:translateX(-100%);} 100%{transform:translateX(100%);}}
@@ -317,10 +334,6 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
 <div class="app" id="app">
 
   <header class="navbar">
-    <button class="nav-back" id="backBtn" hidden>
-      <svg viewBox="0 0 12 20" fill="none"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span id="backBtnLabel">Back</span>
-    </button>
     <span class="nav-title" id="navTitle"></span>
     <button class="nav-gear" id="settingsBtn" aria-label="Connection settings" hidden>
       <svg viewBox="0 0 24 24" fill="none"><path d="M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 2.5v2.3M12 19.2v2.3M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M2.5 12h2.3M19.2 12h2.3M4.9 19.1l1.6-1.6M17.5 6.5l1.6-1.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
@@ -579,6 +592,8 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
           </div>
           <p class="section-label">Description</p>
           <div class="detail-desc-card" id="detailDescription">Loading…</div>
+          <p class="section-label">Discussion</p>
+          <div class="detail-desc-card" id="detailDiscussion">Loading…</div>
         </div>
         <div class="msg" id="detailStatus"></div>
       </div>
@@ -588,6 +603,11 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
     </section>
 
   </main>
+
+  <button class="fab-back" id="fabBack" hidden>
+    <svg viewBox="0 0 12 20" fill="none"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span id="fabBackLabel">Back</span>
+  </button>
 </div>
 
 <script>
@@ -614,13 +634,39 @@ const NO_BACK = ['home','creating'];
 
 function paint(){
   const showBack = !NO_BACK.includes(activeId) && stack.length > 1;
-  $('backBtn').hidden = !showBack;
+  $('fabBack').hidden = !showBack;
   if(showBack){
     const prevId = stack[stack.length-2];
-    $('backBtnLabel').textContent = NAV_TITLES[prevId] || 'Back';
+    $('fabBackLabel').textContent = NAV_TITLES[prevId] || 'Back';
   }
   $('navTitle').textContent = activeId === 'home' ? '' : (NAV_TITLES[activeId] || '');
   $('settingsBtn').hidden = activeId !== 'home';
+  watchFabPosition();
+}
+
+/* Float the back button just above whatever footer the active screen
+   actually has — measured, not guessed, so it never overlaps buttons
+   or links that live in a screen-foot. Re-measures automatically if
+   that footer's own content/height changes (e.g. a status message
+   appearing) via ResizeObserver. */
+let fabResizeObserver = null;
+function positionFab(){
+  const screenEl = screens[activeId];
+  const footEl = screenEl && screenEl.querySelector('.screen-foot');
+  const fab = $('fabBack');
+  fab.style.bottom = footEl
+    ? (footEl.offsetHeight + 16) + 'px'
+    : 'calc(env(safe-area-inset-bottom,0px) + 16px)';
+}
+function watchFabPosition(){
+  if(fabResizeObserver) fabResizeObserver.disconnect();
+  positionFab();
+  const screenEl = screens[activeId];
+  const footEl = screenEl && screenEl.querySelector('.screen-foot');
+  if(footEl && window.ResizeObserver){
+    fabResizeObserver = new ResizeObserver(positionFab);
+    fabResizeObserver.observe(footEl);
+  }
 }
 
 function transitionTo(id, dir){
@@ -645,9 +691,32 @@ function replaceTop(id){ stack[stack.length-1] = id; transitionTo(id,'forward');
 function resetTo(id){ stack = [id]; transitionTo(id,'back'); }
 function goBack(){ if(stack.length<2) return; stack.pop(); transitionTo(stack[stack.length-1],'back'); }
 
-$('backBtn').addEventListener('click', goBack);
+$('fabBack').addEventListener('click', goBack);
 $('settingsBtn').addEventListener('click', ()=> go('setup-org'));
 paint();
+
+/* swipe right anywhere on the screen to go back — natural one-thumb
+   alternative to hunting for a button. Ignored on the root screen and
+   on any horizontal drag that starts inside a scrollable text input. */
+(function(){
+  const stage = $('stage');
+  let sx=0, sy=0, tracking=false;
+  stage.addEventListener('touchstart', e=>{
+    if(NO_BACK.includes(activeId) || stack.length < 2) { tracking=false; return; }
+    const t = e.touches[0];
+    sx = t.clientX; sy = t.clientY; tracking = true;
+  }, {passive:true});
+  stage.addEventListener('touchmove', e=>{
+    if(!tracking) return;
+    const t = e.touches[0];
+    const dx = t.clientX - sx, dy = t.clientY - sy;
+    if(dx > 90 && Math.abs(dy) < 60){
+      tracking = false;
+      goBack();
+    }
+  }, {passive:true});
+  stage.addEventListener('touchend', ()=>{ tracking=false; }, {passive:true});
+})();
 
 const onEnter = {};
 
@@ -1184,10 +1253,15 @@ async function fetchExistingItems(c){
   const ids = (wdata.workItems || []).map(w=>w.id);
   if(ids.length === 0) return [];
   const batchUrl = `${adoBase(c)}/${encodeURIComponent(c.org)}/_apis/wit/workitemsbatch?api-version=7.1`;
-  const br = await fetch(batchUrl, { method:'POST', headers:adoHeaders(c.pat), body:JSON.stringify({ids, fields:['System.Title','System.State']}) });
+  const br = await fetch(batchUrl, { method:'POST', headers:adoHeaders(c.pat), body:JSON.stringify({ids, fields:['System.Title','System.State','System.CommentCount']}) });
   if(!br.ok) throw new Error('batch failed: ' + br.status);
   const bdata = await br.json();
-  const items = (bdata.value || []).map(w=>({ id:w.id, title:(w.fields && w.fields['System.Title']) || '(no title)', state:(w.fields && w.fields['System.State']) || '' }));
+  const items = (bdata.value || []).map(w=>({
+    id:w.id,
+    title:(w.fields && w.fields['System.Title']) || '(no title)',
+    state:(w.fields && w.fields['System.State']) || '',
+    commentCount:(w.fields && w.fields['System.CommentCount']) || 0
+  }));
   items.sort((a,b)=> b.id - a.id);
   return items;
 }
@@ -1318,7 +1392,10 @@ async function loadExisting(){
       const row = document.createElement('button');
       row.type = 'button';
       row.className = 'plain-row';
-      row.innerHTML = `<span class="id">#${it.id}</span><span class="title">${escapeAttr(it.title)}</span><span class="state">${escapeAttr(it.state)}</span><span class="chev"><svg viewBox="0 0 8 13" fill="none"><path d="M1 1l5.5 5.5L1 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
+      const discBadge = it.commentCount > 0
+        ? `<span class="disc-badge" title="${it.commentCount} comment${it.commentCount===1?'':'s'} in Discussion">💬 ${it.commentCount}</span>`
+        : '';
+      row.innerHTML = `<span class="id">#${it.id}</span><span class="title">${escapeAttr(it.title)}</span>${discBadge}<span class="state">${escapeAttr(it.state)}</span><span class="chev"><svg viewBox="0 0 8 13" fill="none"><path d="M1 1l5.5 5.5L1 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
       row.addEventListener('click', ()=> openItemDetail(it.id));
       $('existingList').appendChild(row);
     });
@@ -1331,12 +1408,33 @@ onEnter['existing'] = loadExisting;
 
 /* =========================================================
    ITEM DETAIL — fetch one work item and show who last
-   touched it plus its full description.
+   touched it, its Purpose (shown as "Description"), and
+   the full Discussion comment thread.
    ========================================================= */
 const DETAIL_FIELDS = ['System.Title','System.State','System.WorkItemType','System.Description','System.ChangedBy','System.ChangedDate','System.CreatedBy','System.CreatedDate'];
 
-async function fetchItemDetail(c, id){
-  const fieldsParam = DETAIL_FIELDS.join(',');
+// "Purpose" is a custom field — its reference name isn't known ahead of
+// time, so we look it up once by display name and cache it per project.
+const purposeFieldRefCache = {};
+async function resolvePurposeFieldRef(c){
+  const key = c.org + '::' + c.project;
+  if(key in purposeFieldRefCache) return purposeFieldRefCache[key];
+  try{
+    const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/fields?api-version=7.1`;
+    const r = await fetch(url, { headers: adoHeaders(c.pat) });
+    if(!r.ok) throw new Error('fields lookup failed: ' + r.status);
+    const data = await r.json();
+    const match = (data.value || []).find(f => (f.name||'').trim().toLowerCase() === 'purpose');
+    purposeFieldRefCache[key] = match ? match.referenceName : null;
+  }catch(e){
+    purposeFieldRefCache[key] = null;
+  }
+  return purposeFieldRefCache[key];
+}
+
+async function fetchItemDetail(c, id, purposeRef){
+  const fields = purposeRef ? [...DETAIL_FIELDS, purposeRef] : DETAIL_FIELDS;
+  const fieldsParam = fields.join(',');
   const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/_apis/wit/workitems/${id}?fields=${encodeURIComponent(fieldsParam)}&api-version=7.1`;
   const r = await fetch(url, { headers: adoHeaders(c.pat) });
   if(!r.ok) throw new Error('work item fetch failed: ' + r.status);
@@ -1344,17 +1442,43 @@ async function fetchItemDetail(c, id){
   const f = data.fields || {};
   const who = v => (v && v.displayName) ? v.displayName : '—';
   const when = v => v ? new Date(v).toLocaleString(undefined,{dateStyle:'medium', timeStyle:'short'}) : '—';
+  // Purpose is the real source of the write-up on this project; fall back
+  // to the plain Description field if Purpose isn't set or doesn't exist.
+  const purposeVal = purposeRef ? f[purposeRef] : null;
   return {
     id: data.id,
     title: f['System.Title'] || '(no title)',
     state: f['System.State'] || '—',
     type: f['System.WorkItemType'] || '—',
-    description: f['System.Description'] || '',
+    description: (purposeVal && purposeVal.trim()) ? purposeVal : (f['System.Description'] || ''),
     changedBy: who(f['System.ChangedBy']),
     changedDate: when(f['System.ChangedDate']),
     createdBy: who(f['System.CreatedBy']),
     createdDate: when(f['System.CreatedDate'])
   };
+}
+
+async function fetchComments(c, id){
+  const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/workItems/${id}/comments?order=desc&api-version=7.1-preview.4`;
+  const r = await fetch(url, { headers: adoHeaders(c.pat) });
+  if(!r.ok) throw new Error('comments fetch failed: ' + r.status);
+  const data = await r.json();
+  return (data.comments || []).map(cm => ({
+    author: (cm.createdBy && cm.createdBy.displayName) || 'Unknown',
+    date: cm.createdDate ? new Date(cm.createdDate).toLocaleString(undefined,{dateStyle:'medium', timeStyle:'short'}) : '',
+    text: cm.text || ''
+  }));
+}
+
+function renderDiscussion(comments){
+  const el = $('detailDiscussion');
+  if(!comments.length){
+    el.className = 'detail-desc-card empty';
+    el.textContent = 'No discussion on this item yet.';
+    return;
+  }
+  el.className = 'detail-desc-card';
+  el.innerHTML = comments.map(cm => `<div class="comment-entry"><div class="comment-meta">${escapeAttr(cm.author)} · ${escapeAttr(cm.date)}</div><div class="comment-body">${cm.text}</div></div>`).join('');
 }
 
 let detailLoadToken = 0;
@@ -1371,9 +1495,15 @@ async function openItemDetail(id){
   $('detailCreated').textContent = '—';
   $('detailDescription').className = 'detail-desc-card';
   $('detailDescription').textContent = 'Loading…';
+  $('detailDiscussion').className = 'detail-desc-card';
+  $('detailDiscussion').textContent = 'Loading…';
   $('detailOpenAdoBtn').href = `https://dev.azure.com/${c.org}/${encodeURIComponent(c.project)}/_workitems/edit/${id}`;
   try{
-    const detail = await fetchItemDetail(c, id);
+    const purposeRef = await resolvePurposeFieldRef(c);
+    const [detail, comments] = await Promise.all([
+      fetchItemDetail(c, id, purposeRef),
+      fetchComments(c, id).catch(()=>null) // discussion failure shouldn't block the rest of the item
+    ]);
     if(token !== detailLoadToken) return; // a newer item was opened before this one finished
     $('detailId').textContent = `#${detail.id}`;
     $('detailTitle').textContent = detail.title;
@@ -1385,13 +1515,21 @@ async function openItemDetail(id){
       $('detailDescription').innerHTML = detail.description;
     } else {
       $('detailDescription').className = 'detail-desc-card empty';
-      $('detailDescription').textContent = 'No description on this item yet.';
+      $('detailDescription').textContent = 'Nothing here yet.';
+    }
+    if(comments === null){
+      $('detailDiscussion').className = 'detail-desc-card empty';
+      $('detailDiscussion').textContent = 'Could not load discussion.';
+    } else {
+      renderDiscussion(comments);
     }
   }catch(err){
     if(token !== detailLoadToken) return;
     $('detailTitle').textContent = 'Couldn\u2019t load this item';
     $('detailDescription').className = 'detail-desc-card empty';
     $('detailDescription').textContent = '';
+    $('detailDiscussion').className = 'detail-desc-card empty';
+    $('detailDiscussion').textContent = '';
     setMsg('detailStatus','Could not load this item — check your connection and try again.','err');
   }
 }
