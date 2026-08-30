@@ -1026,8 +1026,9 @@ $('testBtn').addEventListener('click', async ()=>{
       testState = 'idle'; $('testBtnLabel').textContent = 'Try again';
     }
   }catch(err){
+    const detail = err && err.message ? ` (${err.name || 'Error'}: ${err.message})` : '';
     setMsg('connStatus',
-      'Could not reach Azure DevOps from the browser — likely a CORS restriction. Set a Worker proxy URL above and try again.',
+      `Could not reach Azure DevOps from the browser — likely a CORS restriction. Set a Worker proxy URL above and try again.${detail}`,
       'err');
     testState='idle'; $('testBtnLabel').textContent = 'Try again';
   }
