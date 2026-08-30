@@ -486,6 +486,7 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
       </div>
       <div class="screen-foot">
         <button class="btn-primary" id="testBtn"><span id="testBtnLabel">Test connection</span></button>
+        <div class="text-row"><button class="btn-text muted" id="refreshAccessBtn">Refresh page</button></div>
         <div class="text-row"><button class="btn-text danger" id="forgetBtn">Forget saved token</button></div>
       </div>
     </section>
@@ -625,6 +626,7 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
         <div class="msg" id="existingStatus"></div>
         <div class="list-card" id="existingList"></div>
         <div class="text-row"><button class="btn-text muted" id="existingRefreshBtn">Refresh list</button></div>
+        <div class="text-row" id="existingSettingsRow" style="display:none;"><button class="btn-text" id="existingSettingsBtn">Go to your settings and test the connection</button></div>
       </div>
     </section>
 
@@ -646,6 +648,7 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
           <div class="detail-desc-card" id="detailDiscussion">Loading…</div>
         </div>
         <div class="msg" id="detailStatus"></div>
+        <div class="text-row" id="detailSettingsRow" style="display:none;"><button class="btn-text" id="detailSettingsBtn">Go to your settings and test the connection</button></div>
       </div>
       <div class="screen-foot">
         <a class="btn-primary" id="detailOpenAdoBtn" href="#" target="_blank" style="text-decoration:none;">Open in Azure DevOps</a>
@@ -846,6 +849,7 @@ $('rememberPat').addEventListener('change', async e=>{
   else { try{ await storage.delete('ado_pat', false); }catch(e){} }
   await saveLastFields();
 });
+$('refreshAccessBtn').addEventListener('click', ()=> location.reload());
 $('forgetBtn').addEventListener('click', async ()=>{
   try{ await storage.delete('ado_pat', false); }catch(e){}
   $('pat').value=''; $('rememberPat').checked=false;
@@ -1825,6 +1829,7 @@ $('resultsAgainBtn').addEventListener('click', ()=>{
    ========================================================= */
 async function loadExisting(){
   const c = cfg();
+  $('existingSettingsRow').style.display = 'none';
   if(!c.pat){ setMsg('existingStatus','Connect Azure DevOps first.','err'); return; }
   $('existingEyebrow').textContent = `Showing "${c.witype}" items in ${c.project}.`;
   setMsg('existingStatus','Loading…','info');
@@ -1856,10 +1861,12 @@ async function loadExisting(){
       $('existingList').appendChild(row);
     });
   }catch(err){
-    setMsg('existingStatus','Could not load items — check your connection.','err');
+    setMsg('existingStatus', `Could not load items — ${err.message || 'check your connection'}.`, 'err');
+    $('existingSettingsRow').style.display = 'block';
   }
 }
 $('existingRefreshBtn').addEventListener('click', loadExisting);
+$('existingSettingsBtn').addEventListener('click', ()=>{ go('setup-access'); });
 onEnter['existing'] = loadExisting;
 
 /* =========================================================
@@ -1943,6 +1950,7 @@ async function openItemDetail(id){
   go('item-detail');
   const token = ++detailLoadToken;
   setMsg('detailStatus','','');
+  $('detailSettingsRow').style.display = 'none';
   $('detailId').textContent = `#${id}`;
   $('detailTitle').textContent = 'Loading…';
   $('detailState').textContent = '—';
@@ -1986,9 +1994,11 @@ async function openItemDetail(id){
     $('detailDescription').textContent = '';
     $('detailDiscussion').className = 'detail-desc-card empty';
     $('detailDiscussion').textContent = '';
-    setMsg('detailStatus','Could not load this item — check your connection and try again.','err');
+    setMsg('detailStatus', `Could not load this item — ${err.message || 'check your connection'}.`, 'err');
+    $('detailSettingsRow').style.display = 'block';
   }
 }
+$('detailSettingsBtn').addEventListener('click', ()=>{ go('setup-access'); });
 
 </script>
 </body>
