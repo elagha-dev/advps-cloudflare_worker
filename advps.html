@@ -625,6 +625,8 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
         <p class="intro" id="existingEyebrow" style="margin-bottom:var(--sp-3);">Existing items</p>
         <div class="msg" id="existingStatus"></div>
         <div class="list-card" id="existingList"></div>
+      </div>
+      <div class="screen-foot">
         <div class="text-row"><button class="btn-text muted" id="existingRefreshBtn">Refresh list</button></div>
         <div class="text-row" id="existingSettingsRow" style="display:none;"><button class="btn-text" id="existingSettingsBtn">Go to your settings and test the connection</button></div>
       </div>
@@ -648,10 +650,10 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
           <div class="detail-desc-card" id="detailDiscussion">Loading…</div>
         </div>
         <div class="msg" id="detailStatus"></div>
-        <div class="text-row" id="detailSettingsRow" style="display:none;"><button class="btn-text" id="detailSettingsBtn">Go to your settings and test the connection</button></div>
       </div>
       <div class="screen-foot">
         <a class="btn-primary" id="detailOpenAdoBtn" href="#" target="_blank" style="text-decoration:none;">Open in Azure DevOps</a>
+        <div class="text-row" id="detailSettingsRow" style="display:none;"><button class="btn-text" id="detailSettingsBtn">Go to your settings and test the connection</button></div>
       </div>
     </section>
 
@@ -1639,13 +1641,23 @@ async function fetchExistingItems(c){
   const wiql = { query: `SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '${c.project}' AND [System.WorkItemType] = '${c.witype}' ORDER BY [System.Id] DESC` };
   const wiqlUrl = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/wiql?api-version=7.1`;
   const wr = await fetch(wiqlUrl, { method:'POST', headers:adoHeaders(c.pat), body:JSON.stringify(wiql) });
-  if(!wr.ok) throw new Error('wiql failed: ' + wr.status);
+  if(!wr.ok){
+    const txt = await wr.text();
+    let reason = txt;
+    try{ const j = JSON.parse(txt); reason = j.message || (j.value && j.value.Message) || txt; }catch(e){}
+    throw new Error(`wiql failed (${wr.status}): ${reason.slice(0,220)}`);
+  }
   const wdata = await wr.json();
   const ids = (wdata.workItems || []).map(w=>w.id);
   if(ids.length === 0) return [];
   const batchUrl = `${adoBase(c)}/${encodeURIComponent(c.org)}/_apis/wit/workitemsbatch?api-version=7.1`;
   const br = await fetch(batchUrl, { method:'POST', headers:adoHeaders(c.pat), body:JSON.stringify({ids, fields:['System.Title','System.State','System.CommentCount']}) });
-  if(!br.ok) throw new Error('batch failed: ' + br.status);
+  if(!br.ok){
+    const txt = await br.text();
+    let reason = txt;
+    try{ const j = JSON.parse(txt); reason = j.message || (j.value && j.value.Message) || txt; }catch(e){}
+    throw new Error(`batch failed (${br.status}): ${reason.slice(0,220)}`);
+  }
   const bdata = await br.json();
   const items = (bdata.value || []).map(w=>({
     id:w.id,
