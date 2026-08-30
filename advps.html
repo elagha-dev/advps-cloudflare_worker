@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Review Items">
-<meta name="theme-color" content="#FFFFFF">
+<meta name="theme-color" content="#FBF7EE">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" type="image/png" href="icons/favicon-32.png">
 <link rel="manifest" href="manifest.json">
@@ -20,17 +20,17 @@
    TOKENS
    ===================================================================== */
 :root{
-  --bg:#FFFFFF;
-  --card:#FFFFFF;
-  --card-tint:#EBEDFB;
-  --card-tint-border:#C7CCF5;
-  --ink:#0A0A0A;
-  --ink-2:#4B4B4B;
-  --ink-3:#7A7A7A;
-  --hair:#DCDCDC;
-  --hair-strong:#B4B4B4;
-  --green:#4338CA;
-  --green-deep:#332C9E;
+  --bg:#FBF7EE;
+  --card:#FFFDF7;
+  --card-tint:#E6F2EA;
+  --card-tint-border:#c9e2d2;
+  --ink:#2A2620;
+  --ink-2:#55503F;
+  --ink-3:#7B7563;
+  --hair:#E7DFCF;
+  --hair-strong:#D8CDB4;
+  --green:#146C52;
+  --green-deep:#0e5642;
   --amber:#a8691a;
   --amber-soft:#f6ecd9;
   --rose:#b23b2a;
@@ -52,16 +52,21 @@ button,input,textarea,select{font-family:inherit;}
 .app{max-width:480px; margin:0 auto; min-height:100dvh; background:var(--bg); position:relative; display:flex; flex-direction:column; overflow:hidden;}
 
 /* =====================================================================
-   NAV BAR — centered title; settings gear only ever appears on the
-   root screen. Back navigation lives at the bottom-right (see .fab-back)
-   plus a right-swipe gesture, both easier to reach one-handed than a
-   top-left button.
+   NAV BAR — conventional back chevron + label, centered title,
+   settings gear only ever appears on the root screen.
    ===================================================================== */
 .navbar{
   position:relative; z-index:30; flex:none; height:48px; display:flex; align-items:center;
   padding:calc(env(safe-area-inset-top,0px) + 6px) 6px 0;
   min-height:calc(48px + env(safe-area-inset-top,0px));
 }
+.nav-back{
+  position:relative; z-index:2; display:flex; align-items:center; gap:2px; background:none; border:none;
+  color:var(--green-deep); font-size:15.5px; font-weight:600; cursor:pointer; padding:8px 10px 8px 4px;
+  max-width:62%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.nav-back svg{width:11px; height:18px; flex:none;}
+.nav-back[hidden]{display:none;}
 .nav-title{
   position:absolute; left:56px; right:56px; text-align:center; z-index:1; pointer-events:none;
   font-family:var(--sans); font-weight:600; font-size:15.5px; color:var(--ink);
@@ -73,17 +78,6 @@ button,input,textarea,select{font-family:inherit;}
 }
 .nav-gear[hidden]{visibility:hidden;}
 .nav-gear svg{width:21px; height:21px;}
-
-/* floating back button — bottom-right, reachable with a right thumb */
-.fab-back{
-  position:absolute; right:20px; bottom:calc(env(safe-area-inset-bottom,0px) + 16px); z-index:40;
-  display:flex; align-items:center; gap:7px; background:var(--card); color:var(--ink-2); border:none;
-  border-radius:8px; padding:12px 18px 12px 13px; font-size:14.5px; font-weight:600;
-  box-shadow:0 2px 10px rgba(0,0,0,.14); cursor:pointer; transition:transform .12s, opacity .15s, bottom .15s ease;
-}
-.fab-back svg{width:13px; height:20px; flex:none;}
-.fab-back:active{transform:scale(.93);}
-.fab-back[hidden]{display:none;}
 
 .stage{position:relative; flex:1; overflow:hidden;}
 .screen{
@@ -101,6 +95,7 @@ button,input,textarea,select{font-family:inherit;}
 .screen-foot{flex:none; padding:12px 20px calc(env(safe-area-inset-bottom,0px) + 18px); background:linear-gradient(180deg, rgba(251,247,238,0), var(--bg) 40%);}
 
 /* large title — used only on the root (home) screen, scrolls with content */
+.large-title{font-family:var(--display); font-weight:700; font-size:30px; letter-spacing:-.015em; color:var(--ink); margin:2px 0 var(--sp-1);}
 .large-subtitle{font-size:14.5px; color:var(--ink-2); margin:0 0 var(--sp-5); font-weight:500;}
 
 /* section intro copy for pushed screens — replaces repeated on-page headings */
@@ -112,12 +107,12 @@ button,input,textarea,select{font-family:inherit;}
 .field{margin-bottom:var(--sp-4);}
 .field label{display:block; font-size:12px; font-weight:600; color:var(--ink-2); letter-spacing:.01em; margin-bottom:7px;}
 input[type=text],input[type=password],textarea,select{
-  width:100%; background:var(--card); border:none; border-bottom:1.5px solid var(--hair-strong); color:var(--ink);
-  border-radius:0; padding:13px 2px; font-size:16px; font-family:var(--sans); font-weight:500;
-  transition:border-color .15s; min-height:var(--sp-7);
+  width:100%; background:var(--card); border:1.5px solid var(--hair); color:var(--ink);
+  border-radius:12px; padding:13px 14px; font-size:16px; font-family:var(--sans); font-weight:500;
+  transition:border-color .15s, box-shadow .15s; min-height:var(--sp-7);
 }
 input[type=text]::placeholder,input[type=password]::placeholder,textarea::placeholder{color:var(--ink-3);}
-input[type=text]:focus,input[type=password]:focus,textarea:focus,select:focus{outline:none; border-bottom-color:var(--green); box-shadow:none;}
+input[type=text]:focus,input[type=password]:focus,textarea:focus,select:focus{outline:none; border-color:var(--green); box-shadow:0 0 0 3px var(--card-tint);}
 textarea{resize:vertical; line-height:1.55;}
 select{
   appearance:none; -webkit-appearance:none; background-repeat:no-repeat; background-position:right 14px center; padding-right:36px;
@@ -127,7 +122,7 @@ select{
 .field-row{display:flex; gap:var(--sp-3);}
 .field-row .field{flex:1;}
 
-.toggle-row{display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); padding:2px; margin-top:var(--sp-2);}
+.toggle-row{display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); padding:14px 16px; background:var(--card); border:1.5px solid var(--hair); border-radius:12px; margin-bottom:var(--sp-4);}
 .toggle-row .toggle-copy{font-size:14px; font-weight:500;}
 .toggle-row .toggle-copy small{display:block; font-size:12px; color:var(--ink-3); margin-top:2px; font-weight:400;}
 .switch{position:relative; width:44px; height:26px; flex:none;}
@@ -137,58 +132,38 @@ select{
 .switch input:checked + .track{background:var(--green);}
 .switch input:checked + .track + .knob{transform:translateX(18px);}
 
-/* small "where am I" progress dots — sits at the very bottom of a
-   wizard screen's footer, above the primary button */
-.step-dots{display:flex; justify-content:center; align-items:center; gap:6px; padding:0 0 10px;}
-.step-dots[hidden]{display:none;}
-.step-dot{width:5px; height:5px; border-radius:50%; background:var(--hair-strong); transition:background .15s, width .15s;}
-.step-dot.active{width:14px; border-radius:3px; background:var(--green);}
-
-/* quick-capture row under the notes textarea: dictate or paste in one tap */
-.field-actions{display:flex; gap:8px; margin:-8px 0 var(--sp-4);}
-.icon-btn{display:flex; align-items:center; justify-content:center; gap:7px; flex:0 1 auto; min-width:120px; background:var(--card); border:1.5px solid var(--hair-strong); border-radius:12px; padding:10px 18px; font-size:13.5px; font-weight:600; color:var(--ink-2); cursor:pointer; min-height:42px;}
-.icon-btn svg{width:15px; height:15px; flex:none;}
-.icon-btn:active{background:var(--hair);}
-.icon-btn.recording{background:var(--rose-soft); border-color:var(--rose); color:var(--rose);}
-.icon-btn.recording .rec-dot{width:7px; height:7px; border-radius:50%; background:var(--rose); animation:recPulse 1s ease-in-out infinite; flex:none;}
-@keyframes recPulse{0%,100%{opacity:1;} 50%{opacity:.35;}}
-
-.quickload{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 0 var(--sp-4);}
-.quickload-label{width:100%; font-size:12px; font-weight:600; color:var(--ink-3); text-transform:uppercase; letter-spacing:.02em; margin-bottom:2px;}
-.quickload button{background:var(--card); border:1.5px solid var(--ink); color:var(--ink); font:inherit; font-size:13px; font-weight:600; cursor:pointer; padding:7px 14px; border-radius:999px;}
-.quickload button:active{background:var(--ink); color:#fff;}
+.quickload{font-size:13px; color:var(--ink-2); margin:0 0 var(--sp-4); line-height:1.9;}
+.quickload button{background:none; border:none; padding:0; font:inherit; color:var(--green-deep); font-weight:600; cursor:pointer; text-decoration:underline; text-decoration-color:var(--card-tint-border); text-underline-offset:3px;}
+.quickload .sep{color:var(--ink-3); margin:0 7px;}
 
 /* =====================================================================
    BUTTONS
    ===================================================================== */
 .btn-primary{
   display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
-  background:var(--green); color:#fff; border:none; border-radius:8px;
+  background:var(--green); color:#fffdf7; border:none; border-radius:12px;
   padding:15px 22px; font-size:16px; font-weight:600; letter-spacing:-.005em;
   cursor:pointer; min-height:var(--sp-7); transition:transform .1s, opacity .15s;
 }
 .btn-primary:active{transform:scale(.98);}
 .btn-primary:disabled{opacity:.4; cursor:default;}
-.btn-primary[hidden]{display:none;}
 .btn-primary .spin{width:16px; height:16px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
 .btn-secondary{
   display:block; width:100%; background:var(--card); border:1.5px solid var(--hair-strong); color:var(--ink);
-  border-radius:8px; padding:14px 22px; font-size:15.5px; font-weight:600; text-align:center; cursor:pointer; min-height:var(--sp-7);
+  border-radius:12px; padding:14px 22px; font-size:15.5px; font-weight:600; text-align:center; cursor:pointer; min-height:var(--sp-7);
 }
 .btn-secondary:active{background:var(--hair);}
 
 .btn-text{
-  display:inline-flex; align-items:center; gap:6px; background:var(--card); border:1.5px solid var(--ink); color:var(--ink);
-  font-size:14px; font-weight:600; cursor:pointer; padding:9px 16px; min-height:38px; border-radius:999px;
+  display:inline-flex; align-items:center; gap:6px; background:none; border:none; color:var(--green-deep);
+  font-size:15px; font-weight:600; cursor:pointer; padding:8px 0; min-height:36px;
 }
-.btn-text:active{background:var(--ink); color:#fff;}
-.btn-text.muted{background:none; border:none; color:var(--ink-2); padding:9px 0; text-decoration:underline; text-decoration-color:var(--hair-strong); text-underline-offset:3px;}
-.btn-text.muted:active{background:none; color:var(--ink-2); opacity:.55;}
-.btn-text.danger{background:none; border:none; color:var(--rose); padding:9px 0; text-decoration:underline; text-decoration-color:var(--rose); text-underline-offset:3px;}
-.btn-text.danger:active{background:none; color:var(--rose); opacity:.55;}
-.text-row{display:flex; justify-content:center; align-items:center; gap:18px; margin:var(--sp-2) 0 0;}
+.btn-text:active{opacity:.6;}
+.btn-text.muted{color:var(--ink-2);}
+.btn-text.danger{color:var(--rose);}
+.text-row{display:flex; justify-content:center; margin:var(--sp-2) 0 0;}
 .text-row.left{justify-content:flex-start;}
 
 /* =====================================================================
@@ -211,22 +186,18 @@ select{
 /* =====================================================================
    HOME — single source of truth per state, no redundant messaging
    ===================================================================== */
-.home-scroll{padding-top:2px; display:flex; flex-direction:column; align-items:center; text-align:center;}
+.home-scroll{padding-top:2px; display:flex; flex-direction:column;}
 
 /* connected: top-anchored dashboard, natural flow, no forced spacer */
-.home-connected{display:none; width:100%;}
+.home-connected{display:none;}
 .home-connected.show{display:block;}
 .home-row{
-  display:flex; align-items:center; justify-content:center; gap:12px; padding:15px 22px; width:100%;
-  border:1.5px solid var(--ink); border-radius:8px; margin-top:10px; cursor:pointer; background:var(--card);
+  display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 2px;
+  border-top:1px solid var(--hair); margin-top:var(--sp-2); cursor:pointer;
 }
-.home-row[hidden]{display:none;}
-.home-row:active{background:var(--ink);}
-.home-row:active .label,.home-row:active .chev{color:#fff;}
-.home-row .label{font-size:16px; font-weight:600; color:var(--ink);}
+.home-row .label{font-size:16px; font-weight:500; color:var(--ink);}
 .home-row .chev{color:var(--ink-3); flex:none;}
-.home-recent{font-size:12.5px; color:var(--ink-2); margin:var(--sp-3) auto 0; font-weight:500;}
-.home-recent.link{color:var(--green); font-weight:600; text-decoration:underline; text-decoration-color:var(--card-tint-border); text-underline-offset:2px; cursor:pointer;}
+.home-recent{font-size:12.5px; color:var(--ink-2); margin:var(--sp-3) 2px 0; font-weight:500;}
 
 /* not connected: centered empty state, like a native empty inbox */
 .home-empty{display:none; flex:1; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:var(--sp-6) var(--sp-4); min-height:52vh;}
@@ -234,30 +205,22 @@ select{
 .home-empty .mark{margin-bottom:var(--sp-4);}
 .home-empty .t{font-family:var(--display); font-weight:600; font-size:19px; margin:0 0 8px; color:var(--ink);}
 .home-empty .s{font-size:14px; color:var(--ink-2); line-height:1.5; max-width:30ch; margin:0 0 var(--sp-5);}
+.home-empty .btn-primary{max-width:280px;}
 
 /* =====================================================================
    ITEM CARDS (review) — the visual focus of the screen
    ===================================================================== */
 .item-card{
-  position:relative; background:var(--rose); border:1.5px solid var(--hair); border-radius:14px;
-  margin-bottom:var(--sp-3); overflow:hidden;
+  background:var(--card); border:1.5px solid var(--hair); border-radius:14px;
+  padding:15px; margin-bottom:var(--sp-3); display:flex; gap:12px;
 }
-.item-card.included{border-color:var(--card-tint-border);}
+.item-card.included{background:var(--card-tint); border-color:var(--card-tint-border);}
 .item-card.excluded{opacity:.55;}
-.item-card-bg{
-  position:absolute; inset:0; display:flex; align-items:center; justify-content:flex-end; gap:8px;
-  padding-right:24px; color:#fff; font-weight:700; font-size:13.5px;
-}
-.item-card-bg svg{width:18px; height:18px; flex:none;}
-.item-card-inner{
-  position:relative; background:var(--card); display:flex; gap:12px; padding:15px; touch-action:pan-y;
-}
-.item-card.included .item-card-inner{background:var(--card-tint);}
 .item-toggle{
   width:24px; height:24px; border-radius:50%; border:1.5px solid var(--hair-strong); background:var(--card);
   display:flex; align-items:center; justify-content:center; cursor:pointer; flex:none; color:transparent; margin-top:1px; padding:0;
 }
-.item-toggle.on{background:var(--green); border-color:var(--green); color:#fff;}
+.item-toggle.on{background:var(--green); border-color:var(--green); color:#fffdf7;}
 .item-toggle svg{width:13px; height:13px;}
 .item-body{flex:1; min-width:0;}
 .item-card input[type=text]{
@@ -269,20 +232,9 @@ select{
   border:none; background:transparent; font-size:13.5px; color:var(--ink-2); min-height:40px; padding:0; line-height:1.5;
 }
 .item-card textarea:focus{box-shadow:none;}
-.cat-select{
-  margin-top:8px; width:auto; min-height:auto; display:inline-block;
-  background:var(--card); border:1.5px solid var(--hair-strong); border-radius:999px;
-  padding:5px 26px 5px 12px; font-size:12px; font-weight:600; color:var(--ink-2);
-}
-.dup-badge{
-  margin-top:10px; padding:9px 11px; border-radius:10px; background:var(--amber-soft); color:var(--amber);
-  font-size:12.5px; font-weight:600; line-height:1.4; display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-}
-.dup-badge button{background:none; border:none; padding:0; color:var(--amber); font:inherit; font-weight:700; text-decoration:underline; cursor:pointer; flex:none;}
-.dup-badge button:disabled{opacity:.5; text-decoration:none;}
-.dup-badge button[data-role=dup-dismiss]{margin-left:auto;}
-.dup-badge.dup-added{background:var(--card-tint); color:var(--green-deep);}
-
+.item-remove{background:none; border:1.5px solid var(--hair-strong); border-radius:8px; width:26px; height:26px; color:var(--ink-3); cursor:pointer; flex:none; display:flex; align-items:center; justify-content:center; margin-top:1px;}
+.item-remove:active{color:var(--rose); border-color:var(--rose-soft);}
+.item-remove svg{width:13px; height:13px;}
 .items-count{font-size:13.5px; color:var(--ink-2); margin:var(--sp-2) 0 var(--sp-4); font-weight:500;}
 
 /* =====================================================================
@@ -311,7 +263,7 @@ select{
 .check-row{display:flex; align-items:center; gap:10px; padding:11px 0; font-size:13.5px; color:var(--ink-2); border-bottom:1px solid var(--hair);}
 .check-row:last-child{border-bottom:none;}
 .check-row .mark{width:18px; height:18px; border-radius:50%; border:1.5px solid var(--hair-strong); flex:none; display:flex; align-items:center; justify-content:center; font-size:10px;}
-.check-row.done .mark{background:var(--green); border-color:var(--green); color:#fff;}
+.check-row.done .mark{background:var(--green); border-color:var(--green); color:#fffdf7;}
 .check-row.fail .mark{background:var(--rose); border-color:var(--rose); color:#fff;}
 .check-row.done{color:var(--ink);}
 .check-row.fail{color:var(--rose);}
@@ -339,46 +291,19 @@ a.plain-row{text-decoration:none; color:inherit;}
 .empty-state svg{width:38px; height:38px; color:var(--ink-3); margin-bottom:var(--sp-4);}
 .empty-state .t{font-family:var(--display); font-size:16px; font-weight:600; margin:0 0 6px; color:var(--ink);}
 .empty-state .s{font-size:13.5px; color:var(--ink-2); max-width:28ch; margin:0 auto;}
-
-/* row is now a button that opens the in-app detail screen */
-button.plain-row{width:100%; background:none; border:none; text-align:left; cursor:pointer; font:inherit; padding-right:2px;}
-.plain-row .chev{
-  color:var(--green-deep); flex:none; width:34px; height:34px; border-radius:50%;
-  background:var(--card-tint); display:flex; align-items:center; justify-content:center; margin-left:2px;
-}
-.plain-row .chev svg{width:9px; height:14px; display:block;}
-.disc-badge{font-size:11px; font-weight:700; color:var(--amber); background:var(--amber-soft); padding:3px 7px; border-radius:20px; flex:none; white-space:nowrap;}
-
-/* =====================================================================
-   ITEM DETAIL — single work item, read-only view
-   ===================================================================== */
-.detail-title{font-family:var(--display); font-weight:700; font-size:22px; letter-spacing:-.01em; color:var(--ink); margin:var(--sp-2) 0 4px; line-height:1.25;}
-.detail-id{font-family:var(--mono); font-size:12.5px; font-weight:700; color:var(--green-deep); background:var(--card-tint); padding:3px 8px; border-radius:6px; display:inline-block; margin-bottom:var(--sp-4);}
-.detail-desc-card{background:var(--card); border:1.5px solid var(--hair); border-radius:14px; padding:16px 18px; margin:var(--sp-3) 0 var(--sp-5); font-size:14.5px; line-height:1.6; color:var(--ink); overflow-wrap:anywhere;}
-.detail-desc-card p{margin:0 0 10px;}
-.detail-desc-card p:last-child{margin-bottom:0;}
-.detail-desc-card ul,.detail-desc-card ol{margin:0 0 10px; padding-left:22px;}
-.detail-desc-card.empty{color:var(--ink-3); font-style:italic;}
-.detail-desc-card img{max-width:100%; border-radius:8px;}
-.comment-entry{padding:10px 0; border-bottom:1px solid var(--hair);}
-.comment-entry:last-child{border-bottom:none; padding-bottom:0;}
-.comment-entry:first-child{padding-top:0;}
-.comment-meta{font-size:12px; font-weight:600; color:var(--ink-2); margin-bottom:4px;}
-.comment-body{font-size:14px; line-height:1.55;}
-.comment-body p{margin:0 0 8px;}
-.comment-body p:last-child{margin-bottom:0;}
-.detail-skel{background:var(--card); border:1.5px solid var(--hair); border-radius:14px; height:120px; margin:var(--sp-3) 0 var(--sp-5); position:relative; overflow:hidden;}
-.detail-skel::after{content:''; position:absolute; inset:0; background:linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent); animation:shimmer 1.3s infinite;}
-@keyframes shimmer{0%{transform:translateX(-100%);} 100%{transform:translateX(100%);}}
 </style>
 </head>
 <body>
 <div class="app" id="app">
 
   <header class="navbar">
+    <button class="nav-back" id="backBtn" hidden>
+      <svg viewBox="0 0 12 20" fill="none"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span id="backBtnLabel">Back</span>
+    </button>
     <span class="nav-title" id="navTitle"></span>
     <button class="nav-gear" id="settingsBtn" aria-label="Connection settings" hidden>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 2.5v2.3M12 19.2v2.3M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M2.5 12h2.3M19.2 12h2.3M4.9 19.1l1.6-1.6M17.5 6.5l1.6-1.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
     </button>
   </header>
 
@@ -387,33 +312,31 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
     <!-- ============ HOME (root) ============ -->
     <section class="screen" data-screen="home">
       <div class="screen-scroll home-scroll">
-        <!-- connected state: top-anchored status line only; the two real
-             options (New batch / Existing items) live together in the footer -->
+        <h1 class="large-title">Review Items</h1>
+
+        <!-- connected state: top-anchored, one status line, one primary action, one nav row -->
         <div class="home-connected" id="homeConnected">
           <p class="large-subtitle" id="homeProjectLine">TF100 PAM Gap Management</p>
+          <button class="btn-primary" id="homePrimaryBtn">New batch</button>
           <p class="home-recent" id="homeRecentLine" style="display:none;"></p>
-          <p class="home-recent" id="homeDigestLine" style="display:none;"></p>
+          <div class="home-row" id="homeExistingBtn">
+            <span class="label">Existing items</span>
+            <span class="chev"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </div>
         </div>
 
         <!-- not connected: single intentional empty state, one CTA -->
         <div class="home-empty" id="homeEmpty">
           <div class="mark">
             <svg width="40" height="40" viewBox="0 0 46 46" fill="none">
-              <path d="M9 21L14 9h18l5 12" stroke="var(--ink-3)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M9 21v11a3 3 0 003 3h22a3 3 0 003-3V21h-9.7a1 1 0 00-.9.56l-1.3 2.7a1 1 0 01-.9.54h-4.4a1 1 0 01-.9-.54l-1.3-2.7a1 1 0 00-.9-.56H9z" stroke="var(--ink-3)" stroke-width="1.6" stroke-linejoin="round"/>
+              <circle cx="23" cy="23" r="21" stroke="#146C52" stroke-width="1.6"/>
+              <circle cx="23" cy="23" r="16" stroke="#146C52" stroke-width="1" stroke-dasharray="2.4 3.2"/>
+              <path d="M15 23.5l5.5 5.5L32 17" stroke="#146C52" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
           <p class="t">Nothing to review yet</p>
           <p class="s">Connect Azure DevOps to start turning notes into tracked items.</p>
-        </div>
-      </div>
-      <!-- both real options live in the thumb zone together -->
-      <div class="screen-foot">
-        <button class="btn-primary" id="homePrimaryBtn" hidden>New batch</button>
-        <button class="btn-primary" id="homeConnectBtn" hidden>Connect Azure DevOps</button>
-        <div class="home-row" id="homeExistingBtn" hidden>
-          <span class="label">Existing items</span>
-          <span class="chev"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <button class="btn-primary" id="homeConnectBtn">Connect Azure DevOps</button>
         </div>
       </div>
     </section>
@@ -433,10 +356,10 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
         </div>
 
         <div class="quickload" id="quickSetupChips"></div>
+        <div class="text-row left"><button class="btn-text muted" id="manageSetupsLink">Manage saved setups</button></div>
       </div>
       <div class="screen-foot">
         <button class="btn-primary" id="orgContinueBtn">Continue</button>
-        <div class="text-row"><button class="btn-text muted" id="manageSetupsLink">Manage saved setups</button></div>
       </div>
     </section>
 
@@ -452,15 +375,14 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
           <div class="s">Save your current organization, project and token as a preset to switch projects fast.</div>
         </div>
 
-        <div class="field">
-          <label for="setupName">Save current fields as a preset</label>
-          <input type="text" id="setupName" placeholder="e.g. TF100 PAM">
+        <div class="save-preset">
+          <div class="field">
+            <label for="setupName">Save current fields as a preset</label>
+            <input type="text" id="setupName" placeholder="e.g. TF100 PAM">
+          </div>
+          <button class="btn-secondary" id="saveSetupBtn">Save preset</button>
         </div>
         <div class="msg" id="presetsStatus"></div>
-      </div>
-      <div class="screen-foot">
-        <button class="btn-primary" id="saveSetupBtn">Save preset</button>
-        <div class="text-row" id="clearPresetsRow" style="display:none;"><button class="btn-text danger" id="clearPresetsBtn">Clear all saved setups</button></div>
       </div>
     </section>
 
@@ -525,13 +447,6 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
         <div class="field">
           <textarea id="dump" rows="10" placeholder="Paste your notes here…"></textarea>
         </div>
-        <div class="field-actions">
-          <button type="button" class="icon-btn" id="dictateBtn">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 003-3V6a3 3 0 10-6 0v6a3 3 0 003 3z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 11v1a6 6 0 0012 0v-1M12 18v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span id="dictateBtnLabel">Dictate</span>
-          </button>
-        </div>
-        <div class="msg" id="dictateStatus"></div>
         <div class="text-row left"><button class="btn-text muted" id="analyzeBtn">Just split by blank lines instead</button></div>
         <div class="msg" id="analyzeStatus"></div>
       </div>
@@ -604,9 +519,9 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
         <div class="results-stamp-wrap">
           <div class="stamp pulse" id="resultsStamp">
             <svg width="52" height="52" viewBox="0 0 46 46" fill="none">
-              <circle cx="23" cy="23" r="21" stroke="#4338CA" stroke-width="2"/>
-              <circle cx="23" cy="23" r="16" stroke="#4338CA" stroke-width="1.2" stroke-dasharray="2.4 3.2"/>
-              <path d="M15 23.5l5.5 5.5L32 17" stroke="#4338CA" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="23" cy="23" r="21" stroke="#146C52" stroke-width="2"/>
+              <circle cx="23" cy="23" r="16" stroke="#146C52" stroke-width="1.2" stroke-dasharray="2.4 3.2"/>
+              <path d="M15 23.5l5.5 5.5L32 17" stroke="#146C52" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
         </div>
@@ -626,47 +541,11 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
         <p class="intro" id="existingEyebrow" style="margin-bottom:var(--sp-3);">Existing items</p>
         <div class="msg" id="existingStatus"></div>
         <div class="list-card" id="existingList"></div>
-      </div>
-      <div class="screen-foot">
-        <div class="text-row" id="existingActionsRow">
-          <button class="btn-text muted" id="existingRefreshBtn">Refresh list</button>
-          <button class="btn-text muted" id="existingSettingsBtn" style="display:none;">Test connection</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ ITEM DETAIL ============ -->
-    <section class="screen" data-screen="item-detail">
-      <div class="screen-scroll">
-        <div id="detailBody">
-          <div class="detail-id" id="detailId">#—</div>
-          <h2 class="detail-title" id="detailTitle">Loading…</h2>
-          <div class="summary-card" id="detailMetaCard">
-            <div class="summary-row"><span class="k">State</span><span class="v" id="detailState">—</span></div>
-            <div class="summary-row"><span class="k">Type</span><span class="v" id="detailType">—</span></div>
-            <div class="summary-row"><span class="k">Last updated</span><span class="v" id="detailChanged">—</span></div>
-            <div class="summary-row"><span class="k">Created</span><span class="v" id="detailCreated">—</span></div>
-          </div>
-          <p class="section-label">Description</p>
-          <div class="detail-desc-card" id="detailDescription">Loading…</div>
-          <p class="section-label">Discussion</p>
-          <div class="detail-desc-card" id="detailDiscussion">Loading…</div>
-        </div>
-        <div class="msg" id="detailStatus"></div>
-      </div>
-      <div class="screen-foot">
-        <a class="btn-primary" id="detailOpenAdoBtn" href="#" target="_blank" style="text-decoration:none;">Open in Azure DevOps</a>
-        <div class="text-row" id="detailSettingsRow" style="display:none;"><button class="btn-text muted" id="detailSettingsBtn">Test connection</button></div>
+        <div class="text-row"><button class="btn-text muted" id="existingRefreshBtn">Refresh list</button></div>
       </div>
     </section>
 
   </main>
-
-  <button class="fab-back" id="fabBack" hidden>
-    <svg viewBox="0 0 12 20" fill="none"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    <span id="fabBackLabel">Back</span>
-  </button>
-  <div class="step-dots" id="stepDots" hidden></div>
 </div>
 
 <script>
@@ -686,63 +565,19 @@ const NAV_TITLES = {
   home:'Review Items', 'setup-org':'Org & project', 'setup-presets':'Saved setups',
   'setup-access':'Your access', 'setup-type':'Work item type', paste:'New batch',
   generating:'New batch', review:'Review items', 'extra-fields':'Required fields',
-  confirm:'Confirm', creating:'Creating', results:'Results', existing:'Existing items',
-  'item-detail':'Item details'
+  confirm:'Confirm', creating:'Creating', results:'Results', existing:'Existing items'
 };
 const NO_BACK = ['home','creating'];
 
-/* the "new batch" flow, in order — used only to show a faint dot trail
-   at the bottom of the screen so it's obvious how far along you are.
-   Screens outside this list (home, saved setups, transient loaders,
-   existing items, item detail) show no dots at all. */
-const WIZARD_STEPS = ['setup-org','setup-access','setup-type','paste','review','extra-fields','confirm'];
-function renderStepDots(){
-  const dots = $('stepDots');
-  const idx = WIZARD_STEPS.indexOf(activeId);
-  const screenEl = screens[activeId];
-  const footEl = screenEl && screenEl.querySelector('.screen-foot');
-  if(idx === -1 || !footEl){ dots.hidden = true; return; }
-  dots.innerHTML = WIZARD_STEPS.map((_,i)=>`<span class="step-dot${i===idx?' active':''}"></span>`).join('');
-  footEl.prepend(dots);
-  dots.hidden = false;
-}
-
 function paint(){
   const showBack = !NO_BACK.includes(activeId) && stack.length > 1;
-  $('fabBack').hidden = !showBack;
+  $('backBtn').hidden = !showBack;
   if(showBack){
     const prevId = stack[stack.length-2];
-    $('fabBackLabel').textContent = NAV_TITLES[prevId] || 'Back';
+    $('backBtnLabel').textContent = NAV_TITLES[prevId] || 'Back';
   }
   $('navTitle').textContent = activeId === 'home' ? '' : (NAV_TITLES[activeId] || '');
   $('settingsBtn').hidden = activeId !== 'home';
-  renderStepDots();
-  watchFabPosition();
-}
-
-/* Float the back button just above whatever footer the active screen
-   actually has — measured, not guessed, so it never overlaps buttons
-   or links that live in a screen-foot. Re-measures automatically if
-   that footer's own content/height changes (e.g. a status message
-   appearing) via ResizeObserver. */
-let fabResizeObserver = null;
-function positionFab(){
-  const screenEl = screens[activeId];
-  const footEl = screenEl && screenEl.querySelector('.screen-foot');
-  const fab = $('fabBack');
-  fab.style.bottom = footEl
-    ? (footEl.offsetHeight + 16) + 'px'
-    : 'calc(env(safe-area-inset-bottom,0px) + 16px)';
-}
-function watchFabPosition(){
-  if(fabResizeObserver) fabResizeObserver.disconnect();
-  positionFab();
-  const screenEl = screens[activeId];
-  const footEl = screenEl && screenEl.querySelector('.screen-foot');
-  if(footEl && window.ResizeObserver){
-    fabResizeObserver = new ResizeObserver(positionFab);
-    fabResizeObserver.observe(footEl);
-  }
 }
 
 function transitionTo(id, dir){
@@ -767,32 +602,9 @@ function replaceTop(id){ stack[stack.length-1] = id; transitionTo(id,'forward');
 function resetTo(id){ stack = [id]; transitionTo(id,'back'); }
 function goBack(){ if(stack.length<2) return; stack.pop(); transitionTo(stack[stack.length-1],'back'); }
 
-$('fabBack').addEventListener('click', goBack);
+$('backBtn').addEventListener('click', goBack);
 $('settingsBtn').addEventListener('click', ()=> go('setup-org'));
 paint();
-
-/* swipe right anywhere on the screen to go back — natural one-thumb
-   alternative to hunting for a button. Ignored on the root screen and
-   on any horizontal drag that starts inside a scrollable text input. */
-(function(){
-  const stage = $('stage');
-  let sx=0, sy=0, tracking=false;
-  stage.addEventListener('touchstart', e=>{
-    if(NO_BACK.includes(activeId) || stack.length < 2) { tracking=false; return; }
-    const t = e.touches[0];
-    sx = t.clientX; sy = t.clientY; tracking = true;
-  }, {passive:true});
-  stage.addEventListener('touchmove', e=>{
-    if(!tracking) return;
-    const t = e.touches[0];
-    const dx = t.clientX - sx, dy = t.clientY - sy;
-    if(dx > 90 && Math.abs(dy) < 60){
-      tracking = false;
-      goBack();
-    }
-  }, {passive:true});
-  stage.addEventListener('touchend', ()=>{ tracking=false; }, {passive:true});
-})();
 
 const onEnter = {};
 
@@ -847,7 +659,7 @@ async function saveLastFields(){ try{ await storage.set('ado_last', JSON.stringi
 async function loadLastFields(){
   try{ const r = await storage.get('ado_last', false); if(r && r.value) applyFields(JSON.parse(r.value)); }catch(e){}
 }
-fieldIds.forEach(id => $(id).addEventListener('input', saveLastFields));
+fieldIds.forEach(id => $(id).addEventListener('change', saveLastFields));
 $('pat').addEventListener('change', async ()=>{ await savePatIfRemembering(); await saveLastFields(); });
 $('rememberPat').addEventListener('change', async e=>{
   if(e.target.checked) await savePatIfRemembering();
@@ -857,7 +669,6 @@ $('rememberPat').addEventListener('change', async e=>{
 $('forgetBtn').addEventListener('click', async ()=>{
   try{ await storage.delete('ado_pat', false); }catch(e){}
   $('pat').value=''; $('rememberPat').checked=false;
-  await saveLastFields(); // also strips the cached pat out of ado_last — otherwise it silently comes back on next load
   setMsg('connStatus','Saved token cleared.','ok');
 });
 
@@ -881,13 +692,10 @@ async function refreshQuickChips(){
   const setups = await getSetups();
   const names = Object.keys(setups).sort();
   const row = $('quickSetupChips');
-  row.innerHTML = '';
-  if(!names.length) return;
-  const label = document.createElement('span');
-  label.className = 'quickload-label';
-  label.textContent = 'Quick load';
-  row.appendChild(label);
-  names.forEach(name=>{
+  if(!names.length){ row.innerHTML=''; return; }
+  row.innerHTML = 'Quick load: ';
+  names.forEach((name,i)=>{
+    if(i>0){ const sep=document.createElement('span'); sep.className='sep'; sep.textContent='·'; row.appendChild(sep); }
     const btn = document.createElement('button');
     btn.type='button'; btn.textContent = name;
     btn.addEventListener('click', async ()=>{
@@ -903,7 +711,6 @@ async function refreshPresetsList(){
   list.innerHTML = '';
   $('presetsEmpty').style.display = names.length ? 'none' : 'block';
   list.style.display = names.length ? 'block' : 'none';
-  $('clearPresetsRow').style.display = names.length ? 'block' : 'none';
   names.forEach(name=>{
     const row = document.createElement('div');
     row.className = 'plain-row';
@@ -941,15 +748,6 @@ $('saveSetupBtn').addEventListener('click', async ()=>{
   await refreshPresetsList(); await refreshQuickChips();
   const patNote = $('rememberPat').checked ? ' — including your token' : '';
   setMsg('presetsStatus', `Saved "${name}"${patNote}.`, 'ok');
-});
-$('clearPresetsBtn').addEventListener('click', async ()=>{
-  const setups = await getSetups();
-  const count = Object.keys(setups).length;
-  if(!count) return;
-  if(!confirm(`Delete all ${count} saved setup${count===1?'':'s'}? This can't be undone.`)) return;
-  await setSetups({});
-  await refreshPresetsList(); await refreshQuickChips();
-  setMsg('presetsStatus', 'All saved setups cleared.', 'ok');
 });
 onEnter['setup-presets'] = ()=>{ refreshPresetsList(); };
 onEnter['setup-org'] = ()=>{ refreshQuickChips(); };
@@ -1025,9 +823,8 @@ $('testBtn').addEventListener('click', async ()=>{
       testState = 'idle'; $('testBtnLabel').textContent = 'Try again';
     }
   }catch(err){
-    const detail = err && err.message ? ` (${err.name || 'Error'}: ${err.message})` : '';
     setMsg('connStatus',
-      `Could not reach Azure DevOps from the browser — likely a CORS restriction. Set a Worker proxy URL above and try again.${detail}`,
+      'Could not reach Azure DevOps from the browser — likely a CORS restriction. Set a Worker proxy URL above and try again.',
       'err');
     testState='idle'; $('testBtnLabel').textContent = 'Try again';
   }
@@ -1050,40 +847,7 @@ $('typeContinueBtn').addEventListener('click', async ()=>{
   await loadSavedPat();
   await refreshQuickChips();
   refreshHome();
-  handleIncomingShare();
-  handleAutoRecord();
 })();
-
-/* =========================================================
-   SHARE TARGET — if the app was opened via the OS share sheet
-   (Android/Chrome; iOS Safari doesn't support this yet), the
-   shared text lands in the URL. Drop it straight into notes.
-   ========================================================= */
-function handleIncomingShare(){
-  const params = new URLSearchParams(location.search);
-  const shared = [params.get('shared_title'), params.get('shared_text'), params.get('shared_url')]
-    .filter(Boolean).join('\n\n').trim();
-  if(!shared) return;
-  history.replaceState(null, '', location.pathname);
-  $('dump').value = shared;
-  stack = ['home','paste'];
-  transitionTo('paste','forward');
-}
-
-/* =========================================================
-   ZERO-TAP CAPTURE — opening the app with ?record=1 jumps
-   straight to the paste screen and starts listening immediately,
-   so a Siri Shortcut ("Hey Siri, log a review item" → Open URL
-   .../advps.html?record=1) turns the whole flow into "just talk."
-   ========================================================= */
-function handleAutoRecord(){
-  const params = new URLSearchParams(location.search);
-  if(params.get('record') !== '1') return;
-  history.replaceState(null, '', location.pathname);
-  stack = ['home','paste'];
-  transitionTo('paste','forward');
-  setTimeout(()=>{ if(!dictating && recognizer && !$('dictateBtn').hidden) $('dictateBtn').click(); }, 350);
-}
 
 /* =========================================================
    HOME — one state visible at a time, no redundant messaging
@@ -1095,9 +859,6 @@ async function refreshHome(){
   const connected = isConfigured();
   $('homeConnected').classList.toggle('show', connected);
   $('homeEmpty').classList.toggle('show', !connected);
-  $('homePrimaryBtn').hidden = !connected;
-  $('homeConnectBtn').hidden = connected;
-  $('homeExistingBtn').hidden = !connected;
   if(connected){
     $('homeProjectLine').textContent = `${$('project').value.trim()} · ${$('org').value.trim()}`;
     try{
@@ -1106,53 +867,11 @@ async function refreshHome(){
         const info = JSON.parse(r.value);
         $('homeRecentLine').style.display = 'block';
         $('homeRecentLine').textContent = `Last batch: ${info.count} item${info.count===1?'':'s'} created`;
-        lastBatchInfo = info;
-        $('homeDigestLine').style.display = 'block';
-        $('homeDigestLine').textContent = 'Tap to check if those items have moved';
-        $('homeDigestLine').classList.add('link');
       } else {
         $('homeRecentLine').style.display = 'none';
-        $('homeDigestLine').style.display = 'none';
-        lastBatchInfo = null;
       }
     }catch(e){}
   }
-}
-
-/* =========================================================
-   DIGEST — close the loop by checking whether last batch's items
-   have moved since. Only ever runs on an explicit tap, never
-   automatically on load: an unattended background call to Azure
-   DevOps from an unfamiliar IP (the Worker's, not your device's)
-   is exactly the kind of thing Conditional Access / Identity
-   Protection risk policies are built to flag and block.
-   ========================================================= */
-let lastBatchInfo = null;
-let digestToken = 0;
-$('homeDigestLine').addEventListener('click', ()=>{ if(lastBatchInfo) checkLastBatchDigest(lastBatchInfo); });
-async function checkLastBatchDigest(info){
-  const items = Array.isArray(info.items) ? info.items.filter(it=>it && it.id && it.state) : [];
-  if(!items.length || !info.org || !info.project){ $('homeDigestLine').style.display = 'none'; return; }
-  const token = ++digestToken;
-  $('homeDigestLine').textContent = 'Checking…';
-  try{
-    const c = { org: info.org, project: info.project, pat: $('pat').value.trim(), proxy: $('proxy').value.trim().replace(/\/$/,'') };
-    const ids = items.map(it=>it.id);
-    const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/_apis/wit/workitemsbatch?api-version=7.1`;
-    const res = await fetch(url, { method:'POST', headers:{...adoHeaders(c.pat),'Content-Type':'application/json'}, body: JSON.stringify({ ids, fields:['System.Id','System.State'] }) });
-    if(!res.ok || token !== digestToken) return;
-    const data = await res.json();
-    const stateById = new Map((data.value||[]).map(w=>[w.id, w.fields && w.fields['System.State']]));
-    let untouched = 0;
-    items.forEach(it=>{ if(stateById.get(it.id) === it.state) untouched++; });
-    const line = $('homeDigestLine');
-    if(untouched === 0){
-      line.textContent = `✓ Every item from that batch has moved since.`;
-    } else {
-      line.textContent = `${untouched} of ${items.length} from that batch ${untouched===1?"hasn't":"haven't"} been touched yet.`;
-    }
-    line.style.display = 'block';
-  }catch(e){ /* best-effort — home screen shouldn't break over this */ }
 }
 $('homePrimaryBtn').addEventListener('click', ()=> go('paste'));
 $('homeConnectBtn').addEventListener('click', ()=> go('setup-org'));
@@ -1163,14 +882,6 @@ onEnter['home'] = refreshHome;
    PASTE + SPLIT
    ========================================================= */
 let parsedItems = [];
-
-/* Categories the AI (or you, via the dropdown on each item) can tag a
-   note with. Mapped to a real Azure DevOps Priority + Tag on creation
-   so the classification isn't just cosmetic in this app — it's visible
-   and filterable in Azure DevOps itself. */
-const CATEGORIES = ['blocker','bug','question','task'];
-const CATEGORY_LABELS = { blocker:'🔴 Blocker', bug:'🐞 Bug', question:'❓ Question', task:'📋 Task' };
-const CATEGORY_PRIORITY = { blocker:1, bug:2, question:3, task:4 };
 
 function titleFromLine(line){
   const clean = line.replace(/\s+/g,' ').trim();
@@ -1183,7 +894,7 @@ function splitByBlankLines(){
   const chunks = text.split(/\n\s*\n+/).map(c=>c.trim()).filter(Boolean);
   parsedItems = chunks.map(chunk=>{
     const lines = chunk.split('\n').map(l=>l.trim()).filter(Boolean);
-    return { title: titleFromLine(lines[0]||chunk), description: chunk, category:'task', include:true };
+    return { title: titleFromLine(lines[0]||chunk), description: chunk, include:true };
   });
   return parsedItems.length > 0;
 }
@@ -1192,85 +903,6 @@ $('analyzeBtn').addEventListener('click', ()=>{
   else setMsg('analyzeStatus','Nothing to split.','err');
 });
 
-/* =========================================================
-   DICTATE — one-handed voice capture into the notes textarea,
-   using the browser's built-in speech recognition. English only.
-   ========================================================= */
-const SpeechRecognitionImpl = window.SpeechRecognition || window.webkitSpeechRecognition;
-let recognizer = null;
-let dictating = false;
-let dictateBaseText = '';
-
-function setDictateUi(on){
-  dictating = on;
-  $('dictateBtn').classList.toggle('recording', on);
-  $('dictateBtnLabel').textContent = on ? 'Listening…' : 'Dictate';
-  if(on){
-    $('dictateBtn').querySelector('.rec-dot')?.remove();
-    const dot = document.createElement('span');
-    dot.className = 'rec-dot';
-    $('dictateBtn').prepend(dot);
-  } else {
-    $('dictateBtn').querySelector('.rec-dot')?.remove();
-  }
-}
-
-if(!SpeechRecognitionImpl){
-  // No speech API on this browser/device — hide the control rather than
-  // show a button that can never work.
-  $('dictateBtn').hidden = true;
-} else {
-  recognizer = new SpeechRecognitionImpl();
-  recognizer.lang = 'en-US';
-  recognizer.continuous = true;
-  recognizer.interimResults = true;
-
-  recognizer.addEventListener('result', (e)=>{
-    let finalChunk = '';
-    let interimChunk = '';
-    for(let i = e.resultIndex; i < e.results.length; i++){
-      const res = e.results[i];
-      if(res.isFinal) finalChunk += res[0].transcript;
-      else interimChunk += res[0].transcript;
-    }
-    if(finalChunk) dictateBaseText = (dictateBaseText + ' ' + finalChunk).trim();
-    const joiner = dictateBaseText && interimChunk ? ' ' : '';
-    $('dump').value = dictateBaseText + joiner + interimChunk;
-  });
-  recognizer.addEventListener('error', (e)=>{
-    setDictateUi(false);
-    if(e.error === 'not-allowed' || e.error === 'service-not-allowed'){
-      setMsg('dictateStatus','Microphone access was blocked — allow it in your browser settings to dictate.','err');
-    } else if(e.error !== 'no-speech' && e.error !== 'aborted'){
-      setMsg('dictateStatus','Dictation stopped unexpectedly — tap Dictate to try again.','err');
-    }
-  });
-  recognizer.addEventListener('end', ()=>{
-    // Some browsers end the session on a pause even mid-thought; if the
-    // user hasn't tapped stop, just pick the mic back up automatically.
-    if(dictating){ try{ recognizer.start(); }catch(e){} }
-    else setDictateUi(false);
-  });
-
-  $('dictateBtn').addEventListener('click', ()=>{
-    if(dictating){
-      dictating = false; // set before stop() so the 'end' handler doesn't restart it
-      recognizer.stop();
-      setDictateUi(false);
-      return;
-    }
-    setMsg('dictateStatus','','');
-    dictateBaseText = $('dump').value ? $('dump').value + ' ' : '';
-    dictateBaseText = dictateBaseText.trim();
-    try{
-      recognizer.start();
-      setDictateUi(true);
-    }catch(e){
-      setMsg('dictateStatus','Could not start the microphone.','err');
-    }
-  });
-}
-
 const AI_SYSTEM_PROMPT = `You turn raw, messy, stream-of-consciousness notes (often dictated live while someone else is talking) into individual Azure DevOps work items.
 
 Rules:
@@ -1278,11 +910,10 @@ Rules:
 - For each distinct topic, produce one item with:
   - "title": a short, clear headline (under 10 words) summarizing the topic.
   - "description": a clean, well-written description (1-4 sentences) explaining the concern, based only on what was actually said. Do not invent facts, numbers, or names that weren't mentioned.
-  - "category": exactly one of "blocker" (actively stopping progress), "bug" (something broken), "question" (needs an answer/decision from someone), or "task" (general follow-up/review work) — your best judgement from the wording.
 - If the notes only describe one topic, return exactly one item.
 - If nothing meaningful can be extracted, return an empty items array.
 - Respond with ONLY valid JSON in this exact shape, no markdown fences, no commentary:
-{"items":[{"title":"...", "description":"...", "category":"task"}]}`;
+{"items":[{"title":"...", "description":"..."}]}`;
 
 async function callWorkerAi(c, userText){
   if(!c.proxy) throw new Error('Set a Worker proxy URL in the connection step first.');
@@ -1316,7 +947,7 @@ $('aiSplitBtn').addEventListener('click', async ()=>{
   try{
     const items = await callWorkerAi(c, text);
     if(items.length === 0){ showGeneratingError('AI found nothing usable in that text.'); return; }
-    parsedItems = items.map(it => ({ title:(it.title||'').trim(), description:(it.description||'').trim(), category: CATEGORIES.includes(it.category)?it.category:'task', include:true })).filter(it=>it.title);
+    parsedItems = items.map(it => ({ title:(it.title||'').trim(), description:(it.description||'').trim(), include:true })).filter(it=>it.title);
     renderItems();
     replaceTop('review');
   }catch(err){
@@ -1340,7 +971,7 @@ $('generatingManualBtn').addEventListener('click', ()=>{
    REVIEW ITEMS LIST
    ========================================================= */
 $('addItemBtn').addEventListener('click', ()=>{
-  parsedItems.push({ title:'', description:'', category:'task', include:true });
+  parsedItems.push({ title:'', description:'', include:true });
   renderItems();
 });
 function renderItems(){
@@ -1351,171 +982,31 @@ function renderItems(){
   parsedItems.forEach((it,i)=>{
     const div = document.createElement('div');
     div.className = 'item-card' + (it.include ? ' included' : ' excluded');
-    const catOptions = CATEGORIES.map(cat=>`<option value="${cat}" ${((it.category||'task')===cat)?'selected':''}>${CATEGORY_LABELS[cat]}</option>`).join('');
-    let dupBadge = '';
-    if(it.dup && it.dup.added){
-      dupBadge = `<div class="dup-badge dup-added"><span>✓ Added as a comment on <strong>#${it.dup.id}</strong> instead — this item won't be created</span></div>`;
-    } else if(it.dup){
-      dupBadge = `
-      <div class="dup-badge">
-        <span>⚠ Might duplicate <strong>#${it.dup.id}</strong>: ${escapeAttr(it.dup.title)}</span>
-        <button type="button" data-role="dup-comment" data-i="${i}">Add as comment instead</button>
-        <button type="button" data-role="dup-dismiss" data-i="${i}">Dismiss</button>
-      </div>`;
-    }
     div.innerHTML = `
-      <div class="item-card-bg" aria-hidden="true">
-        <span>Remove</span>
-        <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0v12a2 2 0 002 2h6a2 2 0 002-2V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <button class="item-toggle ${it.include?'on':''}" data-role="include" data-i="${i}" aria-label="Include this item">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="item-body">
+        <input type="text" data-role="title" data-i="${i}" value="${escapeAttr(it.title)}" placeholder="Meaningful title">
+        <textarea data-role="desc" data-i="${i}" placeholder="Description">${it.description}</textarea>
       </div>
-      <div class="item-card-inner">
-        <button class="item-toggle ${it.include?'on':''}" data-role="include" data-i="${i}" aria-label="Include this item">
-          <svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <div class="item-body">
-          <input type="text" data-role="title" data-i="${i}" value="${escapeAttr(it.title)}" placeholder="Meaningful title">
-          <textarea data-role="desc" data-i="${i}" placeholder="Description">${it.description}</textarea>
-          <select class="cat-select" data-role="cat" data-i="${i}">${catOptions}</select>
-          ${dupBadge}
-        </div>
-      </div>
+      <button class="item-remove" data-role="remove" data-i="${i}" aria-label="Remove item">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0v12a2 2 0 002 2h6a2 2 0 002-2V7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      </button>
     `;
     list.appendChild(div);
-    attachItemSwipe(div, div.querySelector('.item-card-inner'), i);
   });
   list.querySelectorAll('[data-role=title]').forEach(el=> el.addEventListener('input', e=>{ parsedItems[e.target.dataset.i].title = e.target.value; }));
   list.querySelectorAll('[data-role=desc]').forEach(el=> el.addEventListener('input', e=>{ parsedItems[e.target.dataset.i].description = e.target.value; }));
-  list.querySelectorAll('[data-role=cat]').forEach(el=> el.addEventListener('change', e=>{ parsedItems[e.target.dataset.i].category = e.target.value; }));
   list.querySelectorAll('[data-role=include]').forEach(el=> el.addEventListener('click', e=>{
     const btn = e.currentTarget; const i = btn.dataset.i;
     parsedItems[i].include = !parsedItems[i].include;
     renderItems();
   }));
-  list.querySelectorAll('[data-role=dup-dismiss]').forEach(el=> el.addEventListener('click', e=>{
-    delete parsedItems[e.currentTarget.dataset.i].dup; renderItems();
-  }));
-  list.querySelectorAll('[data-role=dup-comment]').forEach(el=> el.addEventListener('click', e=>{
-    addDupAsComment(e.currentTarget.dataset.i, e.currentTarget);
+  list.querySelectorAll('[data-role=remove]').forEach(el=> el.addEventListener('click', e=>{
+    parsedItems.splice(e.currentTarget.dataset.i,1); renderItems();
   }));
 }
-
-/* =========================================================
-   DUPLICATE → COMMENT — one tap turns a flagged duplicate into
-   a comment on the existing item instead of a new one, using
-   the same PAT already on file.
-   ========================================================= */
-async function addDupAsComment(i, btn){
-  const it = parsedItems[i];
-  if(!it || !it.dup) return;
-  const c = cfg();
-  btn.disabled = true;
-  btn.textContent = 'Adding…';
-  try{
-    const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/workItems/${it.dup.id}/comments?api-version=7.1-preview.3`;
-    const text = (it.title.trim() + (it.description ? '\n\n' + it.description : '')).replace(/\n/g,'<br>');
-    const res = await fetch(url, { method:'POST', headers:{...adoHeaders(c.pat),'Content-Type':'application/json'}, body: JSON.stringify({ text }) });
-    if(!res.ok) throw new Error('failed');
-    it.include = false;
-    it.dup.added = true;
-    renderItems();
-  }catch(e){
-    btn.disabled = false;
-    btn.textContent = 'Add as comment instead';
-    setMsg('itemsCount', `Couldn't add the comment to #${it.dup.id} — try again.`, 'err');
-  }
-}
-
-/* =========================================================
-   SWIPE-TO-REMOVE — one-handed alternative to hunting for a
-   corner button. Swipe an item card left past the threshold to
-   drop it from the batch; a light tap elsewhere (title, toggle,
-   dropdown) is left completely alone.
-   ========================================================= */
-function attachItemSwipe(card, inner, index){
-  let startX=0, startY=0, curX=0, dragging=false, decided=false, horizontal=false;
-  const threshold = 84;
-  inner.addEventListener('touchstart', (e)=>{
-    if(e.target.closest('input,textarea,select,button')) return;
-    const t = e.touches[0];
-    startX = t.clientX; startY = t.clientY; curX = 0; dragging = true; decided = false; horizontal = false;
-    inner.style.transition = 'none';
-  }, {passive:true});
-  inner.addEventListener('touchmove', (e)=>{
-    if(!dragging) return;
-    const t = e.touches[0];
-    const dx = t.clientX - startX;
-    const dy = t.clientY - startY;
-    if(!decided){
-      if(Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
-      decided = true;
-      horizontal = Math.abs(dx) > Math.abs(dy) * 1.4;
-      if(!horizontal){ dragging = false; return; } // let the page scroll — this wasn't a swipe
-    }
-    if(dx > 0){ curX = 0; } else { curX = Math.max(dx, -140); }
-    inner.style.transform = `translateX(${curX}px)`;
-    e.preventDefault();
-  }, {passive:false});
-  function end(){
-    if(!dragging) return;
-    dragging = false;
-    inner.style.transition = 'transform .18s ease';
-    if(curX < -threshold){
-      inner.style.transform = 'translateX(-100%)';
-      card.style.transition = 'max-height .18s ease .1s, opacity .18s ease .1s, margin .18s ease .1s';
-      setTimeout(()=>{ parsedItems.splice(index,1); renderItems(); }, 170);
-    } else {
-      inner.style.transform = 'translateX(0)';
-    }
-  }
-  inner.addEventListener('touchend', end);
-  inner.addEventListener('touchcancel', end);
-}
-
-/* =========================================================
-   DUPLICATE CHECK — before you create a pile of near-duplicate
-   items, quietly flag any that look like they already exist in
-   the project. Purely informational: a dismissible badge on the
-   review screen, never blocks creation.
-   ========================================================= */
-let dupCheckToken = 0;
-let lastDupSignature = null;
-async function runDuplicateCheck(){
-  const c = cfg();
-  if(!c.proxy || !c.org || !c.project || !parsedItems.length) return;
-  const signature = c.project + '::' + parsedItems.map(it=>it.title).join('|');
-  if(signature === lastDupSignature) return;
-  lastDupSignature = signature;
-  const token = ++dupCheckToken;
-  try{
-    const existing = await fetchExistingItems(c);
-    if(token !== dupCheckToken || !existing.length) return;
-    const existingList = existing.slice(0,60).map(e=>`#${e.id}: ${e.title}`).join('\n');
-    const newList = parsedItems.map((it,i)=>`${i}: ${it.title} — ${(it.description||'').slice(0,140)}`).join('\n');
-    const prompt = `Existing items:\n${existingList}\n\nNewly proposed items:\n${newList}\n\nFor each new item, decide ONLY if it is clearly about the same underlying topic as one existing item (not just a loosely related area). Respond with ONLY valid JSON, no markdown fences, no commentary: {"matches":[{"index":0,"id":142}]} — omit anything you're not genuinely confident about.`;
-    const res = await fetch(`${c.proxy}/ai`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ messages:[
-        {role:'system', content:'You detect duplicate work items. Respond with ONLY valid JSON, no commentary, no markdown fences.'},
-        {role:'user', content:prompt}
-      ], temperature:0, max_tokens:600 })
-    });
-    if(!res.ok || token !== dupCheckToken) return;
-    const data = await res.json();
-    let content = data && (data.response ?? data.result?.response);
-    if(typeof content !== 'string') content = JSON.stringify(content);
-    const cleaned = content.replace(/^```(?:json)?\s*/i,'').replace(/```\s*$/,'').trim();
-    const parsed = JSON.parse(cleaned);
-    const matches = Array.isArray(parsed.matches) ? parsed.matches : [];
-    const byId = new Map(existing.map(e=>[e.id, e]));
-    matches.forEach(m=>{
-      const it = parsedItems[m.index];
-      const ex = byId.get(m.id);
-      if(it && ex) it.dup = { id: ex.id, title: ex.title };
-    });
-    if(token === dupCheckToken) renderItems();
-  }catch(e){ /* best-effort — a broken check should never block review */ }
-}
-onEnter['review'] = runDuplicateCheck;
 
 /* =========================================================
    REQUIRED-FIELD DETECTION
@@ -1645,30 +1136,15 @@ async function fetchExistingItems(c){
   const wiql = { query: `SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '${c.project}' AND [System.WorkItemType] = '${c.witype}' ORDER BY [System.Id] DESC` };
   const wiqlUrl = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/wiql?api-version=7.1`;
   const wr = await fetch(wiqlUrl, { method:'POST', headers:adoHeaders(c.pat), body:JSON.stringify(wiql) });
-  if(!wr.ok){
-    const txt = await wr.text();
-    let reason = txt;
-    try{ const j = JSON.parse(txt); reason = j.message || (j.value && j.value.Message) || txt; }catch(e){}
-    throw new Error(`wiql failed (${wr.status}): ${reason.slice(0,220)}`);
-  }
+  if(!wr.ok) throw new Error('wiql failed: ' + wr.status);
   const wdata = await wr.json();
   const ids = (wdata.workItems || []).map(w=>w.id);
   if(ids.length === 0) return [];
   const batchUrl = `${adoBase(c)}/${encodeURIComponent(c.org)}/_apis/wit/workitemsbatch?api-version=7.1`;
-  const br = await fetch(batchUrl, { method:'POST', headers:adoHeaders(c.pat), body:JSON.stringify({ids, fields:['System.Title','System.State','System.CommentCount']}) });
-  if(!br.ok){
-    const txt = await br.text();
-    let reason = txt;
-    try{ const j = JSON.parse(txt); reason = j.message || (j.value && j.value.Message) || txt; }catch(e){}
-    throw new Error(`batch failed (${br.status}): ${reason.slice(0,220)}`);
-  }
+  const br = await fetch(batchUrl, { method:'POST', headers:adoHeaders(c.pat), body:JSON.stringify({ids, fields:['System.Title','System.State']}) });
+  if(!br.ok) throw new Error('batch failed: ' + br.status);
   const bdata = await br.json();
-  const items = (bdata.value || []).map(w=>({
-    id:w.id,
-    title:(w.fields && w.fields['System.Title']) || '(no title)',
-    state:(w.fields && w.fields['System.State']) || '',
-    commentCount:(w.fields && w.fields['System.CommentCount']) || 0
-  }));
+  const items = (bdata.value || []).map(w=>({ id:w.id, title:(w.fields && w.fields['System.Title']) || '(no title)', state:(w.fields && w.fields['System.State']) || '' }));
   items.sort((a,b)=> b.id - a.id);
   return items;
 }
@@ -1680,10 +1156,22 @@ async function getNextNumber(c){
   return max + 1;
 }
 
-/* Creates every item in toCreate against Azure DevOps. `rows` (optional)
-   are the live checklist DOM rows to update as each one lands — omitted
-   when this runs silently in the background (offline queue flush). */
-async function createItemsInAdo(c, toCreate, values, rows){
+$('createBtn').addEventListener('click', async ()=>{
+  const c = cfg();
+  const toCreate = parsedItems.filter(it=>it.include && it.title.trim());
+  if(toCreate.length === 0) return;
+
+  go('creating');
+  const checklist = $('creatingChecklist');
+  checklist.innerHTML = '';
+  const rows = toCreate.map(it=>{
+    const row = document.createElement('div'); row.className='check-row';
+    row.innerHTML = `<span class="mark"></span><span class="title">${escapeAttr(it.title)}</span>`;
+    checklist.appendChild(row);
+    return row;
+  });
+
+  const { values } = getExtraFieldValues();
   const results = [];
   try{
     let next = await getNextNumber(c);
@@ -1698,122 +1186,41 @@ async function createItemsInAdo(c, toCreate, values, rows){
         { op:'add', path:'/fields/System.AreaPath', value:c.project },
         { op:'add', path:'/fields/System.IterationPath', value:c.project }
       ];
-      const category = CATEGORIES.includes(it.category) ? it.category : 'task';
-      body.push({ op:'add', path:'/fields/Microsoft.VSTS.Common.Priority', value: CATEGORY_PRIORITY[category] });
-      body.push({ op:'add', path:'/fields/System.Tags', value: category.charAt(0).toUpperCase()+category.slice(1) });
       Object.entries(values).forEach(([refName,val])=> body.push({op:'add', path:`/fields/${refName}`, value:val}));
       try{
         const res = await fetch(witUrl, { method:'POST', headers:{...adoHeaders(c.pat), 'Content-Type':'application/json-patch+json'}, body:JSON.stringify(body) });
         if(res.ok){
           const data = await res.json();
           const link = `https://dev.azure.com/${c.org}/${encodeURIComponent(c.project)}/_workitems/edit/${data.id}`;
-          const state = data.fields && data.fields['System.State'] || null;
-          if(rows){ rows[i].classList.add('done'); rows[i].innerHTML = `<span class="mark">✓</span><span class="title">${escapeAttr(title)}</span>`; }
-          results.push({ ok:true, title, id:data.id, link, state });
+          rows[i].classList.add('done');
+          rows[i].innerHTML = `<span class="mark">✓</span><span class="title">${escapeAttr(title)}</span>`;
+          results.push({ ok:true, title, id:data.id, link });
           next++;
         } else {
           const txt = await res.text();
           let reason = txt;
           try{ const j = JSON.parse(txt); reason = j.message || (j.value && j.value.Message) || txt; }catch(e){}
-          if(rows){ rows[i].classList.add('fail'); rows[i].innerHTML = `<span class="mark">!</span><span class="title">${escapeAttr(title)}</span>`; }
+          rows[i].classList.add('fail');
+          rows[i].innerHTML = `<span class="mark">!</span><span class="title">${escapeAttr(title)}</span>`;
           results.push({ ok:false, title, reason: reason.slice(0,220) });
         }
       }catch(err){
-        if(rows) rows[i].classList.add('fail');
+        rows[i].classList.add('fail');
         results.push({ ok:false, title, reason:'Network error' });
       }
       await new Promise(r=>setTimeout(r, 120));
     }
   }catch(err){ /* getNextNumber failure — results stays partial */ }
-  return results;
-}
-
-/* =========================================================
-   OFFLINE QUEUE — a batch created with no connection is saved
-   locally and sent automatically the next time the app notices
-   it's back online, instead of just failing item by item.
-   ========================================================= */
-async function getQueue(){
-  try{ const r = await storage.get('ado_queue', false); return r && r.value ? JSON.parse(r.value) : []; }catch(e){ return []; }
-}
-async function setQueue(list){ try{ await storage.set('ado_queue', JSON.stringify(list), false); }catch(e){} }
-
-let flushingQueue = false;
-async function flushQueue(){
-  if(flushingQueue || !navigator.onLine) return;
-  flushingQueue = true;
-  try{
-    const queue = await getQueue();
-    if(!queue.length) return;
-    const remaining = [];
-    for(const q of queue){
-      const results = await createItemsInAdo(q.cfg, q.items, q.values);
-      const okCount = results.filter(r=>r.ok).length;
-      if(okCount < q.items.length) remaining.push(q); // partial/failed — keep queued for the next retry
-      else{ try{ await storage.set('ado_last_batch', JSON.stringify({count:okCount, at:Date.now(), org:q.cfg.org, project:q.cfg.project, items: results.filter(r=>r.ok).map(r=>({id:r.id, state:r.state}))}), false); }catch(e){} }
-    }
-    await setQueue(remaining);
-    if(activeId === 'home') refreshHome();
-  } finally { flushingQueue = false; }
-}
-window.addEventListener('online', flushQueue);
-flushQueue(); // in case connectivity came back while the app was closed
-
-$('createBtn').addEventListener('click', async ()=>{
-  const c = cfg();
-  const toCreate = parsedItems.filter(it=>it.include && it.title.trim());
-  if(toCreate.length === 0) return;
-
-  // No connection right now — queue the whole batch locally instead of
-  // letting every request fail one by one. It's sent automatically the
-  // next time the app notices it's back online.
-  if(!navigator.onLine){
-    const { values } = getExtraFieldValues();
-    const queue = await getQueue();
-    queue.push({ cfg:c, items:toCreate, values, queuedAt:Date.now() });
-    await setQueue(queue);
-    buildResultsScreen([], toCreate);
-    stack = ['home','results'];
-    transitionTo('results','forward');
-    return;
-  }
-
-  go('creating');
-  const checklist = $('creatingChecklist');
-  checklist.innerHTML = '';
-  const rows = toCreate.map(it=>{
-    const row = document.createElement('div'); row.className='check-row';
-    row.innerHTML = `<span class="mark"></span><span class="title">${escapeAttr(it.title)}</span>`;
-    checklist.appendChild(row);
-    return row;
-  });
-
-  const { values } = getExtraFieldValues();
-  const results = await createItemsInAdo(c, toCreate, values, rows);
 
   const okCount = results.filter(r=>r.ok).length;
-  try{ await storage.set('ado_last_batch', JSON.stringify({count:okCount, at:Date.now(), org:c.org, project:c.project, items: results.filter(r=>r.ok).map(r=>({id:r.id, state:r.state}))}), false); }catch(e){}
+  try{ await storage.set('ado_last_batch', JSON.stringify({count:okCount, at:Date.now()}), false); }catch(e){}
 
   buildResultsScreen(results);
   stack = ['home','results'];
   transitionTo('results','forward');
 });
 
-function buildResultsScreen(results, queuedItems){
-  if(queuedItems){
-    $('resultsTitle').textContent = 'Saved — will send when back online';
-    $('resultsSub').textContent = `No connection right now. ${queuedItems.length} item${queuedItems.length===1?'':'s'} queued and will be created in Azure DevOps automatically once you're back online.`;
-    const stamp = $('resultsStamp');
-    stamp.classList.remove('pulse'); void stamp.offsetWidth; stamp.classList.add('pulse');
-    const list = $('resultsList');
-    list.innerHTML = '';
-    queuedItems.forEach(it=>{
-      const row = document.createElement('div'); row.className='check-row';
-      row.innerHTML = `<span class="mark">⏳</span><span class="title">${escapeAttr(it.title)}</span>`;
-      list.appendChild(row);
-    });
-    return;
-  }
+function buildResultsScreen(results){
   const okCount = results.filter(r=>r.ok).length;
   const failCount = results.length - okCount;
   $('resultsTitle').textContent = failCount === 0 ? 'Done — items are live' : `${okCount} created, ${failCount} failed`;
@@ -1845,7 +1252,6 @@ $('resultsAgainBtn').addEventListener('click', ()=>{
    ========================================================= */
 async function loadExisting(){
   const c = cfg();
-  $('existingSettingsBtn').style.display = 'none';
   if(!c.pat){ setMsg('existingStatus','Connect Azure DevOps first.','err'); return; }
   $('existingEyebrow').textContent = `Showing "${c.witype}" items in ${c.project}.`;
   setMsg('existingStatus','Loading…','info');
@@ -1866,161 +1272,18 @@ async function loadExisting(){
     const oldEmpty = document.getElementById('existingEmpty'); if(oldEmpty) oldEmpty.remove();
     setMsg('existingStatus', `${items.length} item${items.length===1?'':'s'} found.`, 'ok');
     items.forEach(it=>{
-      const row = document.createElement('button');
-      row.type = 'button';
-      row.className = 'plain-row';
-      const discBadge = it.commentCount > 0
-        ? `<span class="disc-badge" title="${it.commentCount} comment${it.commentCount===1?'':'s'} in Discussion">💬 ${it.commentCount}</span>`
-        : '';
-      row.innerHTML = `<span class="id">#${it.id}</span><span class="title">${escapeAttr(it.title)}</span>${discBadge}<span class="state">${escapeAttr(it.state)}</span><span class="chev"><svg viewBox="0 0 8 13" fill="none"><path d="M1 1l5.5 5.5L1 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
-      row.addEventListener('click', ()=> openItemDetail(it.id));
+      const link = `https://dev.azure.com/${c.org}/${encodeURIComponent(c.project)}/_workitems/edit/${it.id}`;
+      const row = document.createElement('a');
+      row.className = 'plain-row'; row.href = link; row.target = '_blank';
+      row.innerHTML = `<span class="id">#${it.id}</span><span class="title">${escapeAttr(it.title)}</span><span class="state">${escapeAttr(it.state)}</span>`;
       $('existingList').appendChild(row);
     });
   }catch(err){
-    setMsg('existingStatus', `Could not load items — ${err.message || 'check your connection'}.`, 'err');
-    $('existingSettingsBtn').style.display = 'inline-flex';
+    setMsg('existingStatus','Could not load items — check your connection.','err');
   }
 }
 $('existingRefreshBtn').addEventListener('click', loadExisting);
-$('existingSettingsBtn').addEventListener('click', ()=>{
-  go('setup-access');
-  setTimeout(()=>{ if(!$('testBtn').disabled) $('testBtn').click(); }, 350);
-});
 onEnter['existing'] = loadExisting;
-
-/* =========================================================
-   ITEM DETAIL — fetch one work item and show who last
-   touched it, its Purpose (shown as "Description"), and
-   the full Discussion comment thread.
-   ========================================================= */
-const DETAIL_FIELDS = ['System.Title','System.State','System.WorkItemType','System.Description','System.ChangedBy','System.ChangedDate','System.CreatedBy','System.CreatedDate'];
-
-// "Purpose" is a custom field — its reference name isn't known ahead of
-// time, so we look it up once by display name and cache it per project.
-const purposeFieldRefCache = {};
-async function resolvePurposeFieldRef(c){
-  const key = c.org + '::' + c.project;
-  if(key in purposeFieldRefCache) return purposeFieldRefCache[key];
-  try{
-    const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/fields?api-version=7.1`;
-    const r = await fetch(url, { headers: adoHeaders(c.pat) });
-    if(!r.ok) throw new Error('fields lookup failed: ' + r.status);
-    const data = await r.json();
-    const match = (data.value || []).find(f => (f.name||'').trim().toLowerCase() === 'purpose');
-    purposeFieldRefCache[key] = match ? match.referenceName : null;
-  }catch(e){
-    purposeFieldRefCache[key] = null;
-  }
-  return purposeFieldRefCache[key];
-}
-
-async function fetchItemDetail(c, id, purposeRef){
-  const fields = purposeRef ? [...DETAIL_FIELDS, purposeRef] : DETAIL_FIELDS;
-  const fieldsParam = fields.join(',');
-  const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/_apis/wit/workitems/${id}?fields=${encodeURIComponent(fieldsParam)}&api-version=7.1`;
-  const r = await fetch(url, { headers: adoHeaders(c.pat) });
-  if(!r.ok) throw new Error('work item fetch failed: ' + r.status);
-  const data = await r.json();
-  const f = data.fields || {};
-  const who = v => (v && v.displayName) ? v.displayName : '—';
-  const when = v => v ? new Date(v).toLocaleString(undefined,{dateStyle:'medium', timeStyle:'short'}) : '—';
-  // Purpose is the real source of the write-up on this project; fall back
-  // to the plain Description field if Purpose isn't set or doesn't exist.
-  const purposeVal = purposeRef ? f[purposeRef] : null;
-  return {
-    id: data.id,
-    title: f['System.Title'] || '(no title)',
-    state: f['System.State'] || '—',
-    type: f['System.WorkItemType'] || '—',
-    description: (purposeVal && purposeVal.trim()) ? purposeVal : (f['System.Description'] || ''),
-    changedBy: who(f['System.ChangedBy']),
-    changedDate: when(f['System.ChangedDate']),
-    createdBy: who(f['System.CreatedBy']),
-    createdDate: when(f['System.CreatedDate'])
-  };
-}
-
-async function fetchComments(c, id){
-  const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/workItems/${id}/comments?order=desc&api-version=7.1-preview.4`;
-  const r = await fetch(url, { headers: adoHeaders(c.pat) });
-  if(!r.ok) throw new Error('comments fetch failed: ' + r.status);
-  const data = await r.json();
-  return (data.comments || []).map(cm => ({
-    author: (cm.createdBy && cm.createdBy.displayName) || 'Unknown',
-    date: cm.createdDate ? new Date(cm.createdDate).toLocaleString(undefined,{dateStyle:'medium', timeStyle:'short'}) : '',
-    text: cm.text || ''
-  }));
-}
-
-function renderDiscussion(comments){
-  const el = $('detailDiscussion');
-  if(!comments.length){
-    el.className = 'detail-desc-card empty';
-    el.textContent = 'No discussion on this item yet.';
-    return;
-  }
-  el.className = 'detail-desc-card';
-  el.innerHTML = comments.map(cm => `<div class="comment-entry"><div class="comment-meta">${escapeAttr(cm.author)} · ${escapeAttr(cm.date)}</div><div class="comment-body">${cm.text}</div></div>`).join('');
-}
-
-let detailLoadToken = 0;
-async function openItemDetail(id){
-  const c = cfg();
-  go('item-detail');
-  const token = ++detailLoadToken;
-  setMsg('detailStatus','','');
-  $('detailSettingsRow').style.display = 'none';
-  $('detailId').textContent = `#${id}`;
-  $('detailTitle').textContent = 'Loading…';
-  $('detailState').textContent = '—';
-  $('detailType').textContent = '—';
-  $('detailChanged').textContent = '—';
-  $('detailCreated').textContent = '—';
-  $('detailDescription').className = 'detail-desc-card';
-  $('detailDescription').textContent = 'Loading…';
-  $('detailDiscussion').className = 'detail-desc-card';
-  $('detailDiscussion').textContent = 'Loading…';
-  $('detailOpenAdoBtn').href = `https://dev.azure.com/${c.org}/${encodeURIComponent(c.project)}/_workitems/edit/${id}`;
-  try{
-    const purposeRef = await resolvePurposeFieldRef(c);
-    const [detail, comments] = await Promise.all([
-      fetchItemDetail(c, id, purposeRef),
-      fetchComments(c, id).catch(()=>null) // discussion failure shouldn't block the rest of the item
-    ]);
-    if(token !== detailLoadToken) return; // a newer item was opened before this one finished
-    $('detailId').textContent = `#${detail.id}`;
-    $('detailTitle').textContent = detail.title;
-    $('detailState').textContent = detail.state;
-    $('detailType').textContent = detail.type;
-    $('detailChanged').textContent = `${detail.changedBy} · ${detail.changedDate}`;
-    $('detailCreated').textContent = `${detail.createdBy} · ${detail.createdDate}`;
-    if(detail.description && detail.description.trim()){
-      $('detailDescription').innerHTML = detail.description;
-    } else {
-      $('detailDescription').className = 'detail-desc-card empty';
-      $('detailDescription').textContent = 'Nothing here yet.';
-    }
-    if(comments === null){
-      $('detailDiscussion').className = 'detail-desc-card empty';
-      $('detailDiscussion').textContent = 'Could not load discussion.';
-    } else {
-      renderDiscussion(comments);
-    }
-  }catch(err){
-    if(token !== detailLoadToken) return;
-    $('detailTitle').textContent = 'Couldn\u2019t load this item';
-    $('detailDescription').className = 'detail-desc-card empty';
-    $('detailDescription').textContent = '';
-    $('detailDiscussion').className = 'detail-desc-card empty';
-    $('detailDiscussion').textContent = '';
-    setMsg('detailStatus', `Could not load this item — ${err.message || 'check your connection'}.`, 'err');
-    $('detailSettingsRow').style.display = 'block';
-  }
-}
-$('detailSettingsBtn').addEventListener('click', ()=>{
-  go('setup-access');
-  setTimeout(()=>{ if(!$('testBtn').disabled) $('testBtn').click(); }, 350);
-});
 
 </script>
 </body>
