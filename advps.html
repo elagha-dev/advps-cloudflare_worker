@@ -227,6 +227,7 @@ select{
 .home-row .chev{color:var(--ink-3); flex:none;}
 .home-recent{font-size:12.5px; color:var(--ink-2); margin:var(--sp-3) auto 0; font-weight:500;}
 .home-recent.link{color:var(--green); font-weight:600; text-decoration:underline; text-decoration-color:var(--card-tint-border); text-underline-offset:2px; cursor:pointer;}
+.home-row .count{color:var(--ink-3); font-weight:500;}
 
 /* not connected: centered empty state, like a native empty inbox */
 .home-empty{display:none; flex:1; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:var(--sp-6) var(--sp-4); min-height:52vh;}
@@ -350,6 +351,20 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
 .disc-badge{font-size:11px; font-weight:700; color:var(--amber); background:var(--amber-soft); padding:3px 7px; border-radius:20px; flex:none; white-space:nowrap;}
 
 /* =====================================================================
+   QUEUE — internal holding area; items land here on save and leave
+   only when explicitly sent to Azure DevOps or removed.
+   ===================================================================== */
+.queue-row{display:flex; align-items:flex-start; gap:12px; padding:13px 0; border-bottom:1px solid var(--hair); cursor:pointer;}
+.queue-row:last-child{border-bottom:none;}
+.queue-row input[type="checkbox"]{width:19px; height:19px; margin-top:2px; flex:none; accent-color:var(--green);}
+.queue-row-body{flex:1; min-width:0; display:flex; flex-direction:column; gap:3px;}
+.queue-row-body .title{font-size:15px; color:var(--ink); font-weight:500; line-height:1.35; word-break:break-word;}
+.queue-row-body .meta{font-size:12px; color:var(--ink-3); font-weight:500;}
+.queue-row.disabled{opacity:.55;}
+.btn-secondary:disabled{opacity:.4; cursor:default;}
+.btn-secondary[hidden]{display:none;}
+
+/* =====================================================================
    ITEM DETAIL — single work item, read-only view
    ===================================================================== */
 .detail-title{font-family:var(--display); font-weight:700; font-size:22px; letter-spacing:-.01em; color:var(--ink); margin:var(--sp-2) 0 4px; line-height:1.25;}
@@ -413,6 +428,10 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
         <button class="btn-primary" id="homeConnectBtn" hidden>Connect Azure DevOps</button>
         <div class="home-row" id="homeExistingBtn" hidden>
           <span class="label">Existing items</span>
+          <span class="chev"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </div>
+        <div class="home-row" id="homeQueueBtn" hidden>
+          <span class="label">Queue<span class="count" id="homeQueueCount"></span></span>
           <span class="chev"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         </div>
       </div>
@@ -584,7 +603,7 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
         <div class="preview-card" id="previewList"></div>
       </div>
       <div class="screen-foot">
-        <button class="btn-primary" id="createBtn">Create in Azure DevOps</button>
+        <button class="btn-primary" id="createBtn">Save to queue</button>
       </div>
     </section>
 
@@ -592,7 +611,7 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
     <section class="screen" data-screen="creating">
       <div class="center-stage">
         <div class="loader-ring"></div>
-        <h2 class="loader-title">Creating your items…</h2>
+        <h2 class="loader-title">Sending your items…</h2>
         <p class="loader-sub">Sending each one to Azure DevOps.</p>
         <div class="checklist" id="creatingChecklist"></div>
       </div>
@@ -616,7 +635,33 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
       </div>
       <div class="screen-foot">
         <button class="btn-primary" id="resultsHomeBtn">Back to home</button>
-        <div class="text-row"><button class="btn-text muted" id="resultsAgainBtn">Create another batch</button></div>
+        <div class="text-row">
+          <button class="btn-text muted" id="resultsQueueBtn" hidden>Go to queue</button>
+          <button class="btn-text muted" id="resultsAgainBtn">Create another batch</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ QUEUE ============ -->
+    <section class="screen" data-screen="queue">
+      <div class="screen-scroll">
+        <p class="intro">Items saved here haven't been sent to Azure DevOps yet. Select some to send them or export them as a CSV.</p>
+        <div class="msg" id="queueStatus"></div>
+        <div class="text-row left" id="queueSelectRow" style="display:none;">
+          <button class="btn-text muted" id="queueSelectAllBtn">Select all</button>
+          <button class="btn-text muted" id="queueSelectNoneBtn">Clear selection</button>
+        </div>
+        <div class="list-card" id="queueList" style="display:none;"></div>
+        <div class="empty-state" id="queueEmpty" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V7z" stroke="currentColor" stroke-width="1.5"/></svg>
+          <div class="t">Queue is empty</div>
+          <div class="s">Items you save from a new batch will show up here until you send them to Azure DevOps or export them.</div>
+        </div>
+      </div>
+      <div class="screen-foot">
+        <button class="btn-primary" id="queueSendBtn" disabled>Send selected to Azure DevOps</button>
+        <button class="btn-secondary" id="queueExportBtn" disabled style="margin-top:10px;">Export selected as CSV</button>
+        <div class="text-row"><button class="btn-text danger" id="queueDeleteBtn" style="visibility:hidden;">Remove selected from queue</button></div>
       </div>
     </section>
 
@@ -686,8 +731,8 @@ const NAV_TITLES = {
   home:'Review Items', 'setup-org':'Org & project', 'setup-presets':'Saved setups',
   'setup-access':'Your access', 'setup-type':'Work item type', paste:'New batch',
   generating:'New batch', review:'Review items', 'extra-fields':'Required fields',
-  confirm:'Confirm', creating:'Creating', results:'Results', existing:'Existing items',
-  'item-detail':'Item details'
+  confirm:'Confirm', creating:'Sending', results:'Results', existing:'Existing items',
+  queue:'Queue', 'item-detail':'Item details'
 };
 const NO_BACK = ['home','creating'];
 
@@ -1098,8 +1143,13 @@ async function refreshHome(){
   $('homePrimaryBtn').hidden = !connected;
   $('homeConnectBtn').hidden = connected;
   $('homeExistingBtn').hidden = !connected;
+  $('homeQueueBtn').hidden = !connected;
   if(connected){
     $('homeProjectLine').textContent = `${$('project').value.trim()} · ${$('org').value.trim()}`;
+    try{
+      const queue = await getQueue();
+      $('homeQueueCount').textContent = queue.length ? ` · ${queue.length} pending` : '';
+    }catch(e){}
     try{
       const r = await storage.get('ado_last_batch', false);
       if(r && r.value){
@@ -1157,6 +1207,7 @@ async function checkLastBatchDigest(info){
 $('homePrimaryBtn').addEventListener('click', ()=> go('paste'));
 $('homeConnectBtn').addEventListener('click', ()=> go('setup-org'));
 $('homeExistingBtn').addEventListener('click', ()=> go('existing'));
+$('homeQueueBtn').addEventListener('click', ()=> go('queue'));
 onEnter['home'] = refreshHome;
 
 /* =========================================================
@@ -1729,80 +1780,50 @@ async function createItemsInAdo(c, toCreate, values, rows){
 }
 
 /* =========================================================
-   OFFLINE QUEUE — a batch created with no connection is saved
-   locally and sent automatically the next time the app notices
-   it's back online, instead of just failing item by item.
+   QUEUE — every batch you create is saved here instead of being
+   sent to Azure DevOps right away. Nothing leaves this device
+   until you explicitly send selected items from the Queue screen
+   (or export them as CSV). Each queue entry keeps its own
+   org/project/work-item-type/prefix and required-field values so
+   items from different batches can be reviewed and sent together
+   or separately.
    ========================================================= */
 async function getQueue(){
   try{ const r = await storage.get('ado_queue', false); return r && r.value ? JSON.parse(r.value) : []; }catch(e){ return []; }
 }
 async function setQueue(list){ try{ await storage.set('ado_queue', JSON.stringify(list), false); }catch(e){} }
-
-let flushingQueue = false;
-async function flushQueue(){
-  if(flushingQueue || !navigator.onLine) return;
-  flushingQueue = true;
-  try{
-    const queue = await getQueue();
-    if(!queue.length) return;
-    const remaining = [];
-    for(const q of queue){
-      const results = await createItemsInAdo(q.cfg, q.items, q.values);
-      const okCount = results.filter(r=>r.ok).length;
-      if(okCount < q.items.length) remaining.push(q); // partial/failed — keep queued for the next retry
-      else{ try{ await storage.set('ado_last_batch', JSON.stringify({count:okCount, at:Date.now(), org:q.cfg.org, project:q.cfg.project, items: results.filter(r=>r.ok).map(r=>({id:r.id, state:r.state}))}), false); }catch(e){} }
-    }
-    await setQueue(remaining);
-    if(activeId === 'home') refreshHome();
-  } finally { flushingQueue = false; }
-}
-window.addEventListener('online', flushQueue);
-flushQueue(); // in case connectivity came back while the app was closed
+function makeQueueId(){ return 'q'+Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
 
 $('createBtn').addEventListener('click', async ()=>{
   const c = cfg();
   const toCreate = parsedItems.filter(it=>it.include && it.title.trim());
   if(toCreate.length === 0) return;
 
-  // No connection right now — queue the whole batch locally instead of
-  // letting every request fail one by one. It's sent automatically the
-  // next time the app notices it's back online.
-  if(!navigator.onLine){
-    const { values } = getExtraFieldValues();
-    const queue = await getQueue();
-    queue.push({ cfg:c, items:toCreate, values, queuedAt:Date.now() });
-    await setQueue(queue);
-    buildResultsScreen([], toCreate);
-    stack = ['home','results'];
-    transitionTo('results','forward');
-    return;
-  }
-
-  go('creating');
-  const checklist = $('creatingChecklist');
-  checklist.innerHTML = '';
-  const rows = toCreate.map(it=>{
-    const row = document.createElement('div'); row.className='check-row';
-    row.innerHTML = `<span class="mark"></span><span class="title">${escapeAttr(it.title)}</span>`;
-    checklist.appendChild(row);
-    return row;
-  });
-
   const { values } = getExtraFieldValues();
-  const results = await createItemsInAdo(c, toCreate, values, rows);
+  const queue = await getQueue();
+  const queuedAt = Date.now();
+  toCreate.forEach(it=>{
+    queue.push({
+      qid: makeQueueId(),
+      queuedAt,
+      cfg: { org:c.org, project:c.project, witype:c.witype, prefix:c.prefix },
+      values,
+      title: it.title.trim(),
+      description: it.description || '',
+      category: CATEGORIES.includes(it.category) ? it.category : 'task'
+    });
+  });
+  await setQueue(queue);
 
-  const okCount = results.filter(r=>r.ok).length;
-  try{ await storage.set('ado_last_batch', JSON.stringify({count:okCount, at:Date.now(), org:c.org, project:c.project, items: results.filter(r=>r.ok).map(r=>({id:r.id, state:r.state}))}), false); }catch(e){}
-
-  buildResultsScreen(results);
+  buildResultsScreen(null, toCreate);
   stack = ['home','results'];
   transitionTo('results','forward');
 });
 
 function buildResultsScreen(results, queuedItems){
   if(queuedItems){
-    $('resultsTitle').textContent = 'Saved — will send when back online';
-    $('resultsSub').textContent = `No connection right now. ${queuedItems.length} item${queuedItems.length===1?'':'s'} queued and will be created in Azure DevOps automatically once you're back online.`;
+    $('resultsTitle').textContent = 'Saved to queue';
+    $('resultsSub').textContent = `${queuedItems.length} item${queuedItems.length===1?'':'s'} saved to your queue. Nothing has been sent to Azure DevOps yet — send them or export as CSV from the Queue screen whenever you're ready.`;
     const stamp = $('resultsStamp');
     stamp.classList.remove('pulse'); void stamp.offsetWidth; stamp.classList.add('pulse');
     const list = $('resultsList');
@@ -1812,14 +1833,16 @@ function buildResultsScreen(results, queuedItems){
       row.innerHTML = `<span class="mark">⏳</span><span class="title">${escapeAttr(it.title)}</span>`;
       list.appendChild(row);
     });
+    $('resultsQueueBtn').hidden = false;
     return;
   }
+  $('resultsQueueBtn').hidden = true;
   const okCount = results.filter(r=>r.ok).length;
   const failCount = results.length - okCount;
   $('resultsTitle').textContent = failCount === 0 ? 'Done — items are live' : `${okCount} created, ${failCount} failed`;
   $('resultsSub').textContent = failCount === 0
     ? 'Everything below has been created in Azure DevOps.'
-    : 'Some items could not be created — check the details below.';
+    : 'Some items could not be created and were left in the queue — check the details below.';
   const stamp = $('resultsStamp');
   stamp.classList.remove('pulse'); void stamp.offsetWidth; stamp.classList.add('pulse');
   const list = $('resultsList');
@@ -1835,10 +1858,170 @@ function buildResultsScreen(results, queuedItems){
   });
 }
 $('resultsHomeBtn').addEventListener('click', ()=>{ resetTo('home'); refreshHome(); });
+$('resultsQueueBtn').addEventListener('click', ()=>{ stack = ['home','queue']; transitionTo('queue','forward'); });
 $('resultsAgainBtn').addEventListener('click', ()=>{
   $('dump').value=''; parsedItems=[]; setMsg('analyzeStatus','','');
   stack = ['home','paste']; transitionTo('paste','forward');
 });
+
+/* =========================================================
+   QUEUE SCREEN — select queued items, then send them to Azure
+   DevOps or export them as CSV. Sending groups selected items by
+   their original org/project/work-item-type/prefix + required
+   field values, so numbering and naming stay correct per group;
+   items that fail to send are left in the queue for another try.
+   ========================================================= */
+let queueSelection = new Set();
+
+function timeAgo(ts){
+  const diff = Date.now() - ts;
+  const m = Math.floor(diff/60000);
+  if(m < 1) return 'just now';
+  if(m < 60) return `${m}m ago`;
+  const h = Math.floor(m/60);
+  if(h < 24) return `${h}h ago`;
+  const d = Math.floor(h/24);
+  return `${d}d ago`;
+}
+
+function updateQueueFootButtons(){
+  const n = queueSelection.size;
+  $('queueSendBtn').disabled = n===0 || !navigator.onLine;
+  $('queueSendBtn').textContent = n && navigator.onLine ? `Send ${n} selected to Azure DevOps` : 'Send selected to Azure DevOps';
+  $('queueExportBtn').disabled = n===0;
+  $('queueDeleteBtn').style.visibility = n ? 'visible' : 'hidden';
+  setMsg('queueStatus', !navigator.onLine ? "You're offline — you can still select items and export them as CSV, but sending to Azure DevOps needs a connection." : '', !navigator.onLine ? 'warn' : '');
+}
+
+async function renderQueueScreen(){
+  const queue = await getQueue();
+  queue.sort((a,b)=> b.queuedAt - a.queuedAt);
+  queueSelection = new Set([...queueSelection].filter(id => queue.some(q=>q.qid===id)));
+
+  $('queueEmpty').style.display = queue.length ? 'none' : 'block';
+  $('queueList').style.display = queue.length ? 'block' : 'none';
+  $('queueSelectRow').style.display = queue.length ? 'flex' : 'none';
+
+  const list = $('queueList');
+  list.innerHTML = '';
+  queue.forEach(q=>{
+    const row = document.createElement('label'); row.className='queue-row';
+    row.innerHTML = `
+      <input type="checkbox" data-qid="${q.qid}" ${queueSelection.has(q.qid)?'checked':''}>
+      <span class="queue-row-body">
+        <span class="title">${escapeAttr(q.title)}</span>
+        <span class="meta">${escapeAttr(q.cfg.prefix||'')}${escapeAttr(q.cfg.witype)} · ${escapeAttr(q.cfg.project)} · ${timeAgo(q.queuedAt)}</span>
+      </span>`;
+    row.querySelector('input').addEventListener('change', e=>{
+      if(e.target.checked) queueSelection.add(q.qid); else queueSelection.delete(q.qid);
+      updateQueueFootButtons();
+    });
+    list.appendChild(row);
+  });
+  updateQueueFootButtons();
+}
+onEnter['queue'] = renderQueueScreen;
+window.addEventListener('online', ()=>{ if(activeId==='queue') updateQueueFootButtons(); if(activeId==='home') refreshHome(); });
+window.addEventListener('offline', ()=>{ if(activeId==='queue') updateQueueFootButtons(); });
+
+$('queueSelectAllBtn').addEventListener('click', async ()=>{
+  const queue = await getQueue();
+  queueSelection = new Set(queue.map(q=>q.qid));
+  renderQueueScreen();
+});
+$('queueSelectNoneBtn').addEventListener('click', ()=>{ queueSelection = new Set(); renderQueueScreen(); });
+
+$('queueDeleteBtn').addEventListener('click', async ()=>{
+  if(!queueSelection.size) return;
+  const n = queueSelection.size;
+  if(!confirm(`Remove ${n} item${n===1?'':'s'} from the queue? This can't be undone.`)) return;
+  const queue = await getQueue();
+  await setQueue(queue.filter(q=>!queueSelection.has(q.qid)));
+  queueSelection = new Set();
+  renderQueueScreen();
+  if(activeId==='home') refreshHome();
+});
+
+function csvEscape(v){
+  const s = v===null || v===undefined ? '' : String(v);
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+}
+$('queueExportBtn').addEventListener('click', async ()=>{
+  if(!queueSelection.size) return;
+  const queue = await getQueue();
+  const entries = queue.filter(q=>queueSelection.has(q.qid));
+  if(!entries.length) return;
+  const header = ['Title','Description','Category','Organization','Project','Work Item Type','Prefix','Queued At'];
+  const rows = entries.map(q=>[
+    q.title, q.description||'', q.category||'', q.cfg.org, q.cfg.project, q.cfg.witype, q.cfg.prefix||'',
+    new Date(q.queuedAt).toISOString()
+  ]);
+  const csv = [header, ...rows].map(r=>r.map(csvEscape).join(',')).join('\r\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `adbs-queue-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=> URL.revokeObjectURL(url), 2000);
+});
+
+$('queueSendBtn').addEventListener('click', async ()=>{
+  if(!queueSelection.size || !navigator.onLine) return;
+  await sendSelectedFromQueue([...queueSelection]);
+});
+
+async function sendSelectedFromQueue(qids){
+  const queue = await getQueue();
+  const toSend = queue.filter(q => qids.includes(q.qid));
+  if(!toSend.length) return;
+
+  // Use the live PAT/proxy from this device, but each item's own
+  // queued org/project/work-item-type/prefix — items may have been
+  // queued from different projects or setups.
+  const liveC = cfg();
+  const groups = new Map();
+  toSend.forEach(q=>{
+    const groupCfg = { org:q.cfg.org, project:q.cfg.project, witype:q.cfg.witype, prefix:q.cfg.prefix, pat: liveC.pat, proxy: liveC.proxy };
+    const key = JSON.stringify({g:groupCfg, v:q.values});
+    if(!groups.has(key)) groups.set(key, { cfg:groupCfg, values:q.values, entries:[] });
+    groups.get(key).entries.push(q);
+  });
+
+  go('creating');
+  const checklist = $('creatingChecklist');
+  checklist.innerHTML = '';
+  const rowByQid = new Map();
+  groups.forEach(({entries})=>{
+    entries.forEach(q=>{
+      const row = document.createElement('div'); row.className='check-row';
+      row.innerHTML = `<span class="mark"></span><span class="title">${escapeAttr(q.title)}</span>`;
+      checklist.appendChild(row);
+      rowByQid.set(q.qid, row);
+    });
+  });
+
+  const allResults = [];
+  const sentQids = new Set();
+  for(const { cfg:groupCfg, values, entries } of groups.values()){
+    const toCreate = entries.map(q=>({ title:q.title, description:q.description, category:q.category, include:true }));
+    const rows = entries.map(q=>rowByQid.get(q.qid));
+    const results = await createItemsInAdo(groupCfg, toCreate, values, rows);
+    results.forEach((r,i)=>{ allResults.push(r); if(r.ok) sentQids.add(entries[i].qid); });
+  }
+
+  await setQueue(queue.filter(q => !sentQids.has(q.qid))); // failed sends stay queued for another try
+  queueSelection = new Set([...queueSelection].filter(id => !sentQids.has(id)));
+
+  const okCount = allResults.filter(r=>r.ok).length;
+  if(okCount){
+    try{ await storage.set('ado_last_batch', JSON.stringify({count:okCount, at:Date.now(), org:liveC.org, project:liveC.project, items: allResults.filter(r=>r.ok).map(r=>({id:r.id, state:r.state}))}), false); }catch(e){}
+  }
+
+  buildResultsScreen(allResults);
+  stack = ['home','queue','results'];
+  transitionTo('results','forward');
+}
 
 /* =========================================================
    EXISTING ITEMS
