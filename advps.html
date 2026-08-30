@@ -171,6 +171,7 @@ select{
 .btn-primary:disabled{opacity:.4; cursor:default;}
 .btn-primary[hidden]{display:none;}
 .btn-primary .spin{width:16px; height:16px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite;}
+.msg .spin{width:13px; height:13px; border:2px solid var(--card-tint-border); border-top-color:var(--ink-2); border-radius:50%; animation:spin .7s linear infinite; display:inline-block; vertical-align:-2px; margin-right:6px;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
 .btn-secondary{
@@ -227,6 +228,14 @@ select{
 .home-row .chev{color:var(--ink-3); flex:none;}
 .home-recent{font-size:12.5px; color:var(--ink-2); margin:var(--sp-3) auto 0; font-weight:500;}
 .home-recent.link{color:var(--green); font-weight:600; text-decoration:underline; text-decoration-color:var(--card-tint-border); text-underline-offset:2px; cursor:pointer;}
+.conn-badge{display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; margin-bottom:var(--sp-3);}
+.conn-badge .dot{width:8px; height:8px; border-radius:50%; flex:none;}
+.conn-badge.ok{color:var(--green-deep);}
+.conn-badge.ok .dot{background:var(--green-deep);}
+.conn-badge.unverified{color:var(--amber);}
+.conn-badge.unverified .dot{background:var(--amber);}
+.conn-badge.offline{color:var(--ink-3);}
+.conn-badge.offline .dot{background:var(--ink-3);}
 .home-row .count{color:var(--ink-3); font-weight:500;}
 
 /* not connected: centered empty state, like a native empty inbox */
@@ -361,6 +370,7 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
 .queue-row-body .title{font-size:15px; color:var(--ink); font-weight:500; line-height:1.35; word-break:break-word;}
 .queue-row-body .meta{font-size:12px; color:var(--ink-3); font-weight:500;}
 .queue-row.disabled{opacity:.55;}
+.queue-row-body .exported-badge{display:inline-flex; align-items:center; gap:4px; font-size:11.5px; font-weight:600; color:var(--amber); background:var(--amber-soft); padding:2px 7px; border-radius:6px; margin-top:2px; width:fit-content;}
 .btn-secondary:disabled{opacity:.4; cursor:default;}
 .btn-secondary[hidden]{display:none;}
 
@@ -405,6 +415,7 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
         <!-- connected state: top-anchored status line only; the two real
              options (New batch / Existing items) live together in the footer -->
         <div class="home-connected" id="homeConnected">
+          <span class="conn-badge" id="homeConnBadge"></span>
           <p class="large-subtitle" id="homeProjectLine">TF100 PAM Gap Management</p>
           <p class="home-recent" id="homeRecentLine" style="display:none;"></p>
           <p class="home-recent" id="homeDigestLine" style="display:none;"></p>
@@ -504,10 +515,14 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
         </div>
 
         <div class="msg" id="connStatus"></div>
+        <div class="msg" id="connChecking" style="display:none;"><span class="spin"></span> Checking your saved connection…</div>
       </div>
-      <div class="screen-foot">
+      <div class="screen-foot" id="accessFoot">
         <button class="btn-primary" id="testBtn"><span id="testBtnLabel">Test connection</span></button>
-        <div class="text-row"><button class="btn-text danger" id="forgetBtn">Forget saved token</button></div>
+        <div class="text-row">
+          <button class="btn-text muted" id="skipTestBtn">Continue without testing</button>
+          <button class="btn-text danger" id="forgetBtn">Forget saved token</button>
+        </div>
       </div>
     </section>
 
@@ -518,7 +533,9 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
 
         <div class="field">
           <label for="witype">Work item type</label>
-          <select id="witype"><option value="Review" selected>Review</option></select>
+          <input type="text" id="witype" list="witypeOptions" value="Review" placeholder="e.g. Review">
+          <datalist id="witypeOptions"></datalist>
+          <div class="hint" id="witypeHint" style="display:none;">Type the exact name — we can't load your project's list of valid types right now.</div>
         </div>
         <div class="field-row">
           <div class="field">
@@ -603,7 +620,7 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
         <div class="preview-card" id="previewList"></div>
       </div>
       <div class="screen-foot">
-        <button class="btn-primary" id="createBtn">Save to queue</button>
+        <button class="btn-primary" id="createBtn">Create in Azure DevOps</button>
       </div>
     </section>
 
@@ -661,6 +678,7 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
       <div class="screen-foot">
         <button class="btn-primary" id="queueSendBtn" disabled>Send selected to Azure DevOps</button>
         <button class="btn-secondary" id="queueExportBtn" disabled style="margin-top:10px;">Export selected as CSV</button>
+        <div class="text-row"><button class="btn-text muted" id="queueMarkSentBtn" style="visibility:hidden;">Mark selected as already in DevOps</button></div>
         <div class="text-row"><button class="btn-text danger" id="queueDeleteBtn" style="visibility:hidden;">Remove selected from queue</button></div>
       </div>
     </section>
@@ -911,6 +929,7 @@ function resetTestState(){
   testState='idle';
   $('testBtnLabel').textContent = 'Test connection';
   if(activeId==='setup-access') setMsg('connStatus','','');
+  renderConnBadge();
 }
 ['org','project','proxy','pat'].forEach(id => $(id).addEventListener('input', resetTestState));
 
@@ -1024,13 +1043,14 @@ async function loadWorkItemTypes(c){
   const data = await res.json();
   const types = (data.value || []).map(t=>t.name).sort();
   if(types.length === 0) throw new Error('workitemtypes list returned 0 types');
-  const sel = $('witype');
-  const previous = sel.value || 'Review';
-  sel.innerHTML = '';
-  types.forEach(name=>{ const opt = document.createElement('option'); opt.value=name; opt.textContent=name; sel.appendChild(opt); });
-  if(types.includes(previous)) sel.value = previous;
-  else if(types.includes('Review')) sel.value = 'Review';
-  else sel.value = types[0];
+  const input = $('witype');
+  const previous = input.value.trim() || 'Review';
+  const dl = $('witypeOptions');
+  dl.innerHTML = '';
+  types.forEach(name=>{ const opt = document.createElement('option'); opt.value=name; dl.appendChild(opt); });
+  if(types.includes(previous)) input.value = previous;
+  else if(types.includes('Review')) input.value = 'Review';
+  else input.value = types[0];
   return types.length;
 }
 
@@ -1041,42 +1061,90 @@ function updatePrefixPreview(){
 }
 updatePrefixPreview();
 
-/* ---- test connection ---- */
-$('testBtn').addEventListener('click', async ()=>{
-  if(testState === 'ok'){ go('setup-type'); return; }
+/* ---- test connection ----
+   verifyConnection() is the single source of truth for checking
+   Azure DevOps credentials. It's used both by the manual "Test
+   connection" button and by silent background checks (on boot, on
+   entering the access screen, on regaining network) so the app's
+   idea of "verified" stays current without the user having to
+   remember to press a button. */
+async function verifyConnection(opts){
+  opts = opts || {};
+  const silent = !!opts.silent;
   const c = cfg();
-  if(!c.pat){ setMsg('connStatus','Enter a PAT first.','err'); return; }
-  $('testBtn').disabled = true;
-  $('testBtnLabel').innerHTML = '<span class="spin"></span> Testing…';
-  setMsg('connStatus','','');
+  if(!navigator.onLine){ testState = 'idle'; if(!silent) renderConnScreenState(); return false; }
+  if(!c.pat || !c.org || !c.project){ testState = 'idle'; if(!silent) renderConnScreenState(); return false; }
+
+  if(!silent){
+    $('testBtn').disabled = true;
+    $('testBtnLabel').innerHTML = '<span class="spin"></span> Testing…';
+    setMsg('connStatus','','');
+  }
   try{
     const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/workitemtypes/${encodeURIComponent(c.witype)}?api-version=7.1`;
     const res = await fetch(url, { headers: adoHeaders(c.pat) });
     if(res.status === 200){
       const data = await res.json();
-      let msg = `Connected. "${data.name}" work items found in this project.`;
       if($('rememberPat').checked){ try{ await storage.set('ado_pat', c.pat, false); }catch(e){} }
-      try{
-        const count = await loadWorkItemTypes(c);
-        msg += ` Loaded ${count} work item types.`;
-      }catch(werr){ msg += ` (Could not load full type list.)`; }
-      setMsg('connStatus', msg, 'ok');
+      let count = null;
+      try{ count = await loadWorkItemTypes(c); }catch(werr){}
       testState = 'ok';
-      $('testBtnLabel').textContent = 'Continue';
-      await saveLastFields();
+      if(!silent){
+        let msg = `Connected. "${data.name}" work items found in this project.`;
+        msg += count!=null ? ` Loaded ${count} work item types.` : ` (Could not load full type list.)`;
+        setMsg('connStatus', msg, 'ok');
+        $('testBtnLabel').textContent = 'Continue';
+        await saveLastFields();
+      }
+      renderConnBadge();
+      return true;
     } else {
-      const txt = await res.text();
-      setMsg('connStatus', `Failed (${res.status}): ${txt.slice(0,180)}`, 'err');
-      testState = 'idle'; $('testBtnLabel').textContent = 'Try again';
+      testState = 'idle';
+      if(!silent){
+        const txt = await res.text();
+        setMsg('connStatus', `Failed (${res.status}): ${txt.slice(0,180)}`, 'err');
+        $('testBtnLabel').textContent = 'Try again';
+      }
+      renderConnBadge();
+      return false;
     }
   }catch(err){
-    const detail = err && err.message ? ` (${err.name || 'Error'}: ${err.message})` : '';
-    setMsg('connStatus',
-      `Could not reach Azure DevOps from the browser — likely a CORS restriction. Set a Worker proxy URL above and try again.${detail}`,
-      'err');
-    testState='idle'; $('testBtnLabel').textContent = 'Try again';
+    testState = 'idle';
+    if(!silent){
+      const detail = err && err.message ? ` (${err.name || 'Error'}: ${err.message})` : '';
+      setMsg('connStatus',
+        `Could not reach Azure DevOps from the browser — likely a CORS restriction. Set a Worker proxy URL above and try again.${detail}`,
+        'err');
+      $('testBtnLabel').textContent = 'Try again';
+    }
+    renderConnBadge();
+    return false;
+  } finally {
+    if(!silent) $('testBtn').disabled = false;
   }
-  $('testBtn').disabled = false;
+}
+
+/* Reflects current state on the access screen: online/offline
+   changes what "skip" means, and whether it's worth auto-testing. */
+function renderConnScreenState(){
+  if(activeId !== 'setup-access') return;
+  if(!navigator.onLine){
+    $('skipTestBtn').textContent = 'Continue offline';
+    $('testBtn').disabled = true;
+    $('testBtnLabel').textContent = 'Test connection';
+    setMsg('connStatus', "You're offline right now, so the connection can't be tested. You can still continue — new batches will be saved to your queue until you're back online.", 'warn');
+  } else {
+    $('skipTestBtn').textContent = 'Skip verification for now';
+    $('testBtn').disabled = false;
+    if(testState !== 'ok') $('testBtnLabel').textContent = 'Test connection';
+  }
+}
+
+$('testBtn').addEventListener('click', async ()=>{
+  if(testState === 'ok'){ go('setup-type'); return; }
+  const c = cfg();
+  if(!c.pat){ setMsg('connStatus','Enter a PAT first.','err'); return; }
+  await verifyConnection({ silent:false });
 });
 
 $('orgContinueBtn').addEventListener('click', async ()=>{
@@ -1084,8 +1152,25 @@ $('orgContinueBtn').addEventListener('click', async ()=>{
   await saveLastFields();
   go('setup-access');
 });
+$('skipTestBtn').addEventListener('click', async ()=>{
+  await saveLastFields();
+  go('setup-type');
+});
+onEnter['setup-type'] = ()=>{
+  // The only thing that actually differs on this screen when
+  // unverified: there's no autocomplete list of real work item types
+  // to pick from, so you have to type the exact name. That's it —
+  // the offline/queue consequence was already communicated (and
+  // decided) back on the access screen; repeating it here is just
+  // noise.
+  $('witypeHint').style.display = (testState === 'ok') ? 'none' : 'block';
+};
 $('typeContinueBtn').addEventListener('click', async ()=>{
   await saveLastFields();
+  // One last silent check in case the connection came back (or the
+  // PAT got fixed) while the user was still on this screen — so the
+  // status shown on Home reflects reality, not a stale earlier check.
+  if(navigator.onLine && testState !== 'ok') await verifyConnection({ silent:true });
   resetTo('home');
   refreshHome();
 });
@@ -1097,7 +1182,55 @@ $('typeContinueBtn').addEventListener('click', async ()=>{
   refreshHome();
   handleIncomingShare();
   handleAutoRecord();
+  // Silent background check on launch — if this device already has
+  // saved credentials, find out whether they still work before the
+  // user ever has to think about it.
+  if(isConfigured()){ await verifyConnection({ silent:true }); refreshHome(); }
 })();
+
+window.addEventListener('online', async ()=>{
+  if(activeId==='queue') updateQueueFootButtons();
+  if(activeId==='setup-access') renderConnScreenState();
+  if(isConfigured()){ await verifyConnection({ silent:true }); }
+  renderConnBadge();
+  if(activeId==='home') refreshHome();
+});
+window.addEventListener('offline', ()=>{
+  if(activeId==='queue') updateQueueFootButtons();
+  if(activeId==='setup-access') renderConnScreenState();
+  testState = 'idle';
+  renderConnBadge();
+});
+
+onEnter['setup-access'] = async ()=>{
+  const c = cfg();
+  const hasSaved = !!(c.pat && c.org && c.project);
+
+  // If we already know the answer, or there's nothing to check yet
+  // (first-time setup, no PAT entered), just show the normal screen —
+  // no point in a "checking" flash for a check that can't run.
+  if(!hasSaved || testState === 'ok' || !navigator.onLine){
+    renderConnScreenState();
+    return;
+  }
+
+  // Returning device with saved credentials: check first, and make
+  // that visible, before offering "skip" — so skip can't race ahead
+  // of a check that was seconds from finishing.
+  $('accessFoot').style.display = 'none';
+  $('connChecking').style.display = 'block';
+  setMsg('connStatus','','');
+  const ok = await verifyConnection({ silent:true });
+  $('connChecking').style.display = 'none';
+  $('accessFoot').style.display = '';
+  renderConnScreenState();
+  if(ok){
+    setMsg('connStatus', 'Connected — verified automatically.', 'ok');
+    $('testBtnLabel').textContent = 'Continue';
+  } else {
+    setMsg('connStatus', 'Could not verify automatically — check your token below, or continue and fix it later.', 'err');
+  }
+};
 
 /* =========================================================
    SHARE TARGET — if the app was opened via the OS share sheet
@@ -1136,8 +1269,20 @@ function handleAutoRecord(){
 function isConfigured(){
   return !!($('org').value.trim() && $('project').value.trim() && $('pat').value.trim());
 }
+function renderConnBadge(){
+  const badge = $('homeConnBadge');
+  if(!badge) return;
+  if(!isConfigured()){ badge.className = 'conn-badge'; badge.innerHTML=''; return; }
+  let state, label;
+  if(!navigator.onLine){ state='offline'; label='Offline — new items will be queued'; }
+  else if(testState === 'ok'){ state='ok'; label='Connected'; }
+  else { state='unverified'; label='Not verified — new items will be queued if this fails'; }
+  badge.className = 'conn-badge ' + state;
+  badge.innerHTML = `<span class="dot"></span>${label}`;
+}
 async function refreshHome(){
   const connected = isConfigured();
+  renderConnBadge();
   $('homeConnected').classList.toggle('show', connected);
   $('homeEmpty').classList.toggle('show', !connected);
   $('homePrimaryBtn').hidden = !connected;
@@ -1687,7 +1832,10 @@ function buildConfirmScreen(){
     row.innerHTML = `<span class="n">${String(i+1).padStart(2,'0')}</span><span class="t">${escapeAttr(it.title)}</span>`;
     list.appendChild(row);
   });
+  $('createBtn').textContent = navigator.onLine ? 'Create in Azure DevOps' : 'Save to queue (offline)';
 }
+window.addEventListener('online', ()=>{ if(activeId==='confirm') $('createBtn').textContent = 'Create in Azure DevOps'; });
+window.addEventListener('offline', ()=>{ if(activeId==='confirm') $('createBtn').textContent = 'Save to queue (offline)'; });
 
 /* =========================================================
    CREATE ITEMS
@@ -1780,10 +1928,11 @@ async function createItemsInAdo(c, toCreate, values, rows){
 }
 
 /* =========================================================
-   QUEUE — every batch you create is saved here instead of being
-   sent to Azure DevOps right away. Nothing leaves this device
-   until you explicitly send selected items from the Queue screen
-   (or export them as CSV). Each queue entry keeps its own
+   QUEUE — the holding area for anything that couldn't go straight
+   to Azure DevOps: a batch created while offline, or individual
+   items that failed partway through an online attempt. Items stay
+   here until you explicitly send them from the Queue screen (or
+   export them as CSV). Each queue entry keeps its own
    org/project/work-item-type/prefix and required-field values so
    items from different batches can be reviewed and sent together
    or separately.
@@ -1793,16 +1942,11 @@ async function getQueue(){
 }
 async function setQueue(list){ try{ await storage.set('ado_queue', JSON.stringify(list), false); }catch(e){} }
 function makeQueueId(){ return 'q'+Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
-
-$('createBtn').addEventListener('click', async ()=>{
-  const c = cfg();
-  const toCreate = parsedItems.filter(it=>it.include && it.title.trim());
-  if(toCreate.length === 0) return;
-
-  const { values } = getExtraFieldValues();
+async function queueBatch(c, items, values){
+  if(!items.length) return;
   const queue = await getQueue();
   const queuedAt = Date.now();
-  toCreate.forEach(it=>{
+  items.forEach(it=>{
     queue.push({
       qid: makeQueueId(),
       queuedAt,
@@ -1810,25 +1954,73 @@ $('createBtn').addEventListener('click', async ()=>{
       values,
       title: it.title.trim(),
       description: it.description || '',
-      category: CATEGORIES.includes(it.category) ? it.category : 'task'
+      category: CATEGORIES.includes(it.category) ? it.category : 'task',
+      exported: false,
+      exportedAt: null
     });
   });
   await setQueue(queue);
+}
 
-  buildResultsScreen(null, toCreate);
+$('createBtn').addEventListener('click', async ()=>{
+  const c = cfg();
+  const toCreate = parsedItems.filter(it=>it.include && it.title.trim());
+  if(toCreate.length === 0) return;
+  const { values } = getExtraFieldValues();
+
+  // Offline right now — skip the network entirely and save straight
+  // to the queue instead of letting every request fail one by one.
+  if(!navigator.onLine){
+    await queueBatch(c, toCreate, values);
+    buildResultsScreen([], toCreate);
+    stack = ['home','results'];
+    transitionTo('results','forward');
+    return;
+  }
+
+  // Online — try Azure DevOps directly, same as always.
+  go('creating');
+  const checklist = $('creatingChecklist');
+  checklist.innerHTML = '';
+  const rows = toCreate.map(it=>{
+    const row = document.createElement('div'); row.className='check-row';
+    row.innerHTML = `<span class="mark"></span><span class="title">${escapeAttr(it.title)}</span>`;
+    checklist.appendChild(row);
+    return row;
+  });
+
+  const results = await createItemsInAdo(c, toCreate, values, rows);
+  const okCount = results.filter(r=>r.ok).length;
+  if(okCount){
+    try{ await storage.set('ado_last_batch', JSON.stringify({count:okCount, at:Date.now(), org:c.org, project:c.project, items: results.filter(r=>r.ok).map(r=>({id:r.id, state:r.state}))}), false); }catch(e){}
+  }
+
+  // Anything that failed — or wasn't even attempted, e.g. the
+  // connection dropped mid-batch — is saved to the queue instead of
+  // just being left as a dead-end failure.
+  const notAttempted = toCreate.slice(results.length);
+  const failedAttempted = results.map((r,i)=> r.ok ? null : toCreate[i]).filter(Boolean);
+  const toRequeue = [...failedAttempted, ...notAttempted];
+  if(toRequeue.length) await queueBatch(c, toRequeue, values);
+
+  buildResultsScreen(results, toRequeue);
   stack = ['home','results'];
   transitionTo('results','forward');
 });
 
-function buildResultsScreen(results, queuedItems){
-  if(queuedItems){
+function buildResultsScreen(results, requeuedItems){
+  results = results || [];
+  requeuedItems = requeuedItems || [];
+  const stamp = $('resultsStamp');
+  stamp.classList.remove('pulse'); void stamp.offsetWidth; stamp.classList.add('pulse');
+  const list = $('resultsList');
+  list.innerHTML = '';
+
+  // Nothing was attempted at all — fully offline save.
+  if(results.length === 0 && requeuedItems.length > 0){
     $('resultsTitle').textContent = 'Saved to queue';
-    $('resultsSub').textContent = `${queuedItems.length} item${queuedItems.length===1?'':'s'} saved to your queue. Nothing has been sent to Azure DevOps yet — send them or export as CSV from the Queue screen whenever you're ready.`;
-    const stamp = $('resultsStamp');
-    stamp.classList.remove('pulse'); void stamp.offsetWidth; stamp.classList.add('pulse');
-    const list = $('resultsList');
-    list.innerHTML = '';
-    queuedItems.forEach(it=>{
+    $('resultsSub').textContent = `You're offline. ${requeuedItems.length} item${requeuedItems.length===1?'':'s'} saved to your queue — send them to Azure DevOps once you're back online.`;
+    requeuedItems.forEach(it=>{
       const row = document.createElement('div'); row.className='check-row';
       row.innerHTML = `<span class="mark">⏳</span><span class="title">${escapeAttr(it.title)}</span>`;
       list.appendChild(row);
@@ -1836,23 +2028,27 @@ function buildResultsScreen(results, queuedItems){
     $('resultsQueueBtn').hidden = false;
     return;
   }
-  $('resultsQueueBtn').hidden = true;
+
   const okCount = results.filter(r=>r.ok).length;
-  const failCount = results.length - okCount;
-  $('resultsTitle').textContent = failCount === 0 ? 'Done — items are live' : `${okCount} created, ${failCount} failed`;
-  $('resultsSub').textContent = failCount === 0
-    ? 'Everything below has been created in Azure DevOps.'
-    : 'Some items could not be created and were left in the queue — check the details below.';
-  const stamp = $('resultsStamp');
-  stamp.classList.remove('pulse'); void stamp.offsetWidth; stamp.classList.add('pulse');
-  const list = $('resultsList');
-  list.innerHTML = '';
+  if(requeuedItems.length === 0){
+    const failCount = results.length - okCount;
+    $('resultsTitle').textContent = failCount === 0 ? 'Done — items are live' : `${okCount} created, ${failCount} failed`;
+    $('resultsSub').textContent = failCount === 0
+      ? 'Everything below has been created in Azure DevOps.'
+      : 'Some items could not be created — check the details below.';
+    $('resultsQueueBtn').hidden = true;
+  } else {
+    $('resultsTitle').textContent = `${okCount} created, ${requeuedItems.length} saved to queue`;
+    $('resultsSub').textContent = `${requeuedItems.length} item${requeuedItems.length===1?'':'s'} couldn't be created just now and ${requeuedItems.length===1?'was':'were'} saved to your queue to try again.`;
+    $('resultsQueueBtn').hidden = false;
+  }
+
   results.forEach(r=>{
     const row = document.createElement('div'); row.className='check-row ' + (r.ok ? 'done' : 'fail');
     if(r.ok){
       row.innerHTML = `<span class="mark">✓</span><span class="title">${escapeAttr(r.title)}</span><a class="link" href="${r.link}" target="_blank">Open #${r.id}</a>`;
     } else {
-      row.innerHTML = `<span class="mark">!</span><span class="title">${escapeAttr(r.title)} — ${escapeAttr(r.reason||'failed')}</span>`;
+      row.innerHTML = `<span class="mark">⏳</span><span class="title">${escapeAttr(r.title)} — saved to queue</span>`;
     }
     list.appendChild(row);
   });
@@ -1889,6 +2085,7 @@ function updateQueueFootButtons(){
   $('queueSendBtn').disabled = n===0 || !navigator.onLine;
   $('queueSendBtn').textContent = n && navigator.onLine ? `Send ${n} selected to Azure DevOps` : 'Send selected to Azure DevOps';
   $('queueExportBtn').disabled = n===0;
+  $('queueMarkSentBtn').style.visibility = n ? 'visible' : 'hidden';
   $('queueDeleteBtn').style.visibility = n ? 'visible' : 'hidden';
   setMsg('queueStatus', !navigator.onLine ? "You're offline — you can still select items and export them as CSV, but sending to Azure DevOps needs a connection." : '', !navigator.onLine ? 'warn' : '');
 }
@@ -1911,6 +2108,7 @@ async function renderQueueScreen(){
       <span class="queue-row-body">
         <span class="title">${escapeAttr(q.title)}</span>
         <span class="meta">${escapeAttr(q.cfg.prefix||'')}${escapeAttr(q.cfg.witype)} · ${escapeAttr(q.cfg.project)} · ${timeAgo(q.queuedAt)}</span>
+        ${q.exported ? `<span class="exported-badge">⚠ Exported to CSV ${timeAgo(q.exportedAt)} — not yet confirmed in DevOps</span>` : ''}
       </span>`;
     row.querySelector('input').addEventListener('change', e=>{
       if(e.target.checked) queueSelection.add(q.qid); else queueSelection.delete(q.qid);
@@ -1921,8 +2119,6 @@ async function renderQueueScreen(){
   updateQueueFootButtons();
 }
 onEnter['queue'] = renderQueueScreen;
-window.addEventListener('online', ()=>{ if(activeId==='queue') updateQueueFootButtons(); if(activeId==='home') refreshHome(); });
-window.addEventListener('offline', ()=>{ if(activeId==='queue') updateQueueFootButtons(); });
 
 $('queueSelectAllBtn').addEventListener('click', async ()=>{
   const queue = await getQueue();
@@ -1964,6 +2160,26 @@ $('queueExportBtn').addEventListener('click', async ()=>{
   a.download = `adbs-queue-${new Date().toISOString().slice(0,10)}.csv`;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=> URL.revokeObjectURL(url), 2000);
+
+  // Stamp these items as exported so the queue list flags them —
+  // they stay in the queue (in case the manual upload doesn't happen
+  // or fails) but are clearly marked to avoid a double-upload later.
+  const exportedAt = Date.now();
+  const exportedIds = new Set(entries.map(q=>q.qid));
+  const updated = queue.map(q => exportedIds.has(q.qid) ? { ...q, exported:true, exportedAt } : q);
+  await setQueue(updated);
+  renderQueueScreen();
+});
+
+$('queueMarkSentBtn').addEventListener('click', async ()=>{
+  if(!queueSelection.size) return;
+  const n = queueSelection.size;
+  if(!confirm(`Mark ${n} item${n===1?'':'s'} as already in Azure DevOps? They'll be removed from the queue and won't be sent or exported again.`)) return;
+  const queue = await getQueue();
+  await setQueue(queue.filter(q=>!queueSelection.has(q.qid)));
+  queueSelection = new Set();
+  renderQueueScreen();
+  if(activeId==='home') refreshHome();
 });
 
 $('queueSendBtn').addEventListener('click', async ()=>{
