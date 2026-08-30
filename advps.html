@@ -1,2025 +1,659 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Review Items">
-<meta name="theme-color" content="#FFFFFF">
+<meta name="theme-color" content="#005a9e">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" type="image/png" href="icons/favicon-32.png">
 <link rel="manifest" href="manifest.json">
 <meta charset="UTF-8">
-<title>Review Items</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<title>Review Item Creator</title>
 <style>
-/* =====================================================================
-   TOKENS
-   ===================================================================== */
-:root{
-  --bg:#FFFFFF;
-  --card:#FFFFFF;
-  --card-tint:#EBEDFB;
-  --card-tint-border:#C7CCF5;
-  --ink:#0A0A0A;
-  --ink-2:#4B4B4B;
-  --ink-3:#7A7A7A;
-  --hair:#DCDCDC;
-  --hair-strong:#B4B4B4;
-  --green:#4338CA;
-  --green-deep:#332C9E;
-  --amber:#a8691a;
-  --amber-soft:#f6ecd9;
-  --rose:#b23b2a;
-  --rose-soft:#f8e8e4;
-
-  --display:"Space Grotesk","Segoe UI",sans-serif;
-  --sans:"Inter",-apple-system,"Segoe UI",Arial,sans-serif;
-  --mono:"JetBrains Mono","SF Mono",Consolas,monospace;
-
-  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px; --sp-6:32px; --sp-7:44px;
-}
-*{box-sizing:border-box;}
-html,body{height:100%;}
-body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); -webkit-font-smoothing:antialiased; overscroll-behavior:none;}
-button,input,textarea,select{font-family:inherit;}
-:focus-visible{outline:2px solid var(--green); outline-offset:2px;}
-@media (prefers-reduced-motion:reduce){ *{animation-duration:.001ms !important; transition-duration:.001ms !important;} }
-
-.app{max-width:480px; margin:0 auto; min-height:100dvh; background:var(--bg); position:relative; display:flex; flex-direction:column; overflow:hidden;}
-
-/* =====================================================================
-   NAV BAR — centered title; settings gear only ever appears on the
-   root screen. Back navigation lives at the bottom-right (see .fab-back)
-   plus a right-swipe gesture, both easier to reach one-handed than a
-   top-left button.
-   ===================================================================== */
-.navbar{
-  position:relative; z-index:30; flex:none; height:48px; display:flex; align-items:center;
-  padding:calc(env(safe-area-inset-top,0px) + 6px) 6px 0;
-  min-height:calc(48px + env(safe-area-inset-top,0px));
-}
-.nav-title{
-  position:absolute; left:56px; right:56px; text-align:center; z-index:1; pointer-events:none;
-  font-family:var(--sans); font-weight:600; font-size:15.5px; color:var(--ink);
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
-.nav-gear{
-  position:relative; z-index:2; margin-left:auto; width:34px; height:34px; border-radius:50%;
-  border:none; background:none; color:var(--ink-2); display:flex; align-items:center; justify-content:center; cursor:pointer;
-}
-.nav-gear[hidden]{visibility:hidden;}
-.nav-gear svg{width:21px; height:21px;}
-
-/* floating back button — bottom-right, reachable with a right thumb */
-.fab-back{
-  position:absolute; right:16px; bottom:calc(env(safe-area-inset-bottom,0px) + 16px); z-index:40;
-  display:flex; align-items:center; gap:7px; background:var(--green); color:#fff; border:none;
-  border-radius:26px; padding:12px 18px 12px 13px; font-size:14.5px; font-weight:600;
-  box-shadow:0 6px 18px rgba(20,108,82,.32); cursor:pointer; transition:transform .12s, opacity .15s, bottom .15s ease;
-}
-.fab-back svg{width:13px; height:20px; flex:none;}
-.fab-back:active{transform:scale(.93);}
-.fab-back[hidden]{display:none;}
-
-.stage{position:relative; flex:1; overflow:hidden;}
-.screen{
-  position:absolute; inset:0; display:none; flex-direction:column;
-  transform:translateX(0); opacity:1; background:var(--bg); color:var(--ink);
-  transition:transform .32s cubic-bezier(.22,.61,.36,1), opacity .26s ease;
-}
-.screen.active,.screen.leaving-l,.screen.leaving-r{display:flex;}
-.screen.entering-r{transform:translateX(8%); opacity:0;}
-.screen.entering-l{transform:translateX(-8%); opacity:0;}
-.screen.leaving-l{transform:translateX(-8%); opacity:0;}
-.screen.leaving-r{transform:translateX(8%); opacity:0;}
-
-.screen-scroll{flex:1; overflow-y:auto; padding:0 20px 20px; -webkit-overflow-scrolling:touch;}
-.screen-foot{flex:none; padding:12px 20px calc(env(safe-area-inset-bottom,0px) + 18px); background:linear-gradient(180deg, rgba(251,247,238,0), var(--bg) 40%);}
-
-/* large title — used only on the root (home) screen, scrolls with content */
-.large-title{font-family:var(--display); font-weight:700; font-size:30px; letter-spacing:-.015em; color:var(--ink); margin:2px 0 var(--sp-1);}
-.large-subtitle{font-size:14.5px; color:var(--ink-2); margin:0 0 var(--sp-5); font-weight:500;}
-
-/* section intro copy for pushed screens — replaces repeated on-page headings */
-.intro{font-size:13.5px; color:var(--ink-2); line-height:1.5; margin:var(--sp-3) 0 var(--sp-5);}
-
-/* =====================================================================
-   FIELDS
-   ===================================================================== */
-.field{margin-bottom:var(--sp-4);}
-.field label{display:block; font-size:12px; font-weight:600; color:var(--ink-2); letter-spacing:.01em; margin-bottom:7px;}
-input[type=text],input[type=password],textarea,select{
-  width:100%; background:var(--card); border:none; border-bottom:1.5px solid var(--hair-strong); color:var(--ink);
-  border-radius:0; padding:13px 2px; font-size:16px; font-family:var(--sans); font-weight:500;
-  transition:border-color .15s; min-height:var(--sp-7);
-}
-input[type=text]::placeholder,input[type=password]::placeholder,textarea::placeholder{color:var(--ink-3);}
-input[type=text]:focus,input[type=password]:focus,textarea:focus,select:focus{outline:none; border-bottom-color:var(--green); box-shadow:none;}
-textarea{resize:vertical; line-height:1.55;}
-select{
-  appearance:none; -webkit-appearance:none; background-repeat:no-repeat; background-position:right 14px center; padding-right:36px;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%2355503F' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-}
-.field .hint{font-size:12px; color:var(--ink-3); margin-top:7px;}
-.field-row{display:flex; gap:var(--sp-3);}
-.field-row .field{flex:1;}
-
-.toggle-row{display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); padding:2px; margin-top:var(--sp-2);}
-.toggle-row .toggle-copy{font-size:14px; font-weight:500;}
-.toggle-row .toggle-copy small{display:block; font-size:12px; color:var(--ink-3); margin-top:2px; font-weight:400;}
-.switch{position:relative; width:44px; height:26px; flex:none;}
-.switch input{position:absolute; inset:0; opacity:0; cursor:pointer; margin:0;}
-.switch .track{position:absolute; inset:0; background:var(--hair-strong); border-radius:999px; transition:background .18s;}
-.switch .knob{position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.22); transition:transform .18s;}
-.switch input:checked + .track{background:var(--green);}
-.switch input:checked + .track + .knob{transform:translateX(18px);}
-
-/* small "where am I" progress dots — sits at the very bottom of a
-   wizard screen's footer, above the primary button */
-.step-dots{display:flex; justify-content:center; align-items:center; gap:6px; padding:0 0 10px;}
-.step-dots[hidden]{display:none;}
-.step-dot{width:5px; height:5px; border-radius:50%; background:var(--hair-strong); transition:background .15s, width .15s;}
-.step-dot.active{width:14px; border-radius:3px; background:var(--green);}
-
-/* quick-capture row under the notes textarea: dictate or paste in one tap */
-.field-actions{display:flex; gap:8px; margin:-8px 0 var(--sp-4);}
-.icon-btn{display:flex; align-items:center; justify-content:center; gap:7px; flex:1; background:var(--card); border:1.5px solid var(--hair-strong); border-radius:12px; padding:10px 14px; font-size:13.5px; font-weight:600; color:var(--ink-2); cursor:pointer; min-height:42px;}
-.icon-btn svg{width:15px; height:15px; flex:none;}
-.icon-btn:active{background:var(--hair);}
-.icon-btn.recording{background:var(--rose-soft); border-color:var(--rose); color:var(--rose);}
-.icon-btn.recording .rec-dot{width:7px; height:7px; border-radius:50%; background:var(--rose); animation:recPulse 1s ease-in-out infinite; flex:none;}
-@keyframes recPulse{0%,100%{opacity:1;} 50%{opacity:.35;}}
-
-.quickload{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 0 var(--sp-4);}
-.quickload-label{width:100%; font-size:12px; font-weight:600; color:var(--ink-3); text-transform:uppercase; letter-spacing:.02em; margin-bottom:2px;}
-.quickload button{background:var(--card); border:1.5px solid var(--ink); color:var(--ink); font:inherit; font-size:13px; font-weight:600; cursor:pointer; padding:7px 14px; border-radius:999px;}
-.quickload button:active{background:var(--ink); color:#fff;}
-
-/* =====================================================================
-   BUTTONS
-   ===================================================================== */
-.btn-primary{
-  display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
-  background:var(--green); color:#fff; border:none; border-radius:12px;
-  padding:15px 22px; font-size:16px; font-weight:600; letter-spacing:-.005em;
-  cursor:pointer; min-height:var(--sp-7); transition:transform .1s, opacity .15s;
-}
-.btn-primary:active{transform:scale(.98);}
-.btn-primary:disabled{opacity:.4; cursor:default;}
-.btn-primary[hidden]{display:none;}
-.btn-primary .spin{width:16px; height:16px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
-
-.btn-secondary{
-  display:block; width:100%; background:var(--card); border:1.5px solid var(--hair-strong); color:var(--ink);
-  border-radius:12px; padding:14px 22px; font-size:15.5px; font-weight:600; text-align:center; cursor:pointer; min-height:var(--sp-7);
-}
-.btn-secondary:active{background:var(--hair);}
-
-.btn-text{
-  display:inline-flex; align-items:center; gap:6px; background:var(--card); border:1.5px solid var(--ink); color:var(--ink);
-  font-size:14px; font-weight:600; cursor:pointer; padding:9px 16px; min-height:38px; border-radius:999px;
-}
-.btn-text:active{background:var(--ink); color:#fff;}
-.btn-text.muted{background:none; border:none; color:var(--ink-2); padding:9px 0; text-decoration:underline; text-decoration-color:var(--hair-strong); text-underline-offset:3px;}
-.btn-text.muted:active{background:none; color:var(--ink-2); opacity:.55;}
-.btn-text.danger{background:none; border:none; color:var(--rose); padding:9px 0; text-decoration:underline; text-decoration-color:var(--rose); text-underline-offset:3px;}
-.btn-text.danger:active{background:none; color:var(--rose); opacity:.55;}
-.text-row{display:flex; justify-content:center; margin:var(--sp-2) 0 0;}
-.text-row.left{justify-content:flex-start;}
-
-/* =====================================================================
-   FEEDBACK
-   ===================================================================== */
-.msg{font-size:13.5px; line-height:1.5; padding:12px 14px; border-radius:10px; margin-top:var(--sp-4); display:none; font-weight:500;}
-.msg:not(:empty){display:block;}
-.msg.ok{color:var(--green-deep); background:var(--card-tint);}
-.msg.err{color:var(--rose); background:var(--rose-soft);}
-.msg.warn{color:var(--amber); background:var(--amber-soft);}
-.msg.info{color:var(--ink-2); background:var(--card);}
-
-/* =====================================================================
-   STAMP — used sparingly
-   ===================================================================== */
-.stamp{display:inline-flex; transform:rotate(-6deg);}
-.stamp.pulse{animation:stampIn .5s cubic-bezier(.2,1.6,.4,1) both;}
-@keyframes stampIn{0%{transform:rotate(-6deg) scale(1.9); opacity:0;} 60%{transform:rotate(-6deg) scale(.94); opacity:1;} 100%{transform:rotate(-6deg) scale(1);}}
-
-/* =====================================================================
-   HOME — single source of truth per state, no redundant messaging
-   ===================================================================== */
-.home-scroll{padding-top:2px; display:flex; flex-direction:column;}
-
-/* connected: top-anchored dashboard, natural flow, no forced spacer */
-.home-connected{display:none;}
-.home-connected.show{display:block;}
-.home-row{
-  display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 18px;
-  border:1.5px solid var(--ink); border-radius:12px; margin-top:var(--sp-4); cursor:pointer; background:var(--card);
-}
-.home-row:active{background:var(--ink);}
-.home-row:active .label,.home-row:active .chev{color:#fff;}
-.home-row .label{font-size:16px; font-weight:500; color:var(--ink);}
-.home-row .chev{color:var(--ink-3); flex:none;}
-.home-recent{font-size:12.5px; color:var(--ink-2); margin:var(--sp-3) 2px 0; font-weight:500;}
-
-/* not connected: centered empty state, like a native empty inbox */
-.home-empty{display:none; flex:1; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:var(--sp-6) var(--sp-4); min-height:52vh;}
-.home-empty.show{display:flex;}
-.home-empty .mark{margin-bottom:var(--sp-4);}
-.home-empty .t{font-family:var(--display); font-weight:600; font-size:19px; margin:0 0 8px; color:var(--ink);}
-.home-empty .s{font-size:14px; color:var(--ink-2); line-height:1.5; max-width:30ch; margin:0 0 var(--sp-5);}
-.home-empty .btn-primary{max-width:280px;}
-
-/* =====================================================================
-   ITEM CARDS (review) — the visual focus of the screen
-   ===================================================================== */
-.item-card{
-  position:relative; background:var(--rose); border:1.5px solid var(--hair); border-radius:14px;
-  margin-bottom:var(--sp-3); overflow:hidden;
-}
-.item-card.included{border-color:var(--card-tint-border);}
-.item-card.excluded{opacity:.55;}
-.item-card-bg{
-  position:absolute; inset:0; display:flex; align-items:center; justify-content:flex-end; gap:8px;
-  padding-right:24px; color:#fff; font-weight:700; font-size:13.5px;
-}
-.item-card-bg svg{width:18px; height:18px; flex:none;}
-.item-card-inner{
-  position:relative; background:var(--card); display:flex; gap:12px; padding:15px; touch-action:pan-y;
-}
-.item-card.included .item-card-inner{background:var(--card-tint);}
-.item-toggle{
-  width:24px; height:24px; border-radius:50%; border:1.5px solid var(--hair-strong); background:var(--card);
-  display:flex; align-items:center; justify-content:center; cursor:pointer; flex:none; color:transparent; margin-top:1px; padding:0;
-}
-.item-toggle.on{background:var(--green); border-color:var(--green); color:#fff;}
-.item-toggle svg{width:13px; height:13px;}
-.item-body{flex:1; min-width:0;}
-.item-card input[type=text]{
-  font-family:var(--display); font-weight:600; font-size:16px; border:none; background:transparent;
-  padding:0 0 6px; margin-bottom:2px; min-height:auto;
-}
-.item-card input[type=text]:focus{box-shadow:none; border-bottom:1.5px solid var(--green);}
-.item-card textarea{
-  border:none; background:transparent; font-size:13.5px; color:var(--ink-2); min-height:40px; padding:0; line-height:1.5;
-}
-.item-card textarea:focus{box-shadow:none;}
-.cat-select{
-  margin-top:8px; width:auto; min-height:auto; display:inline-block;
-  background:var(--card); border:1.5px solid var(--hair-strong); border-radius:999px;
-  padding:5px 26px 5px 12px; font-size:12px; font-weight:600; color:var(--ink-2);
-}
-.dup-badge{
-  margin-top:10px; padding:9px 11px; border-radius:10px; background:var(--amber-soft); color:var(--amber);
-  font-size:12.5px; font-weight:600; line-height:1.4; display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-}
-.dup-badge button{background:none; border:none; padding:0; color:var(--amber); font:inherit; font-weight:700; text-decoration:underline; cursor:pointer; flex:none;}
-.dup-badge button:disabled{opacity:.5; text-decoration:none;}
-.dup-badge button[data-role=dup-dismiss]{margin-left:auto;}
-.dup-badge.dup-added{background:var(--card-tint); color:var(--green-deep);}
-
-.items-count{font-size:13.5px; color:var(--ink-2); margin:var(--sp-2) 0 var(--sp-4); font-weight:500;}
-
-/* =====================================================================
-   CONFIRM SUMMARY
-   ===================================================================== */
-.summary-card{background:var(--card); border:1.5px solid var(--hair); border-radius:14px; padding:16px 18px; margin:var(--sp-3) 0 var(--sp-5);}
-.summary-row{display:flex; justify-content:space-between; gap:14px; padding:9px 0; font-size:14px; border-bottom:1px solid var(--hair);}
-.summary-row:last-child{border-bottom:none;}
-.summary-row .k{color:var(--ink-2);}
-.summary-row .v{color:var(--ink); font-weight:600; text-align:right;}
-.section-label{font-size:12px; font-weight:600; color:var(--ink-2); letter-spacing:.02em; text-transform:uppercase; margin:0 0 10px;}
-.preview-card{background:var(--card); border:1.5px solid var(--hair); border-radius:14px; padding:4px 18px;}
-.preview-item{display:flex; gap:10px; align-items:baseline; padding:11px 0; border-bottom:1px solid var(--hair); font-size:13.5px;}
-.preview-item:last-child{border-bottom:none;}
-.preview-item .n{font-family:var(--mono); color:var(--ink-3); flex:none;}
-.preview-item .t{color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-
-/* =====================================================================
-   TRANSIENT SCREENS
-   ===================================================================== */
-.center-stage{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:var(--sp-5);}
-.loader-ring{width:44px; height:44px; border-radius:50%; border:3px solid var(--card-tint-border); border-top-color:var(--green); animation:spin 1s linear infinite; margin-bottom:var(--sp-5);}
-.loader-title{font-family:var(--display); font-size:18px; font-weight:600; margin:0 0 6px;}
-.loader-sub{font-size:13.5px; color:var(--ink-2);}
-.checklist{width:100%; max-width:340px; margin-top:var(--sp-5); text-align:left; background:var(--card); border:1.5px solid var(--hair); border-radius:14px; padding:6px 16px;}
-.check-row{display:flex; align-items:center; gap:10px; padding:11px 0; font-size:13.5px; color:var(--ink-2); border-bottom:1px solid var(--hair);}
-.check-row:last-child{border-bottom:none;}
-.check-row .mark{width:18px; height:18px; border-radius:50%; border:1.5px solid var(--hair-strong); flex:none; display:flex; align-items:center; justify-content:center; font-size:10px;}
-.check-row.done .mark{background:var(--green); border-color:var(--green); color:#fff;}
-.check-row.fail .mark{background:var(--rose); border-color:var(--rose); color:#fff;}
-.check-row.done{color:var(--ink);}
-.check-row.fail{color:var(--rose);}
-.check-row .title{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-.check-row .link{color:var(--green-deep); font-weight:600; text-decoration:none; flex:none; font-size:12.5px;}
-.results-stamp-wrap{display:flex; justify-content:center; margin:var(--sp-4) 0 var(--sp-4);}
-
-/* =====================================================================
-   GROUPED LISTS — existing items, saved setups (iOS Settings pattern)
-   ===================================================================== */
-.list-card{background:var(--card); border:1.5px solid var(--hair); border-radius:14px; padding:4px 16px; margin:var(--sp-3) 0 var(--sp-5);}
-.plain-row{display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid var(--hair);}
-.plain-row:last-child{border-bottom:none;}
-.plain-row .id{font-family:var(--mono); font-size:11.5px; font-weight:700; color:var(--green-deep); background:var(--card-tint); padding:3px 8px; border-radius:6px; flex:none;}
-.plain-row .title{flex:1; font-size:15px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-.plain-row .state{font-size:11.5px; color:var(--ink-3); flex:none; font-weight:600;}
-a.plain-row{text-decoration:none; color:inherit;}
-.setup-row-name{font-weight:600; font-size:15px; color:var(--ink);}
-.setup-row-meta{font-size:12px; color:var(--ink-2); margin-top:2px;}
-.setup-del{background:none; border:1.5px solid var(--hair-strong); border-radius:8px; width:30px; height:30px; color:var(--rose); cursor:pointer; flex:none; display:flex; align-items:center; justify-content:center;}
-.setup-del svg{width:14px; height:14px;}
-.save-preset{margin-top:var(--sp-2);}
-
-.empty-state{text-align:center; padding:var(--sp-6) var(--sp-4);}
-.empty-state svg{width:38px; height:38px; color:var(--ink-3); margin-bottom:var(--sp-4);}
-.empty-state .t{font-family:var(--display); font-size:16px; font-weight:600; margin:0 0 6px; color:var(--ink);}
-.empty-state .s{font-size:13.5px; color:var(--ink-2); max-width:28ch; margin:0 auto;}
-
-/* row is now a button that opens the in-app detail screen */
-button.plain-row{width:100%; background:none; border:none; text-align:left; cursor:pointer; font:inherit; padding-right:2px;}
-.plain-row .chev{
-  color:var(--green-deep); flex:none; width:34px; height:34px; border-radius:50%;
-  background:var(--card-tint); display:flex; align-items:center; justify-content:center; margin-left:2px;
-}
-.plain-row .chev svg{width:9px; height:14px; display:block;}
-.disc-badge{font-size:11px; font-weight:700; color:var(--amber); background:var(--amber-soft); padding:3px 7px; border-radius:20px; flex:none; white-space:nowrap;}
-
-/* =====================================================================
-   ITEM DETAIL — single work item, read-only view
-   ===================================================================== */
-.detail-title{font-family:var(--display); font-weight:700; font-size:22px; letter-spacing:-.01em; color:var(--ink); margin:var(--sp-2) 0 4px; line-height:1.25;}
-.detail-id{font-family:var(--mono); font-size:12.5px; font-weight:700; color:var(--green-deep); background:var(--card-tint); padding:3px 8px; border-radius:6px; display:inline-block; margin-bottom:var(--sp-4);}
-.detail-desc-card{background:var(--card); border:1.5px solid var(--hair); border-radius:14px; padding:16px 18px; margin:var(--sp-3) 0 var(--sp-5); font-size:14.5px; line-height:1.6; color:var(--ink); overflow-wrap:anywhere;}
-.detail-desc-card p{margin:0 0 10px;}
-.detail-desc-card p:last-child{margin-bottom:0;}
-.detail-desc-card ul,.detail-desc-card ol{margin:0 0 10px; padding-left:22px;}
-.detail-desc-card.empty{color:var(--ink-3); font-style:italic;}
-.detail-desc-card img{max-width:100%; border-radius:8px;}
-.comment-entry{padding:10px 0; border-bottom:1px solid var(--hair);}
-.comment-entry:last-child{border-bottom:none; padding-bottom:0;}
-.comment-entry:first-child{padding-top:0;}
-.comment-meta{font-size:12px; font-weight:600; color:var(--ink-2); margin-bottom:4px;}
-.comment-body{font-size:14px; line-height:1.55;}
-.comment-body p{margin:0 0 8px;}
-.comment-body p:last-child{margin-bottom:0;}
-.detail-skel{background:var(--card); border:1.5px solid var(--hair); border-radius:14px; height:120px; margin:var(--sp-3) 0 var(--sp-5); position:relative; overflow:hidden;}
-.detail-skel::after{content:''; position:absolute; inset:0; background:linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent); animation:shimmer 1.3s infinite;}
-@keyframes shimmer{0%{transform:translateX(-100%);} 100%{transform:translateX(100%);}}
+  :root{
+    --bg:#fbfaf8;
+    --panel:#ffffff;
+    --panel2:#f7f6f3;
+    --line:#ece9e3;
+    --text:#000000;
+    --muted:#000000;
+    --accent:#2383e2;
+    --accent-soft:#e7f2fd;
+    --accent-ink:#ffffff;
+    --danger:#eb5757;
+    --danger-soft:#fce9e9;
+    --warn:#d9822b;
+    --warn-soft:#fbf0dc;
+    --ok-soft:#e9f6ee;
+    --shadow: 0 1px 2px rgba(55,53,47,.06), 0 2px 8px rgba(55,53,47,.05);
+    --mono: "SF Mono", "Consolas", "Menlo", monospace;
+    --sans: -apple-system, "Segoe UI", ui-rounded, Inter, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text); font-family:var(--sans);
+    padding:28px 16px 90px; line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:720px; margin:0 auto;}
+  h1{font-size:22px; font-weight:700; margin:0 0 5px; letter-spacing:-.01em;}
+  .sub{color:var(--muted); font-size:13.5px; margin:0 0 26px;}
+  .card{
+    background:var(--panel); border:1px solid var(--line); border-radius:6px;
+    padding:18px; margin-bottom:18px; box-shadow:var(--shadow);
+  }
+  .card h2{font-size:12.5px; text-transform:uppercase; letter-spacing:.07em; color:var(--text); margin:0 0 18px; font-weight:700;}
+  .card-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; cursor:pointer;}
+  .card-header h2{margin:0;}
+  .card-header.no-collapse{cursor:default;}
+  .chevron{ display:inline-block; margin-right:8px; transition: transform .15s; font-size:11px; color:var(--muted); }
+  .card-header.collapsed{ margin-bottom:0; }
+  .card-header.collapsed .chevron{ transform: rotate(-90deg); }
+  .card-body.collapsed{ display:none; }
+  .icon-btn{
+    background:var(--panel2); border:1px solid var(--line); color:var(--muted);
+    border-radius:5px; padding:6px 10px; font-size:12px; font-weight:600; cursor:pointer;
+  }
+  .icon-btn.active{ color:var(--accent); border-color:var(--accent); background:var(--accent-soft); }
+  .setups-panel{ display:none; margin-bottom:4px; }
+  .setups-panel.open{ display:block; }
+  label{display:block; font-size:12.5px; color:var(--text); margin-bottom:8px; font-weight:600;}
+  input[type=text], input[type=password], textarea, select{
+    width:100%; background:var(--panel2); border:1px solid var(--line); color:var(--text);
+    border-radius:6px; padding:10px 12px; font-family:var(--sans); font-size:14px;
+    transition: border-color .15s, background .15s;
+  }
+  input[type=text]:focus, input[type=password]:focus, textarea:focus, select:focus{
+    outline:none; border-color:var(--accent); background:var(--panel);
+  }
+  textarea{resize:vertical; font-family:var(--mono); font-size:12.5px;}
+  select{appearance:none; -webkit-appearance:none; display:block; width:100%; text-align:left; box-sizing:border-box;}
+  .row, .row > div{width:100%;}
+  .row{display:flex; flex-direction:column; gap:20px;}
+  .row.inline{flex-direction:row; gap:10px;}
+  .row.inline > *{flex:1;}
+  .section-divider{border:none; border-top:1px solid var(--line); margin:24px 0;}
+  .btn{
+    background:var(--accent); color:var(--accent-ink); border:none; border-radius:6px;
+    padding:10px 18px; font-size:14px; font-weight:600; cursor:pointer;
+    box-shadow:0 1px 2px rgba(35,131,226,.25); transition: transform .1s, opacity .15s;
+  }
+  .btn:active{ transform: scale(.97); }
+  .btn:disabled{opacity:.4; cursor:default; box-shadow:none;}
+  .btn.secondary{background:var(--panel2); color:var(--text); border:1px solid var(--line); box-shadow:none;}
+  .btn.danger{background:var(--danger-soft); color:var(--danger); border:none; box-shadow:none;}
+  .btn-row{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;}
+  .check{display:flex; align-items:center; gap:7px; font-size:13px; color:var(--muted); margin-top:10px;}
+  .status{font-size:13px; margin-top:12px; white-space:pre-wrap; padding:10px 12px; border-radius:6px; display:none;}
+  .status:not(:empty){display:block;}
+  .status.ok{color:#2b8a4e; background:var(--ok-soft);}
+  .status.err{color:var(--danger); background:var(--danger-soft);}
+  .status.warn{color:var(--warn); background:var(--warn-soft);}
+  .item{
+    background:var(--panel2); border:1px solid var(--line); border-radius:6px;
+    padding:14px; margin-bottom:12px;
+  }
+  .item-head{display:flex; align-items:center; gap:8px; margin-bottom:9px;}
+  .badge{
+    font-family:var(--mono); font-size:11.5px; color:var(--accent); background:var(--accent-soft);
+    padding:3px 8px; border-radius:4px; white-space:nowrap; font-weight:600;
+  }
+  .item input[type=text]{font-weight:600; margin-bottom:7px; background:var(--panel);}
+  .item textarea{background:var(--panel);}
+  .item-actions{display:flex; justify-content:space-between; align-items:center; margin-top:8px;}
+  .link{color:var(--accent); text-decoration:none; font-size:13px; font-weight:500;}
+  .empty{color:var(--muted); font-size:13px; font-style:italic;}
+  .result-line{font-size:13.5px; padding:7px 2px; border-bottom:1px solid var(--line);}
+  .result-line:last-child{border-bottom:none;}
+  .spinner{
+    display:inline-block; width:12px; height:12px; border:2px solid rgba(35,131,226,.2);
+    border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle; margin-right:6px;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}  .title-row{display:flex; align-items:center; gap:10px; margin-bottom:5px;}
+  .app-mark{
+    width:30px; height:30px; border-radius:6px; background:#005a9e;
+    display:flex; align-items:center; justify-content:center; flex:0 0 auto;
+  }
 </style>
 </head>
 <body>
-<div class="app" id="app">
+<div class="wrap">
+  <div style="height:6px;"></div>
 
-  <header class="navbar">
-    <span class="nav-title" id="navTitle"></span>
-    <button class="nav-gear" id="settingsBtn" aria-label="Connection settings" hidden>
-      <svg viewBox="0 0 24 24" fill="none"><path d="M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 2.5v2.3M12 19.2v2.3M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M2.5 12h2.3M19.2 12h2.3M4.9 19.1l1.6-1.6M17.5 6.5l1.6-1.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-    </button>
-  </header>
+  <div class="card">
+    <div class="card-header collapsed" data-collapse-target="body-connection">
+      <h2><span class="chevron">▾</span>Connection</h2>
+      <button class="icon-btn" id="setupsToggle">Setups ▾</button>
+    </div>
 
-  <main class="stage" id="stage">
-
-    <!-- ============ HOME (root) ============ -->
-    <section class="screen" data-screen="home">
-      <div class="screen-scroll home-scroll">
-        <h1 class="large-title">Review Items</h1>
-
-        <!-- connected state: top-anchored, one status line, one primary action, one nav row -->
-        <div class="home-connected" id="homeConnected">
-          <p class="large-subtitle" id="homeProjectLine">TF100 PAM Gap Management</p>
-          <p class="home-recent" id="homeRecentLine" style="display:none;"></p>
-          <p class="home-recent" id="homeDigestLine" style="display:none;"></p>
-          <div class="home-row" id="homeExistingBtn">
-            <span class="label">Existing items</span>
-            <span class="chev"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-          </div>
-        </div>
-
-        <!-- not connected: single intentional empty state, one CTA -->
-        <div class="home-empty" id="homeEmpty">
-          <div class="mark">
-            <svg width="40" height="40" viewBox="0 0 46 46" fill="none">
-              <path d="M9 21L14 9h18l5 12" stroke="var(--ink-3)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M9 21v11a3 3 0 003 3h22a3 3 0 003-3V21h-9.7a1 1 0 00-.9.56l-1.3 2.7a1 1 0 01-.9.54h-4.4a1 1 0 01-.9-.54l-1.3-2.7a1 1 0 00-.9-.56H9z" stroke="var(--ink-3)" stroke-width="1.6" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <p class="t">Nothing to review yet</p>
-          <p class="s">Connect Azure DevOps to start turning notes into tracked items.</p>
+    <div class="card-body collapsed" id="body-connection">
+    <div class="setups-panel" id="setupsPanel">
+      <div class="row">
+        <div>
+          <label>Saved setup</label>
+          <select id="setupSelect">
+            <option value="">— none —</option>
+          </select>
         </div>
       </div>
-      <!-- primary action lives in the thumb zone, not up at the top of the scroll -->
-      <div class="screen-foot">
-        <button class="btn-primary" id="homePrimaryBtn" hidden>New batch</button>
-        <button class="btn-primary" id="homeConnectBtn" hidden>Connect Azure DevOps</button>
+      <div class="btn-row" style="margin-top:8px;">
+        <button class="btn secondary" id="deleteSetupBtn">Delete selected setup</button>
       </div>
-    </section>
 
-    <!-- ============ SETUP: ORG/PROJECT ============ -->
-    <section class="screen" data-screen="setup-org">
-      <div class="screen-scroll">
-        <p class="intro">Tell us the Azure DevOps organization and project that will receive your items.</p>
+      <hr class="section-divider">
 
-        <div class="field">
-          <label for="org">Organization</label>
-          <input type="text" id="org" placeholder="e.g. Phoenix-ARZ" value="Phoenix-ARZ">
-        </div>
-        <div class="field">
-          <label for="project">Project</label>
-          <input type="text" id="project" placeholder="e.g. TF100 PAM Gap Management" value="TF100 PAM Gap Management">
-        </div>
-
-        <div class="quickload" id="quickSetupChips"></div>
-      </div>
-      <div class="screen-foot">
-        <button class="btn-primary" id="orgContinueBtn">Continue</button>
-        <div class="text-row"><button class="btn-text muted" id="manageSetupsLink">Manage saved setups</button></div>
-      </div>
-    </section>
-
-    <!-- ============ SETUP: SAVED PRESETS ============ -->
-    <section class="screen" data-screen="setup-presets">
-      <div class="screen-scroll">
-        <p class="intro">Jump straight into a project you've configured before.</p>
-
-        <div class="list-card" id="presetsList"></div>
-        <div id="presetsEmpty" class="empty-state" style="display:none;">
-          <svg viewBox="0 0 24 24" fill="none"><path d="M4 7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V7z" stroke="currentColor" stroke-width="1.5"/></svg>
-          <div class="t">No setups saved yet</div>
-          <div class="s">Save your current organization, project and token as a preset to switch projects fast.</div>
-        </div>
-
-        <div class="field">
-          <label for="setupName">Save current fields as a preset</label>
+      <div class="row">
+        <div>
+          <label>Name a new setup</label>
           <input type="text" id="setupName" placeholder="e.g. TF100 PAM">
         </div>
-        <div class="msg" id="presetsStatus"></div>
       </div>
-      <div class="screen-foot">
-        <button class="btn-primary" id="saveSetupBtn">Save preset</button>
-        <div class="text-row" id="clearPresetsRow" style="display:none;"><button class="btn-text danger" id="clearPresetsBtn">Clear all saved setups</button></div>
+      <div class="btn-row" style="margin-top:8px;">
+        <button class="btn secondary" id="saveSetupBtn">Save current fields as this setup</button>
       </div>
-    </section>
 
-    <!-- ============ SETUP: ACCESS ============ -->
-    <section class="screen" data-screen="setup-access">
-      <div class="screen-scroll">
-        <p class="intro">Your personal access token is stored only on this device.</p>
+      <hr class="section-divider">
+    </div>
 
-        <div class="field">
-          <label for="proxy">Worker proxy URL <span style="font-weight:400; color:var(--ink-3);">(optional)</span></label>
-          <input type="text" id="proxy" placeholder="https://ado-proxy.yourname.workers.dev">
-          <div class="hint">Needed for AI item generation, and if Azure DevOps blocks direct browser calls.</div>
-        </div>
-        <div class="field">
-          <label for="pat">Personal access token</label>
-          <input type="password" id="pat" placeholder="Paste your PAT">
-        </div>
+    <div class="row">
+      <div>
+        <label>Organization</label>
+        <input type="text" id="org" value="Phoenix-ARZ">
+      </div>
+      <div>
+        <label>Project</label>
+        <input type="text" id="project" value="TF100 PAM Gap Management">
+      </div>
+    </div>
 
-        <div class="toggle-row">
-          <div class="toggle-copy">Remember token<small>Keep it saved on this device</small></div>
-          <label class="switch"><input type="checkbox" id="rememberPat"><span class="track"></span><span class="knob"></span></label>
-        </div>
+    <hr class="section-divider">
 
-        <div class="msg" id="connStatus"></div>
+    <div class="row">
+      <div>
+        <label>Proxy URL <span style="font-weight:400;">(optional)</span></label>
+        <input type="text" id="proxy" placeholder="https://ado-proxy.yourname.workers.dev">
       </div>
-      <div class="screen-foot">
-        <button class="btn-primary" id="testBtn"><span id="testBtnLabel">Test connection</span></button>
-        <div class="text-row"><button class="btn-text danger" id="forgetBtn">Forget saved token</button></div>
+      <div>
+        <label>Personal Access Token</label>
+        <input type="password" id="pat" placeholder="Paste your PAT">
       </div>
-    </section>
+    </div>
+    <label class="check"><input type="checkbox" id="rememberPat"> Remember token on this device</label>
 
-    <!-- ============ SETUP: WORK ITEM TYPE ============ -->
-    <section class="screen" data-screen="setup-type">
-      <div class="screen-scroll">
-        <p class="intro">Choose the work item type your batches become, and how they'll be numbered.</p>
+    <div class="btn-row">
+      <button class="btn secondary" id="testBtn">Test connection</button>
+      <button class="btn danger" id="forgetBtn">Forget saved token</button>
+    </div>
+    <div class="status" id="connStatus"></div>
+    </div>
+  </div>
 
-        <div class="field">
-          <label for="witype">Work item type</label>
-          <select id="witype"><option value="Review" selected>Review</option></select>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <label for="prefix">Title prefix</label>
-            <input type="text" id="prefix" value="REV-">
-          </div>
-          <div class="field">
-            <label>Preview</label>
-            <div style="padding:13px 14px; background:var(--card-tint); border:1.5px solid var(--card-tint-border); border-radius:12px; font-family:var(--mono); font-size:14px; font-weight:700; color:var(--green-deep); min-height:var(--sp-7); display:flex; align-items:center;" id="prefixPreview">REV-004</div>
-          </div>
-        </div>
+  <div class="card">
+    <div class="card-header collapsed" data-collapse-target="body-workitem">
+      <h2><span class="chevron">▾</span>Work item settings</h2>
+    </div>
+    <div class="card-body collapsed" id="body-workitem">
+    <div class="row">
+      <div>
+        <label>Work item type</label>
+        <select id="witype">
+          <option value="Review" selected>Review</option>
+        </select>
       </div>
-      <div class="screen-foot">
-        <button class="btn-primary" id="typeContinueBtn">Finish setup</button>
+      <div>
+        <label>Title prefix</label>
+        <input type="text" id="prefix" value="REV-">
       </div>
-    </section>
+    </div>
+    </div>
+  </div>
 
-    <!-- ============ PASTE NOTES ============ -->
-    <section class="screen" data-screen="paste">
-      <div class="screen-scroll">
-        <p class="intro">Drop in raw notes or a meeting thread. We'll shape it into clean, titled review items.</p>
 
-        <div class="text-row left" id="clipChipRow" style="display:none;">
-          <button class="btn-text" id="useClipboardBtn">📋 Use copied text — <span id="clipPreview"></span></button>
-        </div>
-        <div class="field">
-          <textarea id="dump" rows="10" placeholder="Paste your notes here…"></textarea>
-        </div>
-        <div class="field-actions">
-          <button type="button" class="icon-btn" id="dictateBtn">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 003-3V6a3 3 0 10-6 0v6a3 3 0 003 3z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 11v1a6 6 0 0012 0v-1M12 18v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span id="dictateBtnLabel">Dictate</span>
-          </button>
-          <button type="button" class="icon-btn" id="pasteClipBtn">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M9 5h6a1 1 0 011 1v1H8V6a1 1 0 011-1z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><rect x="6" y="5" width="12" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/></svg>
-            <span>Paste clipboard</span>
-          </button>
-        </div>
-        <div class="msg" id="dictateStatus"></div>
-        <div class="text-row left"><button class="btn-text muted" id="analyzeBtn">Just split by blank lines instead</button></div>
-        <div class="msg" id="analyzeStatus"></div>
-      </div>
-      <div class="screen-foot">
-        <button class="btn-primary" id="aiSplitBtn"><span id="aiSplitLabel">Generate items</span></button>
-      </div>
-    </section>
+  <div class="card">
+    <div class="card-header" data-collapse-target="body-existing">
+      <h2><span class="chevron">▾</span>Existing items</h2>
+    </div>
+    <div class="card-body" id="body-existing">
+    <div class="btn-row" style="margin-top:0;">
+      <button class="btn secondary" id="loadExistingBtn">Load existing Review items</button>
+    </div>
+    <div class="status" id="existingStatus"></div>
+    <div id="existingList"></div>
+    </div>
+  </div>
 
-    <!-- ============ GENERATING (transient) ============ -->
-    <section class="screen" data-screen="generating">
-      <div class="center-stage">
-        <div class="loader-ring"></div>
-        <h2 class="loader-title" id="generatingTitle">Reading through your notes…</h2>
-        <p class="loader-sub" id="generatingSub">Pulling out the distinct topics.</p>
-        <div class="msg" id="generatingError" style="max-width:320px; margin-top:20px;"></div>
-        <button class="btn-secondary" id="generatingRetryBtn" style="display:none; max-width:260px; margin-top:18px;">Try again</button>
-        <button class="btn-text muted" id="generatingManualBtn" style="display:none; margin-top:12px;">Split by blank lines instead</button>
-      </div>
-    </section>
+  <div class="card">
+    <div class="card-header" data-collapse-target="body-paste">
+      <h2><span class="chevron">▾</span>Paste dump or email</h2>
+    </div>
+    <div class="card-body" id="body-paste">
+    <textarea id="dump" rows="9" placeholder="Paste your notes here. Separate each item with a blank line — one paragraph = one item."></textarea>
+    <div class="btn-row">
+      <button class="btn" id="analyzeBtn">Split into items</button>
+    </div>
+    <div class="status" id="analyzeStatus"></div>
+    </div>
+  </div>
 
-    <!-- ============ REVIEW ITEMS ============ -->
-    <section class="screen" data-screen="review">
-      <div class="screen-scroll">
-        <p class="items-count" id="itemsCount">0 items ready</p>
-        <div id="itemsList"></div>
-        <div class="text-row left"><button class="btn-text" id="addItemBtn">Add item manually</button></div>
-      </div>
-      <div class="screen-foot">
-        <button class="btn-primary" id="reviewContinueBtn"><span id="reviewContinueLabel">Continue</span></button>
-      </div>
-    </section>
-
-    <!-- ============ EXTRA REQUIRED FIELDS ============ -->
-    <section class="screen" data-screen="extra-fields">
-      <div class="screen-scroll">
-        <p class="intro" id="extraFieldsTitle">This project requires a few extra fields on every item in this batch.</p>
-        <div id="extraFieldsWrap"></div>
-        <div class="msg" id="extraFieldsStatus"></div>
-      </div>
-      <div class="screen-foot">
-        <button class="btn-primary" id="extraFieldsContinueBtn">Continue</button>
-      </div>
-    </section>
-
-    <!-- ============ CONFIRM ============ -->
-    <section class="screen" data-screen="confirm">
-      <div class="screen-scroll">
-        <div class="summary-card" id="summaryBox"></div>
-        <p class="section-label">Items in this batch</p>
-        <div class="preview-card" id="previewList"></div>
-      </div>
-      <div class="screen-foot">
-        <button class="btn-primary" id="createBtn">Create in Azure DevOps</button>
-      </div>
-    </section>
-
-    <!-- ============ CREATING (transient) ============ -->
-    <section class="screen" data-screen="creating">
-      <div class="center-stage">
-        <div class="loader-ring"></div>
-        <h2 class="loader-title">Creating your items…</h2>
-        <p class="loader-sub">Sending each one to Azure DevOps.</p>
-        <div class="checklist" id="creatingChecklist"></div>
-      </div>
-    </section>
-
-    <!-- ============ RESULTS ============ -->
-    <section class="screen" data-screen="results">
-      <div class="screen-scroll">
-        <div class="results-stamp-wrap">
-          <div class="stamp pulse" id="resultsStamp">
-            <svg width="52" height="52" viewBox="0 0 46 46" fill="none">
-              <circle cx="23" cy="23" r="21" stroke="#4338CA" stroke-width="2"/>
-              <circle cx="23" cy="23" r="16" stroke="#4338CA" stroke-width="1.2" stroke-dasharray="2.4 3.2"/>
-              <path d="M15 23.5l5.5 5.5L32 17" stroke="#4338CA" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-        </div>
-        <h2 style="text-align:center; font-family:var(--display); font-weight:600; font-size:19px; margin:0 0 6px;" id="resultsTitle">Done — items are live</h2>
-        <p class="intro" style="text-align:center; margin-top:0;" id="resultsSub">Everything below has been created in Azure DevOps.</p>
-        <div class="list-card" id="resultsList"></div>
-      </div>
-      <div class="screen-foot">
-        <button class="btn-primary" id="resultsHomeBtn">Back to home</button>
-        <div class="text-row"><button class="btn-text muted" id="resultsAgainBtn">Create another batch</button></div>
-      </div>
-    </section>
-
-    <!-- ============ EXISTING ITEMS ============ -->
-    <section class="screen" data-screen="existing">
-      <div class="screen-scroll">
-        <p class="intro" id="existingEyebrow" style="margin-bottom:var(--sp-3);">Existing items</p>
-        <div class="msg" id="existingStatus"></div>
-        <div class="list-card" id="existingList"></div>
-        <div class="text-row"><button class="btn-text muted" id="existingRefreshBtn">Refresh list</button></div>
-      </div>
-    </section>
-
-    <!-- ============ ITEM DETAIL ============ -->
-    <section class="screen" data-screen="item-detail">
-      <div class="screen-scroll">
-        <div id="detailBody">
-          <div class="detail-id" id="detailId">#—</div>
-          <h2 class="detail-title" id="detailTitle">Loading…</h2>
-          <div class="summary-card" id="detailMetaCard">
-            <div class="summary-row"><span class="k">State</span><span class="v" id="detailState">—</span></div>
-            <div class="summary-row"><span class="k">Type</span><span class="v" id="detailType">—</span></div>
-            <div class="summary-row"><span class="k">Last updated</span><span class="v" id="detailChanged">—</span></div>
-            <div class="summary-row"><span class="k">Created</span><span class="v" id="detailCreated">—</span></div>
-          </div>
-          <p class="section-label">Description</p>
-          <div class="detail-desc-card" id="detailDescription">Loading…</div>
-          <p class="section-label">Discussion</p>
-          <div class="detail-desc-card" id="detailDiscussion">Loading…</div>
-        </div>
-        <div class="msg" id="detailStatus"></div>
-      </div>
-      <div class="screen-foot">
-        <a class="btn-primary" id="detailOpenAdoBtn" href="#" target="_blank" style="text-decoration:none;">Open in Azure DevOps</a>
-      </div>
-    </section>
-
-  </main>
-
-  <button class="fab-back" id="fabBack" hidden>
-    <svg viewBox="0 0 12 20" fill="none"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    <span id="fabBackLabel">Back</span>
-  </button>
-  <div class="step-dots" id="stepDots" hidden></div>
+  <div class="card" id="itemsCard" style="display:none;">
+    <div class="card-header" data-collapse-target="body-items">
+      <h2><span class="chevron">▾</span>Review before creating</h2>
+    </div>
+    <div class="card-body" id="body-items">
+    <div id="itemsList"></div>
+    <div class="btn-row">
+      <button class="btn secondary" id="addItemBtn">+ Add item manually</button>
+      <button class="btn" id="createBtn">Create in Azure DevOps</button>
+    </div>
+    <div class="status" id="createStatus"></div>
+    <div id="results"></div>
+    </div>
+  </div>
 </div>
 
 <script>
 const $ = id => document.getElementById(id);
+let parsedItems = []; // {title, description, include}
 
-/* =========================================================
-   NAVIGATION — stack based wizard router with conventional
-   back chevron + previous-screen label, single nav bar.
-   ========================================================= */
-const screens = {};
-document.querySelectorAll('.screen').forEach(s => screens[s.dataset.screen] = s);
-let stack = ['home'];
-let activeId = 'home';
-screens.home.classList.add('active');
+// ---- collapsible cards ----
+document.querySelectorAll('.card-header[data-collapse-target]').forEach(header=>{
+  header.addEventListener('click', (e)=>{
+    if(e.target.closest('#setupsToggle')) return; // don't collapse card when Setups button is clicked
+    const body = document.getElementById(header.dataset.collapseTarget);
+    const collapsed = body.classList.toggle('collapsed');
+    header.classList.toggle('collapsed', collapsed);
+  });
+});
 
-const NAV_TITLES = {
-  home:'Review Items', 'setup-org':'Org & project', 'setup-presets':'Saved setups',
-  'setup-access':'Your access', 'setup-type':'Work item type', paste:'New batch',
-  generating:'New batch', review:'Review items', 'extra-fields':'Required fields',
-  confirm:'Confirm', creating:'Creating', results:'Results', existing:'Existing items',
-  'item-detail':'Item details'
-};
-const NO_BACK = ['home','creating'];
+$('setupsToggle').addEventListener('click', ()=>{
+  const panel = $('setupsPanel');
+  const btn = $('setupsToggle');
+  panel.classList.toggle('open');
+  btn.classList.toggle('active');
+  btn.textContent = panel.classList.contains('open') ? 'Setups ▴' : 'Setups ▾';
+});
 
-/* the "new batch" flow, in order — used only to show a faint dot trail
-   at the bottom of the screen so it's obvious how far along you are.
-   Screens outside this list (home, saved setups, transient loaders,
-   existing items, item detail) show no dots at all. */
-const WIZARD_STEPS = ['setup-org','setup-access','setup-type','paste','review','extra-fields','confirm'];
-function renderStepDots(){
-  const dots = $('stepDots');
-  const idx = WIZARD_STEPS.indexOf(activeId);
-  const screenEl = screens[activeId];
-  const footEl = screenEl && screenEl.querySelector('.screen-foot');
-  if(idx === -1 || !footEl){ dots.hidden = true; return; }
-  dots.innerHTML = WIZARD_STEPS.map((_,i)=>`<span class="step-dot${i===idx?' active':''}"></span>`).join('');
-  footEl.prepend(dots);
-  dots.hidden = false;
-}
-
-function paint(){
-  const showBack = !NO_BACK.includes(activeId) && stack.length > 1;
-  $('fabBack').hidden = !showBack;
-  if(showBack){
-    const prevId = stack[stack.length-2];
-    $('fabBackLabel').textContent = NAV_TITLES[prevId] || 'Back';
-  }
-  $('navTitle').textContent = activeId === 'home' ? '' : (NAV_TITLES[activeId] || '');
-  $('settingsBtn').hidden = activeId !== 'home';
-  renderStepDots();
-  watchFabPosition();
-}
-
-/* Float the back button just above whatever footer the active screen
-   actually has — measured, not guessed, so it never overlaps buttons
-   or links that live in a screen-foot. Re-measures automatically if
-   that footer's own content/height changes (e.g. a status message
-   appearing) via ResizeObserver. */
-let fabResizeObserver = null;
-function positionFab(){
-  const screenEl = screens[activeId];
-  const footEl = screenEl && screenEl.querySelector('.screen-foot');
-  const fab = $('fabBack');
-  fab.style.bottom = footEl
-    ? (footEl.offsetHeight + 16) + 'px'
-    : 'calc(env(safe-area-inset-bottom,0px) + 16px)';
-}
-function watchFabPosition(){
-  if(fabResizeObserver) fabResizeObserver.disconnect();
-  positionFab();
-  const screenEl = screens[activeId];
-  const footEl = screenEl && screenEl.querySelector('.screen-foot');
-  if(footEl && window.ResizeObserver){
-    fabResizeObserver = new ResizeObserver(positionFab);
-    fabResizeObserver.observe(footEl);
-  }
-}
-
-function transitionTo(id, dir){
-  const nextEl = screens[id];
-  const curEl = screens[activeId];
-  if(curEl && curEl !== nextEl){
-    curEl.classList.remove('active');
-    curEl.classList.add(dir==='forward' ? 'leaving-l' : 'leaving-r');
-    setTimeout(()=>{ curEl.classList.remove('leaving-l','leaving-r'); }, 330);
-  }
-  nextEl.classList.add(dir==='forward' ? 'entering-r' : 'entering-l');
-  nextEl.classList.add('active');
-  void nextEl.offsetWidth;
-  requestAnimationFrame(()=>{ nextEl.classList.remove('entering-r','entering-l'); });
-  activeId = id;
-  nextEl.scrollTop = 0;
-  paint();
-  if(onEnter[id]) onEnter[id]();
-}
-function go(id){ stack.push(id); transitionTo(id,'forward'); }
-function replaceTop(id){ stack[stack.length-1] = id; transitionTo(id,'forward'); }
-function resetTo(id){ stack = [id]; transitionTo(id,'back'); }
-function goBack(){ if(stack.length<2) return; stack.pop(); transitionTo(stack[stack.length-1],'back'); }
-
-$('fabBack').addEventListener('click', goBack);
-$('settingsBtn').addEventListener('click', ()=> go('setup-org'));
-paint();
-
-/* swipe right anywhere on the screen to go back — natural one-thumb
-   alternative to hunting for a button. Ignored on the root screen and
-   on any horizontal drag that starts inside a scrollable text input. */
-(function(){
-  const stage = $('stage');
-  let sx=0, sy=0, tracking=false;
-  stage.addEventListener('touchstart', e=>{
-    if(NO_BACK.includes(activeId) || stack.length < 2) { tracking=false; return; }
-    const t = e.touches[0];
-    sx = t.clientX; sy = t.clientY; tracking = true;
-  }, {passive:true});
-  stage.addEventListener('touchmove', e=>{
-    if(!tracking) return;
-    const t = e.touches[0];
-    const dx = t.clientX - sx, dy = t.clientY - sy;
-    if(dx > 90 && Math.abs(dy) < 60){
-      tracking = false;
-      goBack();
-    }
-  }, {passive:true});
-  stage.addEventListener('touchend', ()=>{ tracking=false; }, {passive:true});
-})();
-
-const onEnter = {};
-
-/* =========================================================
-   STORAGE SHIM
-   ========================================================= */
-const storage = (function(){
-  if (window.storage) return window.storage;
-  const ns = 'advps:';
-  return {
-    async get(key){ const v = localStorage.getItem(ns+key); return v===null?null:{key,value:v}; },
-    async set(key,value){ localStorage.setItem(ns+key,value); return {key,value}; },
-    async delete(key){ localStorage.removeItem(ns+key); return {key,deleted:true}; },
-    async list(prefix){
-      const keys=[];
-      for(let i=0;i<localStorage.length;i++){
-        const k = localStorage.key(i);
-        if(k && k.startsWith(ns+(prefix||''))) keys.push(k.slice(ns.length));
-      }
-      return {keys};
-    }
-  };
-})();
-
-function setMsg(id, msg, cls){
-  const el = $(id);
-  el.textContent = msg;
-  el.className = 'msg ' + (cls||'');
-}
-
-/* =========================================================
-   CONNECTION FIELDS + PERSISTENCE
-   ========================================================= */
+// ---- token persistence (opt-in, personal, unshared) ----
 async function loadSavedPat(){
-  try{ const r = await storage.get('ado_pat', false); if(r && r.value){ $('pat').value=r.value; $('rememberPat').checked=true; } }catch(e){}
+  try{
+    const r = await window.storage.get('ado_pat', false);
+    if(r && r.value){ $('pat').value = r.value; $('rememberPat').checked = true; }
+  }catch(e){}
 }
 async function savePatIfRemembering(){
-  if($('rememberPat').checked && $('pat').value){ try{ await storage.set('ado_pat', $('pat').value, false); }catch(e){} }
+  if($('rememberPat').checked && $('pat').value){
+    try{ await window.storage.set('ado_pat', $('pat').value, false); }catch(e){}
+  }
 }
+
+// ---- field auto-restore (last used values) ----
 const fieldIds = ['org','project','witype','prefix','proxy'];
 function currentFields(){
-  const o = {}; fieldIds.forEach(id => o[id] = $(id).value);
-  if($('rememberPat').checked) o.pat = $('pat').value;
+  const o = {};
+  fieldIds.forEach(id => o[id] = $(id).value);
+  if($('rememberPat').checked){ o.pat = $('pat').value; }
   return o;
 }
 function applyFields(o){
   fieldIds.forEach(id => { if(o[id] !== undefined) $(id).value = o[id]; });
   if(o.pat !== undefined){ $('pat').value = o.pat; $('rememberPat').checked = true; }
-  updatePrefixPreview();
 }
-async function saveLastFields(){ try{ await storage.set('ado_last', JSON.stringify(currentFields()), false); }catch(e){} }
+async function saveLastFields(){
+  try{ await window.storage.set('ado_last', JSON.stringify(currentFields()), false); }catch(e){}
+}
 async function loadLastFields(){
-  try{ const r = await storage.get('ado_last', false); if(r && r.value) applyFields(JSON.parse(r.value)); }catch(e){}
+  try{
+    const r = await window.storage.get('ado_last', false);
+    if(r && r.value) applyFields(JSON.parse(r.value));
+  }catch(e){}
 }
 fieldIds.forEach(id => $(id).addEventListener('change', saveLastFields));
 $('pat').addEventListener('change', async ()=>{ await savePatIfRemembering(); await saveLastFields(); });
-$('rememberPat').addEventListener('change', async e=>{
-  if(e.target.checked) await savePatIfRemembering();
-  else { try{ await storage.delete('ado_pat', false); }catch(e){} }
-  await saveLastFields();
-});
-$('forgetBtn').addEventListener('click', async ()=>{
-  try{ await storage.delete('ado_pat', false); }catch(e){}
-  $('pat').value=''; $('rememberPat').checked=false;
-  setMsg('connStatus','Saved token cleared.','ok');
-});
 
-let testState = 'idle';
-function resetTestState(){
-  testState='idle';
-  $('testBtnLabel').textContent = 'Test connection';
-  if(activeId==='setup-access') setMsg('connStatus','','');
-}
-['org','project','proxy','pat'].forEach(id => $(id).addEventListener('input', resetTestState));
-
-/* =========================================================
-   SAVED SETUPS
-   ========================================================= */
+// ---- named saved setups (multiple projects) ----
 async function getSetups(){
-  try{ const r = await storage.get('ado_setups', false); return r && r.value ? JSON.parse(r.value) : {}; }catch(e){ return {}; }
+  try{
+    const r = await window.storage.get('ado_setups', false);
+    return r && r.value ? JSON.parse(r.value) : {};
+  }catch(e){ return {}; }
 }
-async function setSetups(obj){ try{ await storage.set('ado_setups', JSON.stringify(obj), false); }catch(e){} }
-
-async function refreshQuickChips(){
+async function setSetups(obj){
+  try{ await window.storage.set('ado_setups', JSON.stringify(obj), false); }catch(e){}
+}
+async function refreshSetupSelect(selectName){
   const setups = await getSetups();
-  const names = Object.keys(setups).sort();
-  const row = $('quickSetupChips');
-  row.innerHTML = '';
-  if(!names.length) return;
-  const label = document.createElement('span');
-  label.className = 'quickload-label';
-  label.textContent = 'Quick load';
-  row.appendChild(label);
-  names.forEach(name=>{
-    const btn = document.createElement('button');
-    btn.type='button'; btn.textContent = name;
-    btn.addEventListener('click', async ()=>{
-      applyFields(setups[name]); await saveLastFields(); await savePatIfRemembering();
-    });
-    row.appendChild(btn);
+  const sel = $('setupSelect');
+  sel.innerHTML = '<option value="">— none —</option>';
+  Object.keys(setups).sort().forEach(name=>{
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name;
+    if(name === selectName) opt.selected = true;
+    sel.appendChild(opt);
   });
 }
-async function refreshPresetsList(){
-  const setups = await getSetups();
-  const names = Object.keys(setups).sort();
-  const list = $('presetsList');
-  list.innerHTML = '';
-  $('presetsEmpty').style.display = names.length ? 'none' : 'block';
-  list.style.display = names.length ? 'block' : 'none';
-  $('clearPresetsRow').style.display = names.length ? 'block' : 'none';
-  names.forEach(name=>{
-    const row = document.createElement('div');
-    row.className = 'plain-row';
-    row.style.cursor='pointer';
-    row.innerHTML = `
-      <div style="flex:1;">
-        <div class="setup-row-name">${escapeAttr(name)}</div>
-        <div class="setup-row-meta">${escapeAttr(setups[name].project || '')}</div>
-      </div>
-      <button class="setup-del" data-name="${escapeAttr(name)}" aria-label="Delete">
-        <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0v12a2 2 0 002 2h6a2 2 0 002-2V7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-      </button>`;
-    row.querySelector('div').addEventListener('click', async ()=>{
-      applyFields(setups[name]); await saveLastFields(); await savePatIfRemembering();
-      setMsg('presetsStatus', `Loaded "${name}".`, 'ok');
-      goBack();
-    });
-    row.querySelector('.setup-del').addEventListener('click', async (e)=>{
-      e.stopPropagation();
-      const s = await getSetups(); delete s[name]; await setSetups(s);
-      await refreshPresetsList(); await refreshQuickChips();
-      setMsg('presetsStatus', `Deleted "${name}".`, 'ok');
-    });
-    list.appendChild(row);
-  });
-}
-$('manageSetupsLink').addEventListener('click', ()=> go('setup-presets'));
 $('saveSetupBtn').addEventListener('click', async ()=>{
   const name = $('setupName').value.trim();
-  if(!name){ setMsg('presetsStatus','Give this setup a name first.','err'); return; }
+  if(!name){ setStatus('connStatus','Give this setup a name first.','err'); return; }
   const setups = await getSetups();
   setups[name] = currentFields();
   await setSetups(setups);
+  await refreshSetupSelect(name);
   $('setupName').value = '';
-  await refreshPresetsList(); await refreshQuickChips();
-  const patNote = $('rememberPat').checked ? ' — including your token' : '';
-  setMsg('presetsStatus', `Saved "${name}"${patNote}.`, 'ok');
+  const patNote = $('rememberPat').checked ? ' (including token)' : '';
+  setStatus('connStatus', `Saved setup "${name}"${patNote}.`, 'ok');
 });
-$('clearPresetsBtn').addEventListener('click', async ()=>{
+$('deleteSetupBtn').addEventListener('click', async ()=>{
+  const name = $('setupSelect').value;
+  if(!name) return;
   const setups = await getSetups();
-  const count = Object.keys(setups).length;
-  if(!count) return;
-  if(!confirm(`Delete all ${count} saved setup${count===1?'':'s'}? This can't be undone.`)) return;
-  await setSetups({});
-  await refreshPresetsList(); await refreshQuickChips();
-  setMsg('presetsStatus', 'All saved setups cleared.', 'ok');
+  delete setups[name];
+  await setSetups(setups);
+  await refreshSetupSelect();
+  setStatus('connStatus', `Deleted setup "${name}".`, 'ok');
 });
-onEnter['setup-presets'] = ()=>{ refreshPresetsList(); };
-onEnter['setup-org'] = ()=>{ refreshQuickChips(); };
+$('setupSelect').addEventListener('change', async ()=>{
+  const name = $('setupSelect').value;
+  if(!name) return;
+  const setups = await getSetups();
+  if(setups[name]){
+    applyFields(setups[name]);
+    saveLastFields();
+    await savePatIfRemembering();
+  }
+});
 
-/* =========================================================
-   ADO HELPERS
-   ========================================================= */
-function adoHeaders(pat){ return { 'Authorization':'Basic '+btoa(':'+pat), 'Content-Type':'application/json' }; }
+(async ()=>{
+  await loadLastFields();
+  await refreshSetupSelect();
+  await loadSavedPat();
+})();
+
+$('rememberPat').addEventListener('change', async e=>{
+  if(e.target.checked){
+    await savePatIfRemembering();
+  } else {
+    try{ await window.storage.delete('ado_pat', false); }catch(e){}
+  }
+  await saveLastFields();
+});
+$('forgetBtn').addEventListener('click', async ()=>{
+  try{ await window.storage.delete('ado_pat', false); }catch(e){}
+  $('pat').value=''; $('rememberPat').checked=false;
+  setStatus('connStatus','Saved token cleared.','ok');
+});
+
+function setStatus(id, msg, cls){
+  const el = $(id);
+  el.textContent = msg;
+  el.className = 'status ' + (cls||'');
+}
+
+function adoHeaders(pat){
+  return {
+    'Authorization': 'Basic ' + btoa(':' + pat),
+    'Content-Type': 'application/json'
+  };
+}
+
 function cfg(){
   return {
     org: $('org').value.trim(),
     project: $('project').value.trim(),
     witype: $('witype').value.trim() || 'Review',
-    prefix: $('prefix').value.trim() || 'REV-',
+    prefix: $('prefix').value.trim() || 'Rev-',
     pat: $('pat').value.trim(),
     proxy: $('proxy').value.trim().replace(/\/$/,'')
   };
 }
-function adoBase(c){ return c.proxy ? c.proxy + '/ado' : 'https://dev.azure.com'; }
-function escapeAttr(s){ return (s||'').replace(/"/g,'&quot;'); }
-function escapeRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
+function adoBase(c){
+  return c.proxy ? c.proxy + '/ado' : 'https://dev.azure.com';
+}
+
+// ---- populate work item type dropdown from the project ----
 async function loadWorkItemTypes(c){
   const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/workitemtypes?api-version=7.1`;
   const res = await fetch(url, { headers: adoHeaders(c.pat) });
-  if(!res.ok){ const txt = await res.text(); throw new Error(`workitemtypes list failed (${res.status}): ${txt.slice(0,150)}`); }
+  if(!res.ok){
+    const txt = await res.text();
+    throw new Error(`workitemtypes list failed (${res.status}): ${txt.slice(0,150)}`);
+  }
   const data = await res.json();
   const types = (data.value || []).map(t=>t.name).sort();
   if(types.length === 0) throw new Error('workitemtypes list returned 0 types');
   const sel = $('witype');
   const previous = sel.value || 'Review';
   sel.innerHTML = '';
-  types.forEach(name=>{ const opt = document.createElement('option'); opt.value=name; opt.textContent=name; sel.appendChild(opt); });
+  types.forEach(name=>{
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name;
+    sel.appendChild(opt);
+  });
   if(types.includes(previous)) sel.value = previous;
   else if(types.includes('Review')) sel.value = 'Review';
   else sel.value = types[0];
   return types.length;
 }
 
-$('prefix').addEventListener('input', updatePrefixPreview);
-function updatePrefixPreview(){
-  const p = $('prefix').value.trim() || 'REV-';
-  $('prefixPreview').textContent = p + '004';
-}
-updatePrefixPreview();
-
-/* ---- test connection ---- */
+// ---- test connection ----
 $('testBtn').addEventListener('click', async ()=>{
-  if(testState === 'ok'){ go('setup-type'); return; }
   const c = cfg();
-  if(!c.pat){ setMsg('connStatus','Enter a PAT first.','err'); return; }
-  $('testBtn').disabled = true;
-  $('testBtnLabel').innerHTML = '<span class="spin"></span> Testing…';
-  setMsg('connStatus','','');
+  if(!c.pat){ setStatus('connStatus','Enter a PAT first.','err'); return; }
+  setStatus('connStatus','Testing…','');
   try{
     const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/workitemtypes/${encodeURIComponent(c.witype)}?api-version=7.1`;
     const res = await fetch(url, { headers: adoHeaders(c.pat) });
     if(res.status === 200){
       const data = await res.json();
-      let msg = `Connected. "${data.name}" work items found in this project.`;
-      if($('rememberPat').checked){ try{ await storage.set('ado_pat', c.pat, false); }catch(e){} }
+      let msg = `Connected. Work item type "${data.name}" found in this project.`;
+      if($('rememberPat').checked){
+        try{ await window.storage.set('ado_pat', c.pat, false); }catch(e){}
+      }
       try{
         const count = await loadWorkItemTypes(c);
-        msg += ` Loaded ${count} work item types.`;
-      }catch(werr){ msg += ` (Could not load full type list.)`; }
-      setMsg('connStatus', msg, 'ok');
-      testState = 'ok';
-      $('testBtnLabel').textContent = 'Continue';
-      await saveLastFields();
+        msg += ` Loaded ${count} work item types into the dropdown.`;
+      }catch(werr){
+        msg += ` (Could not load full type list: ${werr.message})`;
+      }
+      setStatus('connStatus', msg, 'ok');
+    } else if(res.status === 0){
+      throw new Error('cors');
     } else {
       const txt = await res.text();
-      setMsg('connStatus', `Failed (${res.status}): ${txt.slice(0,180)}`, 'err');
-      testState = 'idle'; $('testBtnLabel').textContent = 'Try again';
+      setStatus('connStatus', `Failed (${res.status}): ${txt.slice(0,200)}`, 'err');
     }
   }catch(err){
-    const detail = err && err.message ? ` (${err.name || 'Error'}: ${err.message})` : '';
-    setMsg('connStatus',
-      `Could not reach Azure DevOps from the browser — likely a CORS restriction. Set a Worker proxy URL above and try again.${detail}`,
+    setStatus('connStatus',
+      'Could not reach Azure DevOps from the browser. This is very likely a CORS restriction on Azure DevOps\' side (it does not allow direct browser calls from other domains). If so, this app needs to run through a small local proxy or Claude Code with your PAT instead of directly in this chat window — let me know and I\'ll set that up.',
       'err');
-    testState='idle'; $('testBtnLabel').textContent = 'Try again';
   }
-  $('testBtn').disabled = false;
 });
 
-$('orgContinueBtn').addEventListener('click', async ()=>{
-  if(!$('org').value.trim() || !$('project').value.trim()) return;
-  await saveLastFields();
-  go('setup-access');
-});
-$('typeContinueBtn').addEventListener('click', async ()=>{
-  await saveLastFields();
-  resetTo('home');
-  refreshHome();
-});
-
-(async ()=>{
-  await loadLastFields();
-  await loadSavedPat();
-  await refreshQuickChips();
-  refreshHome();
-  handleIncomingShare();
-  handleAutoRecord();
-})();
-
-/* =========================================================
-   SHARE TARGET — if the app was opened via the OS share sheet
-   (Android/Chrome; iOS Safari doesn't support this yet), the
-   shared text lands in the URL. Drop it straight into notes.
-   ========================================================= */
-function handleIncomingShare(){
-  const params = new URLSearchParams(location.search);
-  const shared = [params.get('shared_title'), params.get('shared_text'), params.get('shared_url')]
-    .filter(Boolean).join('\n\n').trim();
-  if(!shared) return;
-  history.replaceState(null, '', location.pathname);
-  $('dump').value = shared;
-  stack = ['home','paste'];
-  transitionTo('paste','forward');
-}
-
-/* =========================================================
-   ZERO-TAP CAPTURE — opening the app with ?record=1 jumps
-   straight to the paste screen and starts listening immediately,
-   so a Siri Shortcut ("Hey Siri, log a review item" → Open URL
-   .../advps.html?record=1) turns the whole flow into "just talk."
-   ========================================================= */
-function handleAutoRecord(){
-  const params = new URLSearchParams(location.search);
-  if(params.get('record') !== '1') return;
-  history.replaceState(null, '', location.pathname);
-  stack = ['home','paste'];
-  transitionTo('paste','forward');
-  setTimeout(()=>{ if(!dictating && recognizer && !$('dictateBtn').hidden) $('dictateBtn').click(); }, 350);
-}
-
-/* =========================================================
-   HOME — one state visible at a time, no redundant messaging
-   ========================================================= */
-function isConfigured(){
-  return !!($('org').value.trim() && $('project').value.trim() && $('pat').value.trim());
-}
-async function refreshHome(){
-  const connected = isConfigured();
-  $('homeConnected').classList.toggle('show', connected);
-  $('homeEmpty').classList.toggle('show', !connected);
-  $('homePrimaryBtn').hidden = !connected;
-  $('homeConnectBtn').hidden = connected;
-  if(connected){
-    $('homeProjectLine').textContent = `${$('project').value.trim()} · ${$('org').value.trim()}`;
-    try{
-      const r = await storage.get('ado_last_batch', false);
-      if(r && r.value){
-        const info = JSON.parse(r.value);
-        $('homeRecentLine').style.display = 'block';
-        $('homeRecentLine').textContent = `Last batch: ${info.count} item${info.count===1?'':'s'} created`;
-        checkLastBatchDigest(info);
-      } else {
-        $('homeRecentLine').style.display = 'none';
-        $('homeDigestLine').style.display = 'none';
-      }
-    }catch(e){}
-  }
-}
-
-/* =========================================================
-   DIGEST — close the loop. Rather than fire-and-forget, quietly
-   check whether the items you created last time have moved at
-   all since, so the app tells you something instead of just
-   being a one-way notes dump.
-   ========================================================= */
-let digestToken = 0;
-async function checkLastBatchDigest(info){
-  const items = Array.isArray(info.items) ? info.items.filter(it=>it && it.id && it.state) : [];
-  if(!items.length || !info.org || !info.project){ $('homeDigestLine').style.display = 'none'; return; }
-  const token = ++digestToken;
-  try{
-    const c = { org: info.org, project: info.project, pat: $('pat').value.trim(), proxy: $('proxy').value.trim().replace(/\/$/,'') };
-    const ids = items.map(it=>it.id);
-    const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/_apis/wit/workitemsbatch?api-version=7.1`;
-    const res = await fetch(url, { method:'POST', headers:{...adoHeaders(c.pat),'Content-Type':'application/json'}, body: JSON.stringify({ ids, fields:['System.Id','System.State'] }) });
-    if(!res.ok || token !== digestToken) return;
-    const data = await res.json();
-    const stateById = new Map((data.value||[]).map(w=>[w.id, w.fields && w.fields['System.State']]));
-    let untouched = 0;
-    items.forEach(it=>{ if(stateById.get(it.id) === it.state) untouched++; });
-    const line = $('homeDigestLine');
-    if(untouched === 0){
-      line.textContent = `✓ Every item from that batch has moved since.`;
-    } else {
-      line.textContent = `${untouched} of ${items.length} from that batch ${untouched===1?"hasn't":"haven't"} been touched yet.`;
-    }
-    line.style.display = 'block';
-  }catch(e){ /* best-effort — home screen shouldn't break over this */ }
-}
-$('homePrimaryBtn').addEventListener('click', ()=> go('paste'));
-$('homeConnectBtn').addEventListener('click', ()=> go('setup-org'));
-$('homeExistingBtn').addEventListener('click', ()=> go('existing'));
-onEnter['home'] = refreshHome;
-
-/* =========================================================
-   PASTE + SPLIT
-   ========================================================= */
-let parsedItems = [];
-
-/* Categories the AI (or you, via the dropdown on each item) can tag a
-   note with. Mapped to a real Azure DevOps Priority + Tag on creation
-   so the classification isn't just cosmetic in this app — it's visible
-   and filterable in Azure DevOps itself. */
-const CATEGORIES = ['blocker','bug','question','task'];
-const CATEGORY_LABELS = { blocker:'🔴 Blocker', bug:'🐞 Bug', question:'❓ Question', task:'📋 Task' };
-const CATEGORY_PRIORITY = { blocker:1, bug:2, question:3, task:4 };
-
+// ---- split into items (local, free — no API call) ----
 function titleFromLine(line){
   const clean = line.replace(/\s+/g,' ').trim();
   const words = clean.split(' ');
   return words.length > 9 ? words.slice(0,9).join(' ') + '…' : clean;
 }
-function splitByBlankLines(){
+
+$('analyzeBtn').addEventListener('click', ()=>{
   const text = $('dump').value.trim();
-  if(!text){ setMsg('analyzeStatus','Paste something first.','err'); return false; }
+  if(!text){ setStatus('analyzeStatus','Paste something first.','err'); return; }
+
+  // split on blank lines (one or more empty lines) into paragraphs
   const chunks = text.split(/\n\s*\n+/).map(c=>c.trim()).filter(Boolean);
+
   parsedItems = chunks.map(chunk=>{
     const lines = chunk.split('\n').map(l=>l.trim()).filter(Boolean);
-    return { title: titleFromLine(lines[0]||chunk), description: chunk, category:'task', include:true };
+    const title = titleFromLine(lines[0] || chunk);
+    const description = chunk;
+    return { title, description, include: true };
   });
-  return parsedItems.length > 0;
-}
-$('analyzeBtn').addEventListener('click', ()=>{
-  if(splitByBlankLines()){ renderItems(); go('review'); }
-  else setMsg('analyzeStatus','Nothing to split.','err');
-});
 
-/* =========================================================
-   DICTATE — one-handed voice capture into the notes textarea,
-   using the browser's built-in speech recognition. English only.
-   ========================================================= */
-const SpeechRecognitionImpl = window.SpeechRecognition || window.webkitSpeechRecognition;
-let recognizer = null;
-let dictating = false;
-let dictateBaseText = '';
-
-function setDictateUi(on){
-  dictating = on;
-  $('dictateBtn').classList.toggle('recording', on);
-  $('dictateBtnLabel').textContent = on ? 'Listening…' : 'Dictate';
-  if(on){
-    $('dictateBtn').querySelector('.rec-dot')?.remove();
-    const dot = document.createElement('span');
-    dot.className = 'rec-dot';
-    $('dictateBtn').prepend(dot);
-  } else {
-    $('dictateBtn').querySelector('.rec-dot')?.remove();
+  if(parsedItems.length === 0){
+    setStatus('analyzeStatus','Nothing to split.','err');
+    return;
   }
-}
-
-if(!SpeechRecognitionImpl){
-  // No speech API on this browser/device — hide the control rather than
-  // show a button that can never work.
-  $('dictateBtn').hidden = true;
-} else {
-  recognizer = new SpeechRecognitionImpl();
-  recognizer.lang = 'en-US';
-  recognizer.continuous = true;
-  recognizer.interimResults = true;
-
-  recognizer.addEventListener('result', (e)=>{
-    let finalChunk = '';
-    let interimChunk = '';
-    for(let i = e.resultIndex; i < e.results.length; i++){
-      const res = e.results[i];
-      if(res.isFinal) finalChunk += res[0].transcript;
-      else interimChunk += res[0].transcript;
-    }
-    if(finalChunk) dictateBaseText = (dictateBaseText + ' ' + finalChunk).trim();
-    const joiner = dictateBaseText && interimChunk ? ' ' : '';
-    $('dump').value = dictateBaseText + joiner + interimChunk;
-  });
-  recognizer.addEventListener('error', (e)=>{
-    setDictateUi(false);
-    if(e.error === 'not-allowed' || e.error === 'service-not-allowed'){
-      setMsg('dictateStatus','Microphone access was blocked — allow it in your browser settings to dictate.','err');
-    } else if(e.error !== 'no-speech' && e.error !== 'aborted'){
-      setMsg('dictateStatus','Dictation stopped unexpectedly — tap Dictate to try again.','err');
-    }
-  });
-  recognizer.addEventListener('end', ()=>{
-    // Some browsers end the session on a pause even mid-thought; if the
-    // user hasn't tapped stop, just pick the mic back up automatically.
-    if(dictating){ try{ recognizer.start(); }catch(e){} }
-    else setDictateUi(false);
-  });
-
-  $('dictateBtn').addEventListener('click', ()=>{
-    if(dictating){
-      dictating = false; // set before stop() so the 'end' handler doesn't restart it
-      recognizer.stop();
-      setDictateUi(false);
-      return;
-    }
-    setMsg('dictateStatus','','');
-    dictateBaseText = $('dump').value ? $('dump').value + ' ' : '';
-    dictateBaseText = dictateBaseText.trim();
-    try{
-      recognizer.start();
-      setDictateUi(true);
-    }catch(e){
-      setMsg('dictateStatus','Could not start the microphone.','err');
-    }
-  });
-}
-
-$('pasteClipBtn').addEventListener('click', async ()=>{
-  try{
-    const text = await navigator.clipboard.readText();
-    if(!text || !text.trim()){ setMsg('dictateStatus','Clipboard is empty.','warn'); return; }
-    const cur = $('dump').value;
-    $('dump').value = cur && !cur.endsWith('\n') ? cur + '\n\n' + text : cur + text;
-    setMsg('dictateStatus','','');
-    $('clipChipRow').style.display = 'none';
-  }catch(e){
-    setMsg('dictateStatus','Could not read the clipboard — your browser may require a tap directly on this button, or clipboard permission.','err');
-  }
+  renderItems();
+  setStatus('analyzeStatus',
+    `Split into ${parsedItems.length} item(s) by blank lines. Edit titles/descriptions below before creating.`,
+    'ok');
 });
 
-/* one-tap "Use copied text" chip — if something's already sitting in
-   the clipboard when you land here, offer it instead of making you
-   tap Paste clipboard yourself. Fails silently where the browser
-   won't allow a background clipboard read (e.g. iOS Safari). */
-onEnter['paste'] = async ()=>{
-  $('clipChipRow').style.display = 'none';
-  try{
-    const text = await navigator.clipboard.readText();
-    const trimmed = (text||'').trim();
-    if(!trimmed || $('dump').value.includes(trimmed)) return;
-    $('clipPreview').textContent = trimmed.length > 40 ? trimmed.slice(0,40) + '…' : trimmed;
-    $('clipChipRow').style.display = '';
-  }catch(e){ /* no permission / nothing to offer — stay quiet */ }
-};
-$('useClipboardBtn').addEventListener('click', ()=>{ $('pasteClipBtn').click(); });
-
-const AI_SYSTEM_PROMPT = `You turn raw, messy, stream-of-consciousness notes (often dictated live while someone else is talking) into individual Azure DevOps work items.
-
-Rules:
-- The input may contain filler words, interruptions, half-finished thoughts, or unrelated fragments. Ignore noise; extract only the distinct, meaningful topics or concerns actually present.
-- For each distinct topic, produce one item with:
-  - "title": a short, clear headline (under 10 words) summarizing the topic.
-  - "description": a clean, well-written description (1-4 sentences) explaining the concern, based only on what was actually said. Do not invent facts, numbers, or names that weren't mentioned.
-  - "category": exactly one of "blocker" (actively stopping progress), "bug" (something broken), "question" (needs an answer/decision from someone), or "task" (general follow-up/review work) — your best judgement from the wording.
-- If the notes only describe one topic, return exactly one item.
-- If nothing meaningful can be extracted, return an empty items array.
-- Respond with ONLY valid JSON in this exact shape, no markdown fences, no commentary:
-{"items":[{"title":"...", "description":"...", "category":"task"}]}`;
-
-async function callWorkerAi(c, userText){
-  if(!c.proxy) throw new Error('Set a Worker proxy URL in the connection step first.');
-  const url = `${c.proxy}/ai`;
-  const res = await fetch(url, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ messages:[{role:'system',content:AI_SYSTEM_PROMPT},{role:'user',content:userText}], temperature:0.2, max_tokens:2000 })
-  });
-  if(!res.ok){ const txt = await res.text(); throw new Error(`AI call failed (${res.status}): ${txt.slice(0,300)}`); }
-  const data = await res.json();
-  let content = data && (data.response ?? data.result?.response);
-  if(content === undefined || content === null) throw new Error('Unexpected AI response shape.');
-  if(typeof content !== 'string') content = JSON.stringify(content);
-  const cleaned = content.replace(/^```(?:json)?\s*/i,'').replace(/```\s*$/,'').trim();
-  let parsed;
-  try{ parsed = JSON.parse(cleaned); }catch(e){ throw new Error('The model did not return valid JSON.'); }
-  return Array.isArray(parsed.items) ? parsed.items : [];
-}
-
-$('aiSplitBtn').addEventListener('click', async ()=>{
-  const text = $('dump').value.trim();
-  if(!text){ setMsg('analyzeStatus','Paste something first.','err'); return; }
-  const c = cfg();
-  if(!c.proxy){ setMsg('analyzeStatus','Set a Worker proxy URL in the connection step first.','err'); return; }
-  go('generating');
-  $('generatingTitle').textContent = 'Reading through your notes…';
-  $('generatingSub').textContent = 'Pulling out the distinct topics.';
-  setMsg('generatingError','','');
-  $('generatingRetryBtn').style.display = 'none';
-  $('generatingManualBtn').style.display = 'none';
-  try{
-    const items = await callWorkerAi(c, text);
-    if(items.length === 0){ showGeneratingError('AI found nothing usable in that text.'); return; }
-    parsedItems = items.map(it => ({ title:(it.title||'').trim(), description:(it.description||'').trim(), category: CATEGORIES.includes(it.category)?it.category:'task', include:true })).filter(it=>it.title);
-    renderItems();
-    replaceTop('review');
-  }catch(err){
-    showGeneratingError(err.message || 'The AI request failed.');
-  }
-});
-function showGeneratingError(msg){
-  $('generatingTitle').textContent = "Couldn't generate items";
-  $('generatingSub').textContent = '';
-  setMsg('generatingError', msg, 'err');
-  $('generatingRetryBtn').style.display = 'block';
-  $('generatingManualBtn').style.display = 'inline-flex';
-}
-$('generatingRetryBtn').addEventListener('click', ()=> $('aiSplitBtn').click());
-$('generatingManualBtn').addEventListener('click', ()=>{
-  if(splitByBlankLines()){ renderItems(); replaceTop('review'); }
-  else showGeneratingError('Nothing to split — add some blank-line-separated notes.');
-});
-
-/* =========================================================
-   REVIEW ITEMS LIST
-   ========================================================= */
 $('addItemBtn').addEventListener('click', ()=>{
-  parsedItems.push({ title:'', description:'', category:'task', include:true });
+  parsedItems.push({ title:'', description:'', include:true });
   renderItems();
 });
+
+let itemsCardShownOnce = false;
 function renderItems(){
+  const card = $('itemsCard');
   const list = $('itemsList');
+  if(parsedItems.length === 0){ card.style.display='none'; return; }
+  const wasHidden = card.style.display === 'none' || card.style.display === '';
+  card.style.display='block';
+  if(wasHidden && !itemsCardShownOnce){
+    itemsCardShownOnce = true;
+    const header = card.querySelector('.card-header');
+    const body = $('body-items');
+    header.classList.add('collapsed');
+    body.classList.add('collapsed');
+  }
   list.innerHTML = '';
-  const included = parsedItems.filter(it=>it.include).length;
-  $('itemsCount').textContent = `${included} of ${parsedItems.length} item${parsedItems.length===1?'':'s'} will be created`;
-  parsedItems.forEach((it,i)=>{
+  parsedItems.forEach((it, i)=>{
     const div = document.createElement('div');
-    div.className = 'item-card' + (it.include ? ' included' : ' excluded');
-    const catOptions = CATEGORIES.map(cat=>`<option value="${cat}" ${((it.category||'task')===cat)?'selected':''}>${CATEGORY_LABELS[cat]}</option>`).join('');
-    let dupBadge = '';
-    if(it.dup && it.dup.added){
-      dupBadge = `<div class="dup-badge dup-added"><span>✓ Added as a comment on <strong>#${it.dup.id}</strong> instead — this item won't be created</span></div>`;
-    } else if(it.dup){
-      dupBadge = `
-      <div class="dup-badge">
-        <span>⚠ Might duplicate <strong>#${it.dup.id}</strong>: ${escapeAttr(it.dup.title)}</span>
-        <button type="button" data-role="dup-comment" data-i="${i}">Add as comment instead</button>
-        <button type="button" data-role="dup-dismiss" data-i="${i}">Dismiss</button>
-      </div>`;
-    }
+    div.className = 'item';
     div.innerHTML = `
-      <div class="item-card-bg" aria-hidden="true">
-        <span>Remove</span>
-        <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0v12a2 2 0 002 2h6a2 2 0 002-2V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <div class="item-head">
+        <input type="checkbox" ${it.include?'checked':''} data-role="include" data-i="${i}">
+        <span class="badge">${cfg().prefix}0##</span>
       </div>
-      <div class="item-card-inner">
-        <button class="item-toggle ${it.include?'on':''}" data-role="include" data-i="${i}" aria-label="Include this item">
-          <svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <div class="item-body">
-          <input type="text" data-role="title" data-i="${i}" value="${escapeAttr(it.title)}" placeholder="Meaningful title">
-          <textarea data-role="desc" data-i="${i}" placeholder="Description">${it.description}</textarea>
-          <select class="cat-select" data-role="cat" data-i="${i}">${catOptions}</select>
-          ${dupBadge}
-        </div>
+      <input type="text" data-role="title" data-i="${i}" value="${escapeAttr(it.title)}" placeholder="Meaningful title">
+      <textarea rows="3" data-role="desc" data-i="${i}" placeholder="Description">${it.description}</textarea>
+      <div class="item-actions">
+        <span></span>
+        <button class="btn danger" data-role="remove" data-i="${i}" style="padding:4px 10px; font-size:12px;">Remove</button>
       </div>
     `;
     list.appendChild(div);
-    attachItemSwipe(div, div.querySelector('.item-card-inner'), i);
   });
-  list.querySelectorAll('[data-role=title]').forEach(el=> el.addEventListener('input', e=>{ parsedItems[e.target.dataset.i].title = e.target.value; }));
-  list.querySelectorAll('[data-role=desc]').forEach(el=> el.addEventListener('input', e=>{ parsedItems[e.target.dataset.i].description = e.target.value; }));
-  list.querySelectorAll('[data-role=cat]').forEach(el=> el.addEventListener('change', e=>{ parsedItems[e.target.dataset.i].category = e.target.value; }));
-  list.querySelectorAll('[data-role=include]').forEach(el=> el.addEventListener('click', e=>{
-    const btn = e.currentTarget; const i = btn.dataset.i;
-    parsedItems[i].include = !parsedItems[i].include;
-    renderItems();
-  }));
-  list.querySelectorAll('[data-role=dup-dismiss]').forEach(el=> el.addEventListener('click', e=>{
-    delete parsedItems[e.currentTarget.dataset.i].dup; renderItems();
-  }));
-  list.querySelectorAll('[data-role=dup-comment]').forEach(el=> el.addEventListener('click', e=>{
-    addDupAsComment(e.currentTarget.dataset.i, e.currentTarget);
+  list.querySelectorAll('[data-role=title]').forEach(el=> el.addEventListener('input', e=> parsedItems[e.target.dataset.i].title = e.target.value));
+  list.querySelectorAll('[data-role=desc]').forEach(el=> el.addEventListener('input', e=> parsedItems[e.target.dataset.i].description = e.target.value));
+  list.querySelectorAll('[data-role=include]').forEach(el=> el.addEventListener('change', e=> parsedItems[e.target.dataset.i].include = e.target.checked));
+  list.querySelectorAll('[data-role=remove]').forEach(el=> el.addEventListener('click', e=>{
+    parsedItems.splice(e.target.dataset.i,1); renderItems();
   }));
 }
 
-/* =========================================================
-   DUPLICATE → COMMENT — one tap turns a flagged duplicate into
-   a comment on the existing item instead of a new one, using
-   the same PAT already on file.
-   ========================================================= */
-async function addDupAsComment(i, btn){
-  const it = parsedItems[i];
-  if(!it || !it.dup) return;
-  const c = cfg();
-  btn.disabled = true;
-  btn.textContent = 'Adding…';
-  try{
-    const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/workItems/${it.dup.id}/comments?api-version=7.1-preview.3`;
-    const text = (it.title.trim() + (it.description ? '\n\n' + it.description : '')).replace(/\n/g,'<br>');
-    const res = await fetch(url, { method:'POST', headers:{...adoHeaders(c.pat),'Content-Type':'application/json'}, body: JSON.stringify({ text }) });
-    if(!res.ok) throw new Error('failed');
-    it.include = false;
-    it.dup.added = true;
-    renderItems();
-  }catch(e){
-    btn.disabled = false;
-    btn.textContent = 'Add as comment instead';
-    setMsg('itemsCount', `Couldn't add the comment to #${it.dup.id} — try again.`, 'err');
-  }
-}
+function escapeAttr(s){ return (s||'').replace(/"/g,'&quot;'); }
 
-/* =========================================================
-   SWIPE-TO-REMOVE — one-handed alternative to hunting for a
-   corner button. Swipe an item card left past the threshold to
-   drop it from the batch; a light tap elsewhere (title, toggle,
-   dropdown) is left completely alone.
-   ========================================================= */
-function attachItemSwipe(card, inner, index){
-  let startX=0, startY=0, curX=0, dragging=false, decided=false, horizontal=false;
-  const threshold = 84;
-  inner.addEventListener('touchstart', (e)=>{
-    if(e.target.closest('input,textarea,select,button')) return;
-    const t = e.touches[0];
-    startX = t.clientX; startY = t.clientY; curX = 0; dragging = true; decided = false; horizontal = false;
-    inner.style.transition = 'none';
-  }, {passive:true});
-  inner.addEventListener('touchmove', (e)=>{
-    if(!dragging) return;
-    const t = e.touches[0];
-    const dx = t.clientX - startX;
-    const dy = t.clientY - startY;
-    if(!decided){
-      if(Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
-      decided = true;
-      horizontal = Math.abs(dx) > Math.abs(dy) * 1.4;
-      if(!horizontal){ dragging = false; return; } // let the page scroll — this wasn't a swipe
-    }
-    if(dx > 0){ curX = 0; } else { curX = Math.max(dx, -140); }
-    inner.style.transform = `translateX(${curX}px)`;
-    e.preventDefault();
-  }, {passive:false});
-  function end(){
-    if(!dragging) return;
-    dragging = false;
-    inner.style.transition = 'transform .18s ease';
-    if(curX < -threshold){
-      inner.style.transform = 'translateX(-100%)';
-      card.style.transition = 'max-height .18s ease .1s, opacity .18s ease .1s, margin .18s ease .1s';
-      setTimeout(()=>{ parsedItems.splice(index,1); renderItems(); }, 170);
-    } else {
-      inner.style.transform = 'translateX(0)';
-    }
-  }
-  inner.addEventListener('touchend', end);
-  inner.addEventListener('touchcancel', end);
-}
-
-/* =========================================================
-   DUPLICATE CHECK — before you create a pile of near-duplicate
-   items, quietly flag any that look like they already exist in
-   the project. Purely informational: a dismissible badge on the
-   review screen, never blocks creation.
-   ========================================================= */
-let dupCheckToken = 0;
-let lastDupSignature = null;
-async function runDuplicateCheck(){
-  const c = cfg();
-  if(!c.proxy || !c.org || !c.project || !parsedItems.length) return;
-  const signature = c.project + '::' + parsedItems.map(it=>it.title).join('|');
-  if(signature === lastDupSignature) return;
-  lastDupSignature = signature;
-  const token = ++dupCheckToken;
-  try{
-    const existing = await fetchExistingItems(c);
-    if(token !== dupCheckToken || !existing.length) return;
-    const existingList = existing.slice(0,60).map(e=>`#${e.id}: ${e.title}`).join('\n');
-    const newList = parsedItems.map((it,i)=>`${i}: ${it.title} — ${(it.description||'').slice(0,140)}`).join('\n');
-    const prompt = `Existing items:\n${existingList}\n\nNewly proposed items:\n${newList}\n\nFor each new item, decide ONLY if it is clearly about the same underlying topic as one existing item (not just a loosely related area). Respond with ONLY valid JSON, no markdown fences, no commentary: {"matches":[{"index":0,"id":142}]} — omit anything you're not genuinely confident about.`;
-    const res = await fetch(`${c.proxy}/ai`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ messages:[
-        {role:'system', content:'You detect duplicate work items. Respond with ONLY valid JSON, no commentary, no markdown fences.'},
-        {role:'user', content:prompt}
-      ], temperature:0, max_tokens:600 })
-    });
-    if(!res.ok || token !== dupCheckToken) return;
-    const data = await res.json();
-    let content = data && (data.response ?? data.result?.response);
-    if(typeof content !== 'string') content = JSON.stringify(content);
-    const cleaned = content.replace(/^```(?:json)?\s*/i,'').replace(/```\s*$/,'').trim();
-    const parsed = JSON.parse(cleaned);
-    const matches = Array.isArray(parsed.matches) ? parsed.matches : [];
-    const byId = new Map(existing.map(e=>[e.id, e]));
-    matches.forEach(m=>{
-      const it = parsedItems[m.index];
-      const ex = byId.get(m.id);
-      if(it && ex) it.dup = { id: ex.id, title: ex.title };
-    });
-    if(token === dupCheckToken) renderItems();
-  }catch(e){ /* best-effort — a broken check should never block review */ }
-}
-onEnter['review'] = runDuplicateCheck;
-
-/* =========================================================
-   REQUIRED-FIELD DETECTION
-   ========================================================= */
-let requiredFieldDefs = [];
-let extraFieldsCheckedFor = null;
-const EXTRA_FIELD_DEFAULTS = { 'Purpose':'To be reviewed for a potential gap' };
-
-async function getFieldAllowedValues(c, refName){
-  const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/workitemtypes/${encodeURIComponent(c.witype)}/fields/${encodeURIComponent(refName)}?$expand=allowedvalues&api-version=7.1`;
-  try{ const res = await fetch(url, {headers:adoHeaders(c.pat)}); if(!res.ok) return []; const data = await res.json(); return data.allowedValues || []; }
-  catch(e){ return []; }
-}
-async function getMissingRequiredFields(c){
-  const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/workitemtypes/${encodeURIComponent(c.witype)}/fields?api-version=7.1`;
-  const res = await fetch(url, {headers:adoHeaders(c.pat)});
-  if(!res.ok) return {missing:[], checked:false};
-  const data = await res.json();
-  const covered = new Set(['System.Title','System.Description','System.AreaPath','System.IterationPath','System.State','System.AreaId','System.IterationId']);
-  const candidates = (data.value||[]).filter(f=>f.alwaysRequired && !covered.has(f.referenceName));
-  const missing = [];
-  for(const f of candidates){
-    const allowedValues = await getFieldAllowedValues(c, f.referenceName);
-    missing.push({name:f.name, refName:f.referenceName, allowedValues});
-  }
-  return {missing, checked:true};
-}
-function renderExtraFields(fields){
-  const wrap = $('extraFieldsWrap');
-  wrap.innerHTML = '';
-  $('extraFieldsTitle').textContent = `"${$('witype').value}" requires a few extra fields on every item in this batch.`;
-  fields.forEach(f=>{
-    const fieldDiv = document.createElement('div'); fieldDiv.className='field';
-    const label = document.createElement('label'); label.textContent = f.name; fieldDiv.appendChild(label);
-    const defaultVal = EXTRA_FIELD_DEFAULTS[f.name];
-    let input;
-    if(f.allowedValues && f.allowedValues.length){
-      input = document.createElement('select');
-      const optEmpty = document.createElement('option'); optEmpty.value=''; optEmpty.textContent = `— choose ${f.name} —`; input.appendChild(optEmpty);
-      f.allowedValues.forEach(v=>{ const opt=document.createElement('option'); opt.value=v; opt.textContent=v; input.appendChild(opt); });
-      if(defaultVal && f.allowedValues.includes(defaultVal)) input.value = defaultVal;
-    } else {
-      input = document.createElement('input'); input.type='text'; input.placeholder = f.name;
-      if(defaultVal) input.value = defaultVal;
-    }
-    input.dataset.refname = f.refName;
-    fieldDiv.appendChild(input);
-    wrap.appendChild(fieldDiv);
-  });
-}
-function getExtraFieldValues(){
-  const inputs = $('extraFieldsWrap').querySelectorAll('[data-refname]');
-  const values = {}; const missingNames = [];
-  inputs.forEach(inp=>{
-    const v = inp.value.trim();
-    if(v) values[inp.dataset.refname] = v;
-    else missingNames.push(inp.previousSibling ? inp.previousSibling.textContent : inp.dataset.refname);
-  });
-  return {values, missingNames};
-}
-$('witype').addEventListener('change', ()=>{ extraFieldsCheckedFor = null; });
-
-$('reviewContinueBtn').addEventListener('click', async ()=>{
-  const toCreate = parsedItems.filter(it=>it.include && it.title.trim());
-  if(toCreate.length === 0){ $('itemsCount').textContent = 'Select or add at least one item to continue.'; return; }
-  const c = cfg();
-  $('reviewContinueBtn').disabled = true;
-  $('reviewContinueLabel').innerHTML = '<span class="spin"></span> Checking…';
-  try{
-    if(extraFieldsCheckedFor !== c.witype){
-      const {missing} = await getMissingRequiredFields(c);
-      requiredFieldDefs = missing;
-      extraFieldsCheckedFor = c.witype;
-    }
-    if(requiredFieldDefs.length){
-      renderExtraFields(requiredFieldDefs);
-      go('extra-fields');
-    } else {
-      buildConfirmScreen();
-      go('confirm');
-    }
-  }catch(e){
-    buildConfirmScreen();
-    go('confirm');
-  }
-  $('reviewContinueBtn').disabled = false;
-  $('reviewContinueLabel').textContent = 'Continue';
-});
-
-$('extraFieldsContinueBtn').addEventListener('click', ()=>{
-  const {missingNames} = getExtraFieldValues();
-  if(requiredFieldDefs.length && missingNames.length){
-    setMsg('extraFieldsStatus', `Please fill in: ${missingNames.join(', ')}.`, 'err');
-    return;
-  }
-  setMsg('extraFieldsStatus','','');
-  buildConfirmScreen();
-  go('confirm');
-});
-
-/* =========================================================
-   CONFIRM
-   ========================================================= */
-function buildConfirmScreen(){
-  const c = cfg();
-  const toCreate = parsedItems.filter(it=>it.include && it.title.trim());
-  const box = $('summaryBox');
-  box.innerHTML = `
-    <div class="summary-row"><span class="k">Items</span><span class="v">${toCreate.length}</span></div>
-    <div class="summary-row"><span class="k">Project</span><span class="v">${escapeAttr(c.project)}</span></div>
-    <div class="summary-row"><span class="k">Work item type</span><span class="v">${escapeAttr(c.witype)}</span></div>
-    <div class="summary-row"><span class="k">Numbering</span><span class="v">${escapeAttr(c.prefix)}0xx</span></div>
-  `;
-  const list = $('previewList');
-  list.innerHTML = '';
-  toCreate.forEach((it,i)=>{
-    const row = document.createElement('div'); row.className='preview-item';
-    row.innerHTML = `<span class="n">${String(i+1).padStart(2,'0')}</span><span class="t">${escapeAttr(it.title)}</span>`;
-    list.appendChild(row);
-  });
-}
-
-/* =========================================================
-   CREATE ITEMS
-   ========================================================= */
+// ---- shared: fetch existing items of the configured type ----
 async function fetchExistingItems(c){
-  const wiql = { query: `SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '${c.project}' AND [System.WorkItemType] = '${c.witype}' ORDER BY [System.Id] DESC` };
+  const wiql = {
+    query: `SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '${c.project}' AND [System.WorkItemType] = '${c.witype}' ORDER BY [System.Id] DESC`
+  };
   const wiqlUrl = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/wiql?api-version=7.1`;
-  const wr = await fetch(wiqlUrl, { method:'POST', headers:adoHeaders(c.pat), body:JSON.stringify(wiql) });
+  const wr = await fetch(wiqlUrl, { method:'POST', headers: adoHeaders(c.pat), body: JSON.stringify(wiql) });
   if(!wr.ok) throw new Error('wiql failed: ' + wr.status);
   const wdata = await wr.json();
   const ids = (wdata.workItems || []).map(w=>w.id);
   if(ids.length === 0) return [];
   const batchUrl = `${adoBase(c)}/${encodeURIComponent(c.org)}/_apis/wit/workitemsbatch?api-version=7.1`;
-  const br = await fetch(batchUrl, { method:'POST', headers:adoHeaders(c.pat), body:JSON.stringify({ids, fields:['System.Title','System.State','System.CommentCount']}) });
+  const br = await fetch(batchUrl, { method:'POST', headers: adoHeaders(c.pat), body: JSON.stringify({ ids, fields:['System.Title','System.State'] }) });
   if(!br.ok) throw new Error('batch failed: ' + br.status);
   const bdata = await br.json();
   const items = (bdata.value || []).map(w=>({
-    id:w.id,
-    title:(w.fields && w.fields['System.Title']) || '(no title)',
-    state:(w.fields && w.fields['System.State']) || '',
-    commentCount:(w.fields && w.fields['System.CommentCount']) || 0
+    id: w.id,
+    title: (w.fields && w.fields['System.Title']) || '(no title)',
+    state: (w.fields && w.fields['System.State']) || ''
   }));
   items.sort((a,b)=> b.id - a.id);
   return items;
 }
-async function getNextNumber(c){
-  const items = await fetchExistingItems(c);
-  let max = 0;
-  const re = new RegExp(escapeRegex(c.prefix)+'(\\d+)','i');
-  items.forEach(it=>{ const m = (it.title||'').match(re); if(m){ const n=parseInt(m[1],10); if(n>max) max=n; } });
-  return max + 1;
-}
 
-/* Creates every item in toCreate against Azure DevOps. `rows` (optional)
-   are the live checklist DOM rows to update as each one lands — omitted
-   when this runs silently in the background (offline queue flush). */
-async function createItemsInAdo(c, toCreate, values, rows){
-  const results = [];
-  try{
-    let next = await getNextNumber(c);
-    const witUrl = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/workitems/$${encodeURIComponent(c.witype)}?api-version=7.1`;
-    for(let i=0;i<toCreate.length;i++){
-      const it = toCreate[i];
-      const num = String(next).padStart(3,'0');
-      const title = `${c.prefix}${num}: ${it.title.trim()}`;
-      const body = [
-        { op:'add', path:'/fields/System.Title', value:title },
-        { op:'add', path:'/fields/System.Description', value:(it.description||'').replace(/\n/g,'<br>') },
-        { op:'add', path:'/fields/System.AreaPath', value:c.project },
-        { op:'add', path:'/fields/System.IterationPath', value:c.project }
-      ];
-      const category = CATEGORIES.includes(it.category) ? it.category : 'task';
-      body.push({ op:'add', path:'/fields/Microsoft.VSTS.Common.Priority', value: CATEGORY_PRIORITY[category] });
-      body.push({ op:'add', path:'/fields/System.Tags', value: category.charAt(0).toUpperCase()+category.slice(1) });
-      Object.entries(values).forEach(([refName,val])=> body.push({op:'add', path:`/fields/${refName}`, value:val}));
-      try{
-        const res = await fetch(witUrl, { method:'POST', headers:{...adoHeaders(c.pat), 'Content-Type':'application/json-patch+json'}, body:JSON.stringify(body) });
-        if(res.ok){
-          const data = await res.json();
-          const link = `https://dev.azure.com/${c.org}/${encodeURIComponent(c.project)}/_workitems/edit/${data.id}`;
-          const state = data.fields && data.fields['System.State'] || null;
-          if(rows){ rows[i].classList.add('done'); rows[i].innerHTML = `<span class="mark">✓</span><span class="title">${escapeAttr(title)}</span>`; }
-          results.push({ ok:true, title, id:data.id, link, state });
-          next++;
-        } else {
-          const txt = await res.text();
-          let reason = txt;
-          try{ const j = JSON.parse(txt); reason = j.message || (j.value && j.value.Message) || txt; }catch(e){}
-          if(rows){ rows[i].classList.add('fail'); rows[i].innerHTML = `<span class="mark">!</span><span class="title">${escapeAttr(title)}</span>`; }
-          results.push({ ok:false, title, reason: reason.slice(0,220) });
-        }
-      }catch(err){
-        if(rows) rows[i].classList.add('fail');
-        results.push({ ok:false, title, reason:'Network error' });
-      }
-      await new Promise(r=>setTimeout(r, 120));
-    }
-  }catch(err){ /* getNextNumber failure — results stays partial */ }
-  return results;
-}
-
-/* =========================================================
-   OFFLINE QUEUE — a batch created with no connection is saved
-   locally and sent automatically the next time the app notices
-   it's back online, instead of just failing item by item.
-   ========================================================= */
-async function getQueue(){
-  try{ const r = await storage.get('ado_queue', false); return r && r.value ? JSON.parse(r.value) : []; }catch(e){ return []; }
-}
-async function setQueue(list){ try{ await storage.set('ado_queue', JSON.stringify(list), false); }catch(e){} }
-
-let flushingQueue = false;
-async function flushQueue(){
-  if(flushingQueue || !navigator.onLine) return;
-  flushingQueue = true;
-  try{
-    const queue = await getQueue();
-    if(!queue.length) return;
-    const remaining = [];
-    for(const q of queue){
-      const results = await createItemsInAdo(q.cfg, q.items, q.values);
-      const okCount = results.filter(r=>r.ok).length;
-      if(okCount < q.items.length) remaining.push(q); // partial/failed — keep queued for the next retry
-      else{ try{ await storage.set('ado_last_batch', JSON.stringify({count:okCount, at:Date.now(), org:q.cfg.org, project:q.cfg.project, items: results.filter(r=>r.ok).map(r=>({id:r.id, state:r.state}))}), false); }catch(e){} }
-    }
-    await setQueue(remaining);
-    if(activeId === 'home') refreshHome();
-  } finally { flushingQueue = false; }
-}
-window.addEventListener('online', flushQueue);
-flushQueue(); // in case connectivity came back while the app was closed
-
-$('createBtn').addEventListener('click', async ()=>{
+$('loadExistingBtn').addEventListener('click', async ()=>{
   const c = cfg();
-  const toCreate = parsedItems.filter(it=>it.include && it.title.trim());
-  if(toCreate.length === 0) return;
-
-  // No connection right now — queue the whole batch locally instead of
-  // letting every request fail one by one. It's sent automatically the
-  // next time the app notices it's back online.
-  if(!navigator.onLine){
-    const { values } = getExtraFieldValues();
-    const queue = await getQueue();
-    queue.push({ cfg:c, items:toCreate, values, queuedAt:Date.now() });
-    await setQueue(queue);
-    buildResultsScreen([], toCreate);
-    stack = ['home','results'];
-    transitionTo('results','forward');
-    return;
-  }
-
-  go('creating');
-  const checklist = $('creatingChecklist');
-  checklist.innerHTML = '';
-  const rows = toCreate.map(it=>{
-    const row = document.createElement('div'); row.className='check-row';
-    row.innerHTML = `<span class="mark"></span><span class="title">${escapeAttr(it.title)}</span>`;
-    checklist.appendChild(row);
-    return row;
-  });
-
-  const { values } = getExtraFieldValues();
-  const results = await createItemsInAdo(c, toCreate, values, rows);
-
-  const okCount = results.filter(r=>r.ok).length;
-  try{ await storage.set('ado_last_batch', JSON.stringify({count:okCount, at:Date.now(), org:c.org, project:c.project, items: results.filter(r=>r.ok).map(r=>({id:r.id, state:r.state}))}), false); }catch(e){}
-
-  buildResultsScreen(results);
-  stack = ['home','results'];
-  transitionTo('results','forward');
-});
-
-function buildResultsScreen(results, queuedItems){
-  if(queuedItems){
-    $('resultsTitle').textContent = 'Saved — will send when back online';
-    $('resultsSub').textContent = `No connection right now. ${queuedItems.length} item${queuedItems.length===1?'':'s'} queued and will be created in Azure DevOps automatically once you're back online.`;
-    const stamp = $('resultsStamp');
-    stamp.classList.remove('pulse'); void stamp.offsetWidth; stamp.classList.add('pulse');
-    const list = $('resultsList');
-    list.innerHTML = '';
-    queuedItems.forEach(it=>{
-      const row = document.createElement('div'); row.className='check-row';
-      row.innerHTML = `<span class="mark">⏳</span><span class="title">${escapeAttr(it.title)}</span>`;
-      list.appendChild(row);
-    });
-    return;
-  }
-  const okCount = results.filter(r=>r.ok).length;
-  const failCount = results.length - okCount;
-  $('resultsTitle').textContent = failCount === 0 ? 'Done — items are live' : `${okCount} created, ${failCount} failed`;
-  $('resultsSub').textContent = failCount === 0
-    ? 'Everything below has been created in Azure DevOps.'
-    : 'Some items could not be created — check the details below.';
-  const stamp = $('resultsStamp');
-  stamp.classList.remove('pulse'); void stamp.offsetWidth; stamp.classList.add('pulse');
-  const list = $('resultsList');
-  list.innerHTML = '';
-  results.forEach(r=>{
-    const row = document.createElement('div'); row.className='check-row ' + (r.ok ? 'done' : 'fail');
-    if(r.ok){
-      row.innerHTML = `<span class="mark">✓</span><span class="title">${escapeAttr(r.title)}</span><a class="link" href="${r.link}" target="_blank">Open #${r.id}</a>`;
-    } else {
-      row.innerHTML = `<span class="mark">!</span><span class="title">${escapeAttr(r.title)} — ${escapeAttr(r.reason||'failed')}</span>`;
-    }
-    list.appendChild(row);
-  });
-}
-$('resultsHomeBtn').addEventListener('click', ()=>{ resetTo('home'); refreshHome(); });
-$('resultsAgainBtn').addEventListener('click', ()=>{
-  $('dump').value=''; parsedItems=[]; setMsg('analyzeStatus','','');
-  stack = ['home','paste']; transitionTo('paste','forward');
-});
-
-/* =========================================================
-   EXISTING ITEMS
-   ========================================================= */
-async function loadExisting(){
-  const c = cfg();
-  if(!c.pat){ setMsg('existingStatus','Connect Azure DevOps first.','err'); return; }
-  $('existingEyebrow').textContent = `Showing "${c.witype}" items in ${c.project}.`;
-  setMsg('existingStatus','Loading…','info');
+  if(!c.pat){ setStatus('existingStatus','Enter a PAT first.','err'); return; }
+  setStatus('existingStatus','Loading…','');
   $('existingList').innerHTML = '';
-  $('existingList').style.display = 'block';
   try{
     const items = await fetchExistingItems(c);
     if(items.length === 0){
-      setMsg('existingStatus','','');
-      $('existingList').style.display = 'none';
-      $('existingList').insertAdjacentHTML('afterend', `<div class="empty-state" id="existingEmpty">
-        <svg viewBox="0 0 24 24" fill="none"><path d="M4 7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V7z" stroke="currentColor" stroke-width="1.5"/></svg>
-        <div class="t">No items yet</div>
-        <div class="s">Items you create will show up here.</div>
-      </div>`);
+      setStatus('existingStatus', `No existing "${c.witype}" items found.`, 'warn');
       return;
     }
-    const oldEmpty = document.getElementById('existingEmpty'); if(oldEmpty) oldEmpty.remove();
-    setMsg('existingStatus', `${items.length} item${items.length===1?'':'s'} found.`, 'ok');
+    setStatus('existingStatus', `${items.length} item(s) found.`, 'ok');
     items.forEach(it=>{
-      const row = document.createElement('button');
-      row.type = 'button';
-      row.className = 'plain-row';
-      const discBadge = it.commentCount > 0
-        ? `<span class="disc-badge" title="${it.commentCount} comment${it.commentCount===1?'':'s'} in Discussion">💬 ${it.commentCount}</span>`
-        : '';
-      row.innerHTML = `<span class="id">#${it.id}</span><span class="title">${escapeAttr(it.title)}</span>${discBadge}<span class="state">${escapeAttr(it.state)}</span><span class="chev"><svg viewBox="0 0 8 13" fill="none"><path d="M1 1l5.5 5.5L1 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
-      row.addEventListener('click', ()=> openItemDetail(it.id));
-      $('existingList').appendChild(row);
+      const link = `https://dev.azure.com/${c.org}/${encodeURIComponent(c.project)}/_workitems/edit/${it.id}`;
+      const line = document.createElement('div');
+      line.className = 'result-line';
+      line.innerHTML = `<a class="link" href="${link}" target="_blank">#${it.id}</a> — ${escapeAttr(it.title)} <span style="color:var(--muted);">(${escapeAttr(it.state)})</span>`;
+      $('existingList').appendChild(line);
     });
   }catch(err){
-    setMsg('existingStatus','Could not load items — check your connection.','err');
+    setStatus('existingStatus', 'Could not load items — check connection / proxy.', 'err');
   }
+});
+
+// ---- determine next number from existing items ----
+async function getNextNumber(c){
+  const items = await fetchExistingItems(c);
+  let max = 0;
+  const re = new RegExp(escapeRegex(c.prefix) + '(\\d+)', 'i');
+  items.forEach(it=>{
+    const m = (it.title||'').match(re);
+    if(m){ const n = parseInt(m[1],10); if(n>max) max = n; }
+  });
+  return max + 1;
 }
-$('existingRefreshBtn').addEventListener('click', loadExisting);
-onEnter['existing'] = loadExisting;
+function escapeRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
-/* =========================================================
-   ITEM DETAIL — fetch one work item and show who last
-   touched it, its Purpose (shown as "Description"), and
-   the full Discussion comment thread.
-   ========================================================= */
-const DETAIL_FIELDS = ['System.Title','System.State','System.WorkItemType','System.Description','System.ChangedBy','System.ChangedDate','System.CreatedBy','System.CreatedDate'];
-
-// "Purpose" is a custom field — its reference name isn't known ahead of
-// time, so we look it up once by display name and cache it per project.
-const purposeFieldRefCache = {};
-async function resolvePurposeFieldRef(c){
-  const key = c.org + '::' + c.project;
-  if(key in purposeFieldRefCache) return purposeFieldRefCache[key];
-  try{
-    const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/fields?api-version=7.1`;
-    const r = await fetch(url, { headers: adoHeaders(c.pat) });
-    if(!r.ok) throw new Error('fields lookup failed: ' + r.status);
-    const data = await r.json();
-    const match = (data.value || []).find(f => (f.name||'').trim().toLowerCase() === 'purpose');
-    purposeFieldRefCache[key] = match ? match.referenceName : null;
-  }catch(e){
-    purposeFieldRefCache[key] = null;
-  }
-  return purposeFieldRefCache[key];
-}
-
-async function fetchItemDetail(c, id, purposeRef){
-  const fields = purposeRef ? [...DETAIL_FIELDS, purposeRef] : DETAIL_FIELDS;
-  const fieldsParam = fields.join(',');
-  const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/_apis/wit/workitems/${id}?fields=${encodeURIComponent(fieldsParam)}&api-version=7.1`;
-  const r = await fetch(url, { headers: adoHeaders(c.pat) });
-  if(!r.ok) throw new Error('work item fetch failed: ' + r.status);
-  const data = await r.json();
-  const f = data.fields || {};
-  const who = v => (v && v.displayName) ? v.displayName : '—';
-  const when = v => v ? new Date(v).toLocaleString(undefined,{dateStyle:'medium', timeStyle:'short'}) : '—';
-  // Purpose is the real source of the write-up on this project; fall back
-  // to the plain Description field if Purpose isn't set or doesn't exist.
-  const purposeVal = purposeRef ? f[purposeRef] : null;
-  return {
-    id: data.id,
-    title: f['System.Title'] || '(no title)',
-    state: f['System.State'] || '—',
-    type: f['System.WorkItemType'] || '—',
-    description: (purposeVal && purposeVal.trim()) ? purposeVal : (f['System.Description'] || ''),
-    changedBy: who(f['System.ChangedBy']),
-    changedDate: when(f['System.ChangedDate']),
-    createdBy: who(f['System.CreatedBy']),
-    createdDate: when(f['System.CreatedDate'])
-  };
-}
-
-async function fetchComments(c, id){
-  const url = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/workItems/${id}/comments?order=desc&api-version=7.1-preview.4`;
-  const r = await fetch(url, { headers: adoHeaders(c.pat) });
-  if(!r.ok) throw new Error('comments fetch failed: ' + r.status);
-  const data = await r.json();
-  return (data.comments || []).map(cm => ({
-    author: (cm.createdBy && cm.createdBy.displayName) || 'Unknown',
-    date: cm.createdDate ? new Date(cm.createdDate).toLocaleString(undefined,{dateStyle:'medium', timeStyle:'short'}) : '',
-    text: cm.text || ''
-  }));
-}
-
-function renderDiscussion(comments){
-  const el = $('detailDiscussion');
-  if(!comments.length){
-    el.className = 'detail-desc-card empty';
-    el.textContent = 'No discussion on this item yet.';
-    return;
-  }
-  el.className = 'detail-desc-card';
-  el.innerHTML = comments.map(cm => `<div class="comment-entry"><div class="comment-meta">${escapeAttr(cm.author)} · ${escapeAttr(cm.date)}</div><div class="comment-body">${cm.text}</div></div>`).join('');
-}
-
-let detailLoadToken = 0;
-async function openItemDetail(id){
+// ---- create items ----
+$('createBtn').addEventListener('click', async ()=>{
   const c = cfg();
-  go('item-detail');
-  const token = ++detailLoadToken;
-  setMsg('detailStatus','','');
-  $('detailId').textContent = `#${id}`;
-  $('detailTitle').textContent = 'Loading…';
-  $('detailState').textContent = '—';
-  $('detailType').textContent = '—';
-  $('detailChanged').textContent = '—';
-  $('detailCreated').textContent = '—';
-  $('detailDescription').className = 'detail-desc-card';
-  $('detailDescription').textContent = 'Loading…';
-  $('detailDiscussion').className = 'detail-desc-card';
-  $('detailDiscussion').textContent = 'Loading…';
-  $('detailOpenAdoBtn').href = `https://dev.azure.com/${c.org}/${encodeURIComponent(c.project)}/_workitems/edit/${id}`;
+  if(!c.pat){ setStatus('createStatus','Enter a PAT first.','err'); return; }
+  const toCreate = parsedItems.filter(it=>it.include && it.title.trim());
+  if(toCreate.length===0){ setStatus('createStatus','Nothing selected to create.','err'); return; }
+  $('createBtn').disabled = true;
+  setStatus('createStatus','Creating…','');
+  $('results').innerHTML = '';
   try{
-    const purposeRef = await resolvePurposeFieldRef(c);
-    const [detail, comments] = await Promise.all([
-      fetchItemDetail(c, id, purposeRef),
-      fetchComments(c, id).catch(()=>null) // discussion failure shouldn't block the rest of the item
-    ]);
-    if(token !== detailLoadToken) return; // a newer item was opened before this one finished
-    $('detailId').textContent = `#${detail.id}`;
-    $('detailTitle').textContent = detail.title;
-    $('detailState').textContent = detail.state;
-    $('detailType').textContent = detail.type;
-    $('detailChanged').textContent = `${detail.changedBy} · ${detail.changedDate}`;
-    $('detailCreated').textContent = `${detail.createdBy} · ${detail.createdDate}`;
-    if(detail.description && detail.description.trim()){
-      $('detailDescription').innerHTML = detail.description;
-    } else {
-      $('detailDescription').className = 'detail-desc-card empty';
-      $('detailDescription').textContent = 'Nothing here yet.';
+    let next = await getNextNumber(c);
+    const witUrl = `${adoBase(c)}/${encodeURIComponent(c.org)}/${encodeURIComponent(c.project)}/_apis/wit/workitems/$${encodeURIComponent(c.witype)}?api-version=7.1`;
+    for(const it of toCreate){
+      const num = String(next).padStart(3,'0');
+      const title = `${c.prefix}${num}: ${it.title.trim()}`;
+      const body = [
+        { op:'add', path:'/fields/System.Title', value: title },
+        { op:'add', path:'/fields/System.Description', value: (it.description||'').replace(/\n/g,'<br>') }
+      ];
+      const res = await fetch(witUrl, {
+        method:'POST',
+        headers: { ...adoHeaders(c.pat), 'Content-Type':'application/json-patch+json' },
+        body: JSON.stringify(body)
+      });
+      const line = document.createElement('div');
+      line.className = 'result-line';
+      if(res.ok){
+        const data = await res.json();
+        const link = `https://dev.azure.com/${c.org}/${encodeURIComponent(c.project)}/_workitems/edit/${data.id}`;
+        line.innerHTML = `✓ ${title} — <a class="link" href="${link}" target="_blank">open #${data.id}</a>`;
+        next++;
+      } else {
+        const txt = await res.text();
+        line.innerHTML = `✗ ${title} — failed (${res.status})`;
+        line.style.color = 'var(--danger)';
+      }
+      $('results').appendChild(line);
     }
-    if(comments === null){
-      $('detailDiscussion').className = 'detail-desc-card empty';
-      $('detailDiscussion').textContent = 'Could not load discussion.';
-    } else {
-      renderDiscussion(comments);
-    }
+    setStatus('createStatus','Done.','ok');
   }catch(err){
-    if(token !== detailLoadToken) return;
-    $('detailTitle').textContent = 'Couldn\u2019t load this item';
-    $('detailDescription').className = 'detail-desc-card empty';
-    $('detailDescription').textContent = '';
-    $('detailDiscussion').className = 'detail-desc-card empty';
-    $('detailDiscussion').textContent = '';
-    setMsg('detailStatus','Could not load this item — check your connection and try again.','err');
+    setStatus('createStatus', 'Something failed talking to Azure DevOps (see console / possibly CORS).', 'err');
   }
-}
-
+  $('createBtn').disabled = false;
+});
 </script>
 </body>
 </html>
