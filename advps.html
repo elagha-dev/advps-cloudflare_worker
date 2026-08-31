@@ -123,7 +123,8 @@ select{
   appearance:none; -webkit-appearance:none; background-repeat:no-repeat; background-position:right 14px center; padding-right:36px;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%2355503F' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
-.field .hint{font-size:12px; color:var(--ink-3); margin-top:7px;}
+.field .hint{font-size:12px; color:var(--ink-3); margin-top:7px; line-height:1.5;}
+.field .hint code{font-family:var(--mono); font-size:11px; background:var(--card-tint); color:var(--green-deep); padding:1px 5px; border-radius:5px; word-break:break-all;}
 .field-row{display:flex; gap:var(--sp-3);}
 .field-row .field{flex:1;}
 
@@ -144,13 +145,19 @@ select{
 .step-dot{width:5px; height:5px; border-radius:50%; background:var(--hair-strong); transition:background .15s, width .15s;}
 .step-dot.active{width:14px; border-radius:3px; background:var(--green);}
 
-/* quick-capture row under the notes textarea: dictate or paste in one tap */
-.field-actions{display:flex; gap:8px; margin:-8px 0 var(--sp-4);}
-.icon-btn{display:flex; align-items:center; justify-content:center; gap:7px; flex:0 1 auto; min-width:120px; background:var(--card); border:1.5px solid var(--hair-strong); border-radius:12px; padding:10px 18px; font-size:13.5px; font-weight:600; color:var(--ink-2); cursor:pointer; min-height:42px;}
-.icon-btn svg{width:15px; height:15px; flex:none;}
-.icon-btn:active{background:var(--hair);}
-.icon-btn.recording{background:var(--rose-soft); border-color:var(--rose); color:var(--rose);}
-.icon-btn.recording .rec-dot{width:7px; height:7px; border-radius:50%; background:var(--rose); animation:recPulse 1s ease-in-out infinite; flex:none;}
+/* compact square icon button — used next to a primary button in a foot-row (e.g. mic next to Generate) */
+.foot-row{display:flex; align-items:stretch; gap:8px;}
+.foot-row .btn-primary{width:auto; flex:1;}
+.mic-btn{
+  flex:none; width:var(--sp-7); min-height:var(--sp-7); display:flex; align-items:center; justify-content:center;
+  background:var(--card); border:1.5px solid var(--hair-strong); border-radius:8px; color:var(--ink-2); cursor:pointer; position:relative;
+}
+.mic-btn svg{width:19px; height:19px;}
+.mic-btn:active{background:var(--hair);}
+.mic-btn.recording{background:var(--rose-soft); border-color:var(--rose); color:var(--rose);}
+.mic-btn .rec-dot{position:absolute; top:6px; right:6px; width:7px; height:7px; border-radius:50%; background:var(--rose); animation:recPulse 1s ease-in-out infinite;}
+.mic-btn[hidden]{display:none;}
+.sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;}
 @keyframes recPulse{0%,100%{opacity:1;} 50%{opacity:.35;}}
 
 .quickload{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 0 var(--sp-4);}
@@ -179,6 +186,9 @@ select{
   border-radius:8px; padding:14px 22px; font-size:15.5px; font-weight:600; text-align:center; cursor:pointer; min-height:var(--sp-7);
 }
 .btn-secondary:active{background:var(--hair);}
+.worker-summary-btn{display:flex; align-items:center; justify-content:space-between; text-align:left; font-weight:500; gap:10px;}
+.worker-summary-btn #workerSummary{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--ink-2);}
+.worker-summary-btn .worker-summary-chev{color:var(--green-deep); font-weight:600; flex:none;}
 
 .btn-text{
   display:inline-flex; align-items:center; gap:6px; background:var(--card); border:1.5px solid var(--ink); color:var(--ink);
@@ -196,6 +206,27 @@ select{
    FEEDBACK
    ===================================================================== */
 .msg{font-size:13.5px; line-height:1.5; padding:12px 14px; border-radius:10px; margin-top:var(--sp-4); display:none; font-weight:500;}
+
+/* =====================================================================
+   MODAL — small blocking popup for setup-dependent errors (e.g. missing
+   Worker proxy URL), with a direct link into the relevant setup screen.
+   ===================================================================== */
+.modal-overlay{
+  position:fixed; inset:0; z-index:200; background:rgba(10,10,10,.5);
+  display:flex; align-items:center; justify-content:center; padding:24px;
+  -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px);
+}
+.modal-overlay[hidden]{display:none;}
+.modal-card{
+  width:100%; max-width:340px; background:var(--card); border-radius:16px; padding:22px 20px 18px;
+  box-shadow:0 16px 48px rgba(0,0,0,.28); animation:modalIn .18s ease;
+}
+@keyframes modalIn{from{transform:translateY(6px) scale(.98); opacity:0;} to{transform:translateY(0) scale(1); opacity:1;}}
+.modal-title{font-family:var(--display); font-size:17px; font-weight:600; margin:0 0 8px; color:var(--ink);}
+.modal-body{font-size:14px; line-height:1.5; color:var(--ink-2); margin:0;}
+.modal-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:20px;}
+.modal-actions .btn-text{padding:9px 4px;}
+.modal-actions .btn-primary{width:auto; padding:11px 18px; min-height:auto; font-size:14.5px;}
 .msg:not(:empty){display:block;}
 .msg.ok{color:var(--green-deep); background:var(--card-tint);}
 .msg.err{color:var(--rose); background:var(--rose-soft);}
@@ -217,15 +248,6 @@ select{
 /* connected: top-anchored dashboard, natural flow, no forced spacer */
 .home-connected{display:none; width:100%;}
 .home-connected.show{display:block;}
-.home-row{
-  display:flex; align-items:center; justify-content:center; gap:12px; padding:15px 22px; width:100%;
-  border:1.5px solid var(--ink); border-radius:8px; margin-top:10px; cursor:pointer; background:var(--card);
-}
-.home-row[hidden]{display:none;}
-.home-row:active{background:var(--ink);}
-.home-row:active .label,.home-row:active .chev{color:#fff;}
-.home-row .label{font-size:16px; font-weight:600; color:var(--ink);}
-.home-row .chev{color:var(--ink-3); flex:none;}
 .home-recent{font-size:12.5px; color:var(--ink-2); margin:var(--sp-3) auto 0; font-weight:500;}
 .home-recent.link{color:var(--green); font-weight:600; text-decoration:underline; text-decoration-color:var(--card-tint-border); text-underline-offset:2px; cursor:pointer;}
 .conn-badge{display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; margin-bottom:var(--sp-3);}
@@ -236,7 +258,7 @@ select{
 .conn-badge.unverified .dot{background:var(--amber);}
 .conn-badge.offline{color:var(--ink-3);}
 .conn-badge.offline .dot{background:var(--ink-3);}
-.home-row .count{color:var(--ink-3); font-weight:500;}
+.count{color:var(--ink-3); font-weight:500;}
 
 /* not connected: centered empty state, like a native empty inbox */
 .home-empty{display:none; flex:1; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:var(--sp-6) var(--sp-4); min-height:52vh;}
@@ -315,8 +337,12 @@ select{
    ===================================================================== */
 .center-stage{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:var(--sp-5);}
 .loader-ring{width:44px; height:44px; border-radius:50%; border:3px solid var(--card-tint-border); border-top-color:var(--green); animation:spin 1s linear infinite; margin-bottom:var(--sp-5);}
+.error-icon{margin-bottom:var(--sp-5); flex:none;}
 .loader-title{font-family:var(--display); font-size:18px; font-weight:600; margin:0 0 6px;}
 .loader-sub{font-size:13.5px; color:var(--ink-2);}
+.generating-actions{display:flex; flex-direction:column; align-items:stretch; gap:8px; width:100%; max-width:280px; margin-top:20px;}
+.generating-actions .btn-secondary{margin:0;}
+.generating-actions .btn-text{margin:0; text-align:center; padding:8px 0;}
 .checklist{width:100%; max-width:340px; margin-top:var(--sp-5); text-align:left; background:var(--card); border:1.5px solid var(--hair); border-radius:14px; padding:6px 16px;}
 .check-row{display:flex; align-items:center; gap:10px; padding:11px 0; font-size:13.5px; color:var(--ink-2); border-bottom:1px solid var(--hair);}
 .check-row:last-child{border-bottom:none;}
@@ -413,7 +439,7 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
     <section class="screen" data-screen="home">
       <div class="screen-scroll home-scroll">
         <!-- connected state: top-anchored status line only; the two real
-             options (New batch / Existing items) live together in the footer -->
+             options (New item / Existing items) live together in the footer -->
         <div class="home-connected" id="homeConnected">
           <span class="conn-badge" id="homeConnBadge"></span>
           <p class="large-subtitle" id="homeProjectLine">TF100 PAM Gap Management</p>
@@ -435,15 +461,11 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
       </div>
       <!-- both real options live in the thumb zone together -->
       <div class="screen-foot">
-        <button class="btn-primary" id="homePrimaryBtn" hidden>New batch</button>
+        <button class="btn-primary" id="homePrimaryBtn" hidden>New item</button>
         <button class="btn-primary" id="homeConnectBtn" hidden>Connect Azure DevOps</button>
-        <div class="home-row" id="homeExistingBtn" hidden>
-          <span class="label">Existing items</span>
-          <span class="chev"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        </div>
-        <div class="home-row" id="homeQueueBtn" hidden>
-          <span class="label">Queue<span class="count" id="homeQueueCount"></span></span>
-          <span class="chev"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div class="text-row">
+          <button class="btn-text muted" id="homeExistingBtn" hidden>Existing items</button>
+          <button class="btn-text muted" id="homeQueueBtn" hidden>Queue<span class="count" id="homeQueueCount"></span></button>
         </div>
       </div>
     </section>
@@ -500,9 +522,12 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
         <p class="intro">Your personal access token is stored only on this device.</p>
 
         <div class="field">
-          <label for="proxy">Worker proxy URL <span style="font-weight:400; color:var(--ink-3);">(optional)</span></label>
-          <input type="text" id="proxy" placeholder="https://ado-proxy.yourname.workers.dev">
-          <div class="hint">Needed for AI item generation, and if Azure DevOps blocks direct browser calls.</div>
+          <label>Worker proxy</label>
+          <button type="button" class="btn-secondary worker-summary-btn" id="openWorkerSettingsBtn">
+            <span id="workerSummary">Not set</span>
+            <span class="worker-summary-chev">Edit ›</span>
+          </button>
+          <div class="hint">A separate, optional setting — needed for AI item generation, and if Azure DevOps blocks direct browser calls.</div>
         </div>
         <div class="field">
           <label for="pat">Personal access token</label>
@@ -523,6 +548,22 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
           <button class="btn-text muted" id="skipTestBtn">Continue without testing</button>
           <button class="btn-text danger" id="forgetBtn">Forget saved token</button>
         </div>
+      </div>
+    </section>
+
+    <!-- ============ SETUP: WORKER PROXY ============ -->
+    <section class="screen" data-screen="setup-worker">
+      <div class="screen-scroll">
+        <p class="intro">A separate address from your Azure DevOps org — it's your Cloudflare Worker, used for AI item generation and, on some networks, to proxy calls to Azure DevOps.</p>
+        <div class="field">
+          <label for="proxy">Worker proxy URL <span style="font-weight:400; color:var(--ink-3);">(optional)</span></label>
+          <input type="text" id="proxy" placeholder="https://ado-proxy.yourname.workers.dev">
+          <div class="hint">It should look like <code>https://your-worker-name.your-subdomain.workers.dev</code> — the address Cloudflare gives you after deploying the Worker, with no trailing slash or path after it.</div>
+        </div>
+        <div class="msg" id="workerStatus"></div>
+      </div>
+      <div class="screen-foot">
+        <button class="btn-primary" id="workerSaveBtn"><span id="workerSaveBtnLabel">Save &amp; check connection</span></button>
       </div>
     </section>
 
@@ -561,30 +602,37 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
         <div class="field">
           <textarea id="dump" rows="10" placeholder="Paste your notes here…"></textarea>
         </div>
-        <div class="field-actions">
-          <button type="button" class="icon-btn" id="dictateBtn">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 003-3V6a3 3 0 10-6 0v6a3 3 0 003 3z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 11v1a6 6 0 0012 0v-1M12 18v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span id="dictateBtnLabel">Dictate</span>
-          </button>
-        </div>
         <div class="msg" id="dictateStatus"></div>
-        <div class="text-row left"><button class="btn-text muted" id="analyzeBtn">Just split by blank lines instead</button></div>
         <div class="msg" id="analyzeStatus"></div>
       </div>
       <div class="screen-foot">
-        <button class="btn-primary" id="aiSplitBtn"><span id="aiSplitLabel">Generate items</span></button>
+        <div class="foot-row">
+          <button class="btn-primary" id="aiSplitBtn"><span id="aiSplitLabel">Generate items</span></button>
+          <button type="button" class="mic-btn" id="dictateBtn" aria-label="Dictate">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 003-3V6a3 3 0 10-6 0v6a3 3 0 003 3z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 11v1a6 6 0 0012 0v-1M12 18v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span id="dictateBtnLabel" class="sr-only">Dictate</span>
+          </button>
+        </div>
+        <div class="text-row"><button class="btn-text muted" id="analyzeBtn">Just split by blank lines instead</button></div>
       </div>
     </section>
 
     <!-- ============ GENERATING (transient) ============ -->
     <section class="screen" data-screen="generating">
       <div class="center-stage">
-        <div class="loader-ring"></div>
+        <div class="loader-ring" id="generatingRing"></div>
+        <svg class="error-icon" id="generatingErrorIcon" width="46" height="46" viewBox="0 0 24 24" fill="none" style="display:none;">
+          <circle cx="12" cy="12" r="9.25" stroke="var(--rose)" stroke-width="1.7"/>
+          <path d="M12 7.5v5.5M12 16.5h.01" stroke="var(--rose)" stroke-width="1.9" stroke-linecap="round"/>
+        </svg>
         <h2 class="loader-title" id="generatingTitle">Reading through your notes…</h2>
+        <div class="msg" id="generatingError" style="max-width:320px; margin-top:6px;"></div>
         <p class="loader-sub" id="generatingSub">Pulling out the distinct topics.</p>
-        <div class="msg" id="generatingError" style="max-width:320px; margin-top:20px;"></div>
-        <button class="btn-secondary" id="generatingRetryBtn" style="display:none; max-width:260px; margin-top:18px;">Try again</button>
-        <button class="btn-text muted" id="generatingManualBtn" style="display:none; margin-top:12px;">Split by blank lines instead</button>
+        <div class="generating-actions" id="generatingActions" style="display:none;">
+          <button class="btn-secondary" id="generatingRetryBtn">Try again</button>
+          <button class="btn-text muted" id="generatingCheckProxyBtn">Check proxy URL</button>
+          <button class="btn-text muted" id="generatingManualBtn">Split by blank lines instead</button>
+        </div>
       </div>
     </section>
 
@@ -620,6 +668,7 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
         <div class="preview-card" id="previewList"></div>
       </div>
       <div class="screen-foot">
+        <div class="msg" id="confirmUnverifiedMsg" style="display:none;"></div>
         <button class="btn-primary" id="createBtn">Create in Azure DevOps</button>
       </div>
     </section>
@@ -654,7 +703,7 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
         <button class="btn-primary" id="resultsHomeBtn">Back to home</button>
         <div class="text-row">
           <button class="btn-text muted" id="resultsQueueBtn" hidden>Go to queue</button>
-          <button class="btn-text muted" id="resultsAgainBtn">Create another batch</button>
+          <button class="btn-text muted" id="resultsAgainBtn">Create another item</button>
         </div>
       </div>
     </section>
@@ -730,6 +779,17 @@ button.plain-row{width:100%; background:none; border:none; text-align:left; curs
     <span id="fabBackLabel">Back</span>
   </button>
   <div class="step-dots" id="stepDots" hidden></div>
+
+  <div class="modal-overlay" id="proxyModalOverlay" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="proxyModalTitle" aria-describedby="proxyModalBody">
+      <h3 class="modal-title" id="proxyModalTitle">Worker proxy URL needed</h3>
+      <p class="modal-body" id="proxyModalBody">AI item generation needs a Worker proxy URL. Add one in your connection setup, or just split by blank lines instead.</p>
+      <div class="modal-actions">
+        <button class="btn-text muted" id="proxyModalCancel">Not now</button>
+        <button class="btn-primary" id="proxyModalGo">Go to setup</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -747,8 +807,8 @@ screens.home.classList.add('active');
 
 const NAV_TITLES = {
   home:'Review Items', 'setup-org':'Org & project', 'setup-presets':'Saved setups',
-  'setup-access':'Your access', 'setup-type':'Work item type', paste:'New batch',
-  generating:'New batch', review:'Review items', 'extra-fields':'Required fields',
+  'setup-access':'Your access', 'setup-worker':'Worker proxy', 'setup-type':'Work item type', paste:'New item',
+  generating:'New item', review:'Review items', 'extra-fields':'Required fields',
   confirm:'Confirm', creating:'Sending', results:'Results', existing:'Existing items',
   queue:'Queue', 'item-detail':'Item details'
 };
@@ -911,6 +971,37 @@ async function loadLastFields(){
   try{ const r = await storage.get('ado_last', false); if(r && r.value) applyFields(JSON.parse(r.value)); }catch(e){}
 }
 fieldIds.forEach(id => $(id).addEventListener('input', saveLastFields));
+
+/* The Worker proxy URL lives on its own screen now (it's a separate,
+   device-level setting from the per-project org/PAT), so the access
+   screen just shows a one-line summary of it with a way in to edit. */
+function updateWorkerSummary(){
+  const v = $('proxy').value.trim();
+  $('workerSummary').textContent = v || 'Not set';
+}
+$('proxy').addEventListener('input', updateWorkerSummary);
+$('openWorkerSettingsBtn').addEventListener('click', ()=> go('setup-worker'));
+$('workerSaveBtn').addEventListener('click', async ()=>{
+  const proxy = $('proxy').value.trim().replace(/\/$/,'');
+  $('proxy').value = proxy;
+  await saveLastFields();
+  updateWorkerSummary();
+  if(!proxy){ setMsg('workerStatus','Saved — no proxy URL set.','ok'); return; }
+  $('workerSaveBtn').disabled = true;
+  $('workerSaveBtnLabel').innerHTML = '<span class="spin"></span> Checking…';
+  setMsg('workerStatus','','');
+  try{
+    await fetch(proxy, { method:'GET', mode:'cors' });
+    setMsg('workerStatus','Saved — the Worker responded, so this URL is reachable.','ok');
+  }catch(err){
+    const detail = err && err.message ? ` (${err.message})` : '';
+    setMsg('workerStatus', `Saved, but couldn't reach it — double-check the URL is correct and the Worker is deployed.${detail}`, 'err');
+  } finally {
+    $('workerSaveBtn').disabled = false;
+    $('workerSaveBtnLabel').textContent = 'Save & check connection';
+  }
+});
+onEnter['setup-worker'] = updateWorkerSummary;
 $('pat').addEventListener('change', async ()=>{ await savePatIfRemembering(); await saveLastFields(); });
 $('rememberPat').addEventListener('change', async e=>{
   if(e.target.checked) await savePatIfRemembering();
@@ -1167,17 +1258,20 @@ onEnter['setup-type'] = ()=>{
 };
 $('typeContinueBtn').addEventListener('click', async ()=>{
   await saveLastFields();
-  // One last silent check in case the connection came back (or the
-  // PAT got fixed) while the user was still on this screen — so the
-  // status shown on Home reflects reality, not a stale earlier check.
-  if(navigator.onLine && testState !== 'ok') await verifyConnection({ silent:true });
+  // Navigate immediately — don't make the user wait on a network
+  // call just to see the home screen. Any last-second recheck
+  // happens quietly after we've already moved on.
   resetTo('home');
   refreshHome();
+  if(navigator.onLine && testState !== 'ok'){
+    verifyConnection({ silent:true }).then(()=>{ if(activeId==='home') refreshHome(); });
+  }
 });
 
 (async ()=>{
   await loadLastFields();
   await loadSavedPat();
+  updateWorkerSummary();
   await refreshQuickChips();
   refreshHome();
   handleIncomingShare();
@@ -1203,6 +1297,7 @@ window.addEventListener('offline', ()=>{
 });
 
 onEnter['setup-access'] = async ()=>{
+  updateWorkerSummary();
   const c = cfg();
   const hasSaved = !!(c.pat && c.org && c.project);
 
@@ -1267,14 +1362,19 @@ function handleAutoRecord(){
    HOME — one state visible at a time, no redundant messaging
    ========================================================= */
 function isConfigured(){
-  return !!($('org').value.trim() && $('project').value.trim() && $('pat').value.trim());
+  // A token is only needed to actually reach Azure DevOps. Requiring
+  // one just to unlock "New item" defeats the entire point of the
+  // offline/queue flow — you should be able to start capturing items
+  // with just an org + project, even before you have a PAT in hand.
+  return !!($('org').value.trim() && $('project').value.trim());
 }
 function renderConnBadge(){
   const badge = $('homeConnBadge');
   if(!badge) return;
   if(!isConfigured()){ badge.className = 'conn-badge'; badge.innerHTML=''; return; }
   let state, label;
-  if(!navigator.onLine){ state='offline'; label='Offline — new items will be queued'; }
+  if(!$('pat').value.trim()){ state='unverified'; label='No access token yet — items will be queued until you add one'; }
+  else if(!navigator.onLine){ state='offline'; label='Offline — new items will be queued'; }
   else if(testState === 'ok'){ state='ok'; label='Connected'; }
   else { state='unverified'; label='Not verified — new items will be queued if this fails'; }
   badge.className = 'conn-badge ' + state;
@@ -1401,6 +1501,7 @@ function setDictateUi(on){
   dictating = on;
   $('dictateBtn').classList.toggle('recording', on);
   $('dictateBtnLabel').textContent = on ? 'Listening…' : 'Dictate';
+  $('dictateBtn').setAttribute('aria-label', on ? 'Listening…' : 'Dictate');
   if(on){
     $('dictateBtn').querySelector('.rec-dot')?.remove();
     const dot = document.createElement('span');
@@ -1498,17 +1599,29 @@ async function callWorkerAi(c, userText){
   return Array.isArray(parsed.items) ? parsed.items : [];
 }
 
+function openProxyModal(){ $('proxyModalOverlay').hidden = false; }
+function closeProxyModal(){ $('proxyModalOverlay').hidden = true; }
+$('proxyModalCancel').addEventListener('click', closeProxyModal);
+$('proxyModalOverlay').addEventListener('click', (e)=>{ if(e.target === $('proxyModalOverlay')) closeProxyModal(); });
+$('proxyModalGo').addEventListener('click', ()=>{
+  closeProxyModal();
+  go('setup-worker');
+  setTimeout(()=> $('proxy').focus(), 350);
+});
+
 $('aiSplitBtn').addEventListener('click', async ()=>{
   const text = $('dump').value.trim();
   if(!text){ setMsg('analyzeStatus','Paste something first.','err'); return; }
   const c = cfg();
-  if(!c.proxy){ setMsg('analyzeStatus','Set a Worker proxy URL in the connection step first.','err'); return; }
+  if(!c.proxy){ openProxyModal(); return; }
   go('generating');
+  $('generatingRing').style.display = '';
+  $('generatingErrorIcon').style.display = 'none';
+  $('generatingActions').style.display = 'none';
   $('generatingTitle').textContent = 'Reading through your notes…';
+  $('generatingSub').style.display = '';
   $('generatingSub').textContent = 'Pulling out the distinct topics.';
   setMsg('generatingError','','');
-  $('generatingRetryBtn').style.display = 'none';
-  $('generatingManualBtn').style.display = 'none';
   try{
     const items = await callWorkerAi(c, text);
     if(items.length === 0){ showGeneratingError('AI found nothing usable in that text.'); return; }
@@ -1516,17 +1629,34 @@ $('aiSplitBtn').addEventListener('click', async ()=>{
     renderItems();
     replaceTop('review');
   }catch(err){
-    showGeneratingError(err.message || 'The AI request failed.');
+    showGeneratingError(describeAiError(err, c));
   }
 });
+/* Browsers report a broken fetch (wrong domain, Worker not deployed,
+   DNS failure, etc.) with a near-useless generic message — "Load
+   failed" in Safari, "Failed to fetch" in Chrome. Turn that into
+   something that actually points at the proxy URL as the thing to
+   check, rather than leaving the person staring at "Load failed". */
+function describeAiError(err, c){
+  const raw = (err && err.message) || 'The AI request failed.';
+  if(/load failed|failed to fetch|networkerror|network request failed/i.test(raw)){
+    return `Couldn't reach ${c.proxy || 'the Worker proxy'} — check that the proxy URL is correct and the Worker is deployed there. (${raw})`;
+  }
+  return raw;
+}
 function showGeneratingError(msg){
+  $('generatingRing').style.display = 'none';
+  $('generatingErrorIcon').style.display = '';
   $('generatingTitle').textContent = "Couldn't generate items";
-  $('generatingSub').textContent = '';
+  $('generatingSub').style.display = 'none';
   setMsg('generatingError', msg, 'err');
-  $('generatingRetryBtn').style.display = 'block';
-  $('generatingManualBtn').style.display = 'inline-flex';
+  $('generatingActions').style.display = 'flex';
 }
 $('generatingRetryBtn').addEventListener('click', ()=> $('aiSplitBtn').click());
+$('generatingCheckProxyBtn').addEventListener('click', ()=>{
+  go('setup-worker');
+  setTimeout(()=> $('proxy').focus(), 350);
+});
 $('generatingManualBtn').addEventListener('click', ()=>{
   if(splitByBlankLines()){ renderItems(); replaceTop('review'); }
   else showGeneratingError('Nothing to split — add some blank-line-separated notes.');
@@ -1832,10 +1962,26 @@ function buildConfirmScreen(){
     row.innerHTML = `<span class="n">${String(i+1).padStart(2,'0')}</span><span class="t">${escapeAttr(it.title)}</span>`;
     list.appendChild(row);
   });
-  $('createBtn').textContent = navigator.onLine ? 'Create in Azure DevOps' : 'Save to queue (offline)';
+  updateCreateBtnState();
 }
-window.addEventListener('online', ()=>{ if(activeId==='confirm') $('createBtn').textContent = 'Create in Azure DevOps'; });
-window.addEventListener('offline', ()=>{ if(activeId==='confirm') $('createBtn').textContent = 'Save to queue (offline)'; });
+function updateCreateBtnState(){
+  const msg = $('confirmUnverifiedMsg');
+  const hasToken = !!$('pat').value.trim();
+  if(!navigator.onLine || !hasToken){
+    $('createBtn').textContent = 'Save to queue' + (hasToken ? ' (offline)' : ' (no token yet)');
+    msg.style.display = 'none';
+  } else if(testState !== 'ok'){
+    $('createBtn').textContent = 'Try Azure DevOps (unverified)';
+    msg.style.display = 'block';
+    msg.className = 'msg warn';
+    msg.textContent = "Your connection hasn't been verified. We'll try to create these now — anything that fails gets saved to your queue automatically, nothing is lost.";
+  } else {
+    $('createBtn').textContent = 'Create in Azure DevOps';
+    msg.style.display = 'none';
+  }
+}
+window.addEventListener('online', ()=>{ if(activeId==='confirm') updateCreateBtnState(); });
+window.addEventListener('offline', ()=>{ if(activeId==='confirm') updateCreateBtnState(); });
 
 /* =========================================================
    CREATE ITEMS
@@ -1968,9 +2114,10 @@ $('createBtn').addEventListener('click', async ()=>{
   if(toCreate.length === 0) return;
   const { values } = getExtraFieldValues();
 
-  // Offline right now — skip the network entirely and save straight
-  // to the queue instead of letting every request fail one by one.
-  if(!navigator.onLine){
+  // Offline, or no token entered yet — either way this can't reach
+  // Azure DevOps, so skip the network entirely and go straight to
+  // the queue instead of firing off a request that's guaranteed to fail.
+  if(!navigator.onLine || !c.pat){
     await queueBatch(c, toCreate, values);
     buildResultsScreen([], toCreate);
     stack = ['home','results'];
